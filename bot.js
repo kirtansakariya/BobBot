@@ -17,7 +17,8 @@ bot.on('ready', function(evt) {
   logger.info('Logged in as: ');
   logger.info(bot.username + ' - (' + bot.id + ')');
 });
-bot.on('message', function(user, userID, channelID, message, evt) {
+bot.on('message', message => {
+  console.log(message.member);
   if (message.substring(0, 1) == ';') {
     var args = message.substring(1).split(' ');
     var cmd = args[0];
