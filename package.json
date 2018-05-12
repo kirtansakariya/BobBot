@@ -4,5 +4,8 @@
     "description": "-",
     "main": "bot.js",
     "author": "bobby1298",
-    "dependencies": {}
+    "dependencies": {
+        "discord.io": "github:woor/discord.io#gateway_v6",
+        "winston": "^2.4.2"
+    }
 }
