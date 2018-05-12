@@ -1,0 +1,8 @@
+{
+    "name": "BobBot",
+    "version": "1.0.0",
+    "description": "-",
+    "main": "bot.js",
+    "author": "bobby1298",
+    "dependencies": {}
+}
