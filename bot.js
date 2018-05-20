@@ -29,7 +29,9 @@ function play(message) {
   var so2 = new Song('B', 'bob2');
   so.hello();
   so.getUrl();
+  so.getUser();
   so2.getUrl();
+  so2.getUser();
   console.log("hi");
   console.log(bot.voiceConnections[0] + "\n\n\n\n\n\n\n" + bot.voiceConnections[1]);
 //  console.log(bot.voiceConnections);
@@ -56,10 +58,17 @@ function Song(url, user) {
   this.url = url;
   this.user = user;
 }
+
 Song.prototype.hello = function() {
   console.log("Song Hello");
 }
+
 Song.prototype.getUrl = function() {
   console.log(this.url);
   return this.url;
+}
+
+Song.prototype.getUser = function() {
+  console.log(this.user);
+  return this.user;
 }
