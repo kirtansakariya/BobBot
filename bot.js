@@ -4,7 +4,9 @@ const bot = new Discord.Client({
   token: auth.token,
   autorun: true
 });
-
+const ytdl = require('ytdl-core');
+const streamOptions = { seek: 0, volume: 1 };
+const fs = require('fs');
 var players = [];
 
 bot.login(auth.token);
@@ -43,11 +45,17 @@ function play(message) {
   message.channel.send('pong');
   if(message.member.voiceChannel) {
     message.member.voiceChannel.join()
-    .then(connection => {
-      message.reply("hello");
-      console.log("catching");
-    })
-    .catch(console.log);
+      .then(connection => {
+        const stream = ytdl('https://www.youtube.com/watch?v=XAWgeLF9EVQ', { filter : 'audioonly' }, { passes : 3 });
+        stream.on('error', e => console.log(`e w stream 2 ${e}`));
+        const dispatcher = connection.playStream(stream);
+        connection.player.on('debug', console.log);
+        connection.player.on('error', err => console.log(123, err));
+        //const dispatcher = connection.playStream(ytdl('https://www.youtube.com/watch?v=_XXOSf0s2nk', { filter: 'audioonly' }, { passes: 3 }));
+        //message.reply("hello");
+        //console.log("catching");
+      })
+      .catch(console.log);
     var dj = getDJ(message.author.username);
     console.log("retunred value: " + dj.user);
   } else {
