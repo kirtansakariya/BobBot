@@ -49,9 +49,22 @@ function play(message) {
     })
     .catch(console.log);
     var dj = getDJ(message.author.username);
+    console.log("retunred value: " + dj.user);
   } else {
     message.channel.send('You must be in a voice chat to join');
   }
+}
+
+function getDJ(name) {
+  var i = 0;
+  while(i < players.length) {
+    if(name === players[i].user) return players[i];
+    i++;
+  }
+  console.log("new dj: " + name);
+  var temp = new DJ(name);
+  players.push(temp);
+  return temp;
 }
 
 /*
