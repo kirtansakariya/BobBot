@@ -5,6 +5,8 @@ const bot = new Discord.Client({
   autorun: true
 });
 
+var players = [];
+
 bot.login(auth.token);
 
 bot.on('ready', function(evt) {
@@ -12,7 +14,7 @@ bot.on('ready', function(evt) {
 });
 
 bot.on('message', message => {
-  console.log(message.content);
+  console.log(message.content + " message: " + message + " member: " + message.member + " type: " + typeof(message));
   if (message.content.substring(0, 1) == ';') {
     var args = message.content.substring(1).split(' ');
     var cmd = args[0];
@@ -30,6 +32,8 @@ function play(message) {
   so.hello();
   so.getUrl();
   so.getUser();
+  console.log("testing: " + so.url + " message.member: " + message.member + " message: " + message + " dream: " + message.author.username);
+  if(message === "bobby1298") console.log("yayyyyyy");
   so2.getUrl();
   so2.getUser();
   console.log("hi");
@@ -44,6 +48,7 @@ function play(message) {
       console.log("catching");
     })
     .catch(console.log);
+    var dj = getDJ(message.author.username);
   } else {
     message.channel.send('You must be in a voice chat to join');
   }
@@ -57,6 +62,7 @@ Song class
 function Song(url, user) {
   this.url = url;
   this.user = user;
+  this.next = null;
 }
 
 Song.prototype.hello = function() {
@@ -71,4 +77,25 @@ Song.prototype.getUrl = function() {
 Song.prototype.getUser = function() {
   console.log(this.user);
   return this.user;
+}
+
+/*
+-------------
+DJ class
+-------------
+*/
+function DJ(user) {
+  this.user = user;
+  this.head = null;
+  this.last = null;
+}
+
+DJ.prototype.addSong = new function(song) {
+  if(this.head == null) {
+    this.head = song;
+    this.last = song;
+    return;
+  }
+  this.last.next = song;
+  this.last = song;
 }
