@@ -46,11 +46,15 @@ function play(message) {
   if(message.member.voiceChannel) {
     message.member.voiceChannel.join()
       .then(connection => {
-        const stream = ytdl('https://www.youtube.com/watch?v=XAWgeLF9EVQ', { filter : 'audioonly' }, { passes : 3 });
-        stream.on('error', e => console.log(`e w stream 2 ${e}`));
-        const dispatcher = connection.playStream(stream);
+        //const stream = ytdl('https://www.youtube.com/watch?v=XAWgeLF9EVQ', { filter : 'audioonly' }, { passes : 3 });
+        //stream.on('error', console.error);
+        //const dispatcher = connection.playStream(stream);
+        const dispatcher = connection.playFile('/Users/kirtan/Desktop/BobBot/SampleAudio_0.7mb.mp3');
+        console.log(dispatcher);
+        dispatcher.resume();
+        dispatcher.on('error', console.error);
         connection.player.on('debug', console.log);
-        connection.player.on('error', err => console.log(123, err));
+        connection.player.on('error', console.error);
         //const dispatcher = connection.playStream(ytdl('https://www.youtube.com/watch?v=_XXOSf0s2nk', { filter: 'audioonly' }, { passes: 3 }));
         //message.reply("hello");
         //console.log("catching");
