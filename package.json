@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "name": "BobBot",
   "version": "1.0.0",
   "description": "-",
@@ -18,22 +17,4 @@
     "ytdl-core": "^0.20.4",
     "zlib-sync": "^0.1.4"
   }
-=======
-    "name": "BobBot",
-    "version": "1.0.0",
-    "description": "-",
-    "main": "bot.js",
-    "author": "bobby1298",
-    "dependencies": {
-        "bufferutil": "^3.0.5",
-        "discord.js": "github:discordjs/discord.js",
-        "erlpack": "github:discordapp/erlpack",
-        "libsodium-wrappers": "^0.7.3",
-        "node-opus": "^0.2.9",
-        "opusscript": "0.0.4",
-        "sodium": "^2.0.3",
-        "uws": "^9.148.0",
-        "zlib-sync": "^0.1.4"
-    }
->>>>>>> 40323e8781e418727a5a770352f6cf9df85ab468
 }
