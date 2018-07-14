@@ -7,6 +7,8 @@ const bot = new Discord.Client({
 const ytdl = require('ytdl-core');
 const streamOptions = { seek: 0, volume: 1 };
 const fs = require('fs');
+const DJ = require('./DJ');
+const Song = require('./Song');
 var players = [];
 
 bot.login(auth.token);
@@ -28,9 +30,12 @@ bot.on('message', message => {
   }
 });
 
+console.log(Song);
+
 function play(message) {
-  var so = new Song('A', 'bob');
-  var so2 = new Song('B', 'bob2');
+  var so = Song.init('A', 'bob1');
+  var so2 = Song.init('B', 'bob2');
+  console.log(so);
   so.hello();
   so.getUrl();
   so.getUser();
@@ -50,7 +55,7 @@ function play(message) {
         const dispatcher = connection.play(stream);
         // const dispatcher = connection.playFile('/Users/kirtan/Desktop/BobBot/SampleAudio_0.7mb.mp3');
         console.log(dispatcher);
-        dispatcher.resume();
+        //dispatcher.resume();
         dispatcher.on('error', console.error);
         connection.player.on('debug', console.log);
         connection.player.on('error', console.error);
@@ -82,7 +87,7 @@ function getDJ(name) {
 -------------
 Song class
 -------------
-*/
+
 function Song(url, user) {
   this.url = url;
   this.user = user;
@@ -101,13 +106,13 @@ Song.prototype.getUrl = function() {
 Song.prototype.getUser = function() {
   console.log(this.user);
   return this.user;
-}
+}*/
 
 /*
 -------------
 DJ class
 -------------
-*/
+
 function DJ(user) {
   this.user = user;
   this.head = null;
@@ -122,4 +127,4 @@ DJ.prototype.addSong = new function(song) {
   }
   this.last.next = song;
   this.last = song;
-}
+}*/
