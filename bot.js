@@ -9,6 +9,8 @@ const streamOptions = { seek: 0, volume: 1 };
 const fs = require('fs');
 const DJ = require('./DJ');
 const Song = require('./Song');
+const Soundcloud = require('./Soundcloud');
+const Youtube = require('./Youtube');
 var players = [];
 
 bot.login(auth.token);
@@ -31,6 +33,20 @@ bot.on('message', message => {
 });
 
 console.log(Song);
+console.log(Soundcloud);
+console.log(Youtube);
+console.log(Song.Song);
+//var so = Song.init('A', 'bob1');
+var so = new Song.Song('A', 'bob1');
+//console.log(Song.Song());
+var so2 = new Song.Song('B', 'bob2');
+//var so2 = Song.init('B', 'bob2');
+console.log(so);
+console.log(so.url);
+console.log(so2);
+console.log("afdasdf " + so.getUrl());
+//console.log(so2);
+console.log(so2.getUrl());
 
 function play(message) {
   var so = Song.init('A', 'bob1');
