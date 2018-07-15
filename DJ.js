@@ -3,16 +3,22 @@
  */
 function DJ(user) {
   this.user = user;
-  this.head = null;
-  this.last = null;
   this.num = 0;
+  this.songs = [];
 }
 
 /*
  * Add a new DJ
+ *
+ * @param {String} url
+ * @return {DJ} this
  */
-DJ.prototype.init = function() {
+DJ.prototype.init = function(u) {
   console.log("need to update inity");
+  this.songs = [];
+  this.num = 0;
+  this.user = u;
+  return this;
 };
 
 /*
@@ -22,14 +28,6 @@ DJ.prototype.init = function() {
  */
 DJ.prototype.addSong = function(url) {
   //determine song method to figure out if its youtube or soundcloud and assign to song
-  var song;
-  if(this.head == null) {
-    this.head = song;
-    this.last = song;
-    return;
-  }
-  this.last.next = song;
-  this.last = song;
 };
 
 module.exports = {

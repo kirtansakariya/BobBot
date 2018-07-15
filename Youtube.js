@@ -18,6 +18,15 @@ Youtube.prototype.init = function(u) {
   return this;
 };
 
+/*
+ * Creates a stream from the Youtube url
+ *
+ * @return {Object} the stream
+ */
+Youtube.prototype.getStream = function() {
+  return ytdl(this.url, { filter : 'audioonly' });
+};
+
 module.exports = {
   Youtube: Youtube
 }
