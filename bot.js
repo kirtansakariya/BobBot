@@ -11,7 +11,10 @@ const DJ = require('./DJ');
 const Song = require('./Song');
 const Soundcloud = require('./Soundcloud');
 const Youtube = require('./Youtube');
-var players = [];
+const djs = [];
+let dispatcher = null;
+let counter = 0;
+let currCounter = 0;
 
 bot.login(auth.token);
 
@@ -28,9 +31,52 @@ bot.on('message', message => {
     switch(cmd) {
       case 'ping':
         play(message);
+        break;
+      case 'play':
+        addSongs(message.member, args[0]);
+        break;
+      case 'skip':
+        nextSong(message.member);
+        break;
     }
   }
 });
+
+// Add songs to the appropriate DJ
+function addSongs(member, url) {
+  dj = getDJ(member);
+  dj.addSong(url);
+  if (dispatcher == null) {
+    nextSong(member);
+  }
+}
+
+// Gets the DJ
+function getDJ(member) {
+  var dj = 0;
+  while(dj < djs.length) {
+    if(djs[dj].user == member) {
+      console.log("returning dj: " + djs[dj].user);
+      return djs[dj];
+    }
+  }
+  dj = new DJ.DJ(member);
+  djs.push(dj);
+  counter++;
+  return dj;
+}
+
+function nextSong(mem) {
+  var temp = djs.shift();
+  var stream = temp.getStream();
+  if(member.voiceChannel) {
+    member.voiceChannel.join().then(connection => {
+      dispatcher = connection.play(stream);
+      dispatcher.on('end', nextSong());
+      dispatcher.on('error', nextSon());
+    });
+  }
+}
 
 console.log(Song);
 console.log(Soundcloud);
@@ -48,7 +94,7 @@ console.log("afdasdf " + so.getUrl());
 //console.log(so2);
 console.log(so2.getUrl());
 
-function play(message) {
+/*function play(message) {
   var so = Song.init('A', 'bob1');
   var so2 = Song.init('B', 'bob2');
   console.log(so);
@@ -97,50 +143,4 @@ function getDJ(name) {
   var temp = new DJ(name);
   players.push(temp);
   return temp;
-}
-
-/*
--------------
-Song class
--------------
-
-function Song(url, user) {
-  this.url = url;
-  this.user = user;
-  this.next = null;
-}
-
-Song.prototype.hello = function() {
-  console.log("Song Hello");
-}
-
-Song.prototype.getUrl = function() {
-  console.log(this.url);
-  return this.url;
-}
-
-Song.prototype.getUser = function() {
-  console.log(this.user);
-  return this.user;
-}*/
-
-/*
--------------
-DJ class
--------------
-
-function DJ(user) {
-  this.user = user;
-  this.head = null;
-  this.last = null;
-}
-
-DJ.prototype.addSong = new function(song) {
-  if(this.head == null) {
-    this.head = song;
-    this.last = song;
-    return;
-  }
-  this.last.next = song;
-  this.last = song;
 }*/

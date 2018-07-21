@@ -6,6 +6,13 @@ const auth = require('./auth.json');
  */
 function Soundcloud(u) {
   this.url = u;
+  this.stream;
+  this.title;
+  SC.get('/resolve?url=' + this.url + '&client_id=' + auth.scid, function(err, track) {
+    //console.log(track);
+    this.stream = track.stream_url;
+    this.title = track.title;
+  });
 }
 
 /*
@@ -26,10 +33,11 @@ Soundcloud.prototype.init = function(u) {
  * @return {String} streamable url
  */
 Soundcloud.prototype.getStream = function() {
-  SC.get('/resolve?url=' + this.url + '&client_id=' + auth.scid, function(err, track) {
+  /*SC.get('/resolve?url=' + this.url + '&client_id=' + auth.scid, function(err, track) {
       console.log(track);
       return track.stream_url + "?client_id=" + auth.scid;
-  });
+  });*/
+  return this.stream_url;
 };
 
 module.exports = {
