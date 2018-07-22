@@ -15,6 +15,7 @@ const djs = [];
 let dispatcher = null;
 let counter = 0;
 let currCounter = 0;
+let conn = null;
 
 bot.login(auth.token);
 
@@ -35,6 +36,17 @@ bot.on('message', message => {
       case 'play':
         addSongs(message.member, args[0]);
         break;
+      case 'start':
+        if(dispatcher == null) nextSong(message.member);
+        break;
+      case 'leave':
+        //console.log(bot);
+        bot.leaveVoiceChannel(message.member.voiceState.channelID);
+        break;
+      case 'q' || 'queue':
+        printQueue(message.member);
+        //console.log(djs);
+        break;
       case 'skip':
         nextSong(message.member);
         break;
@@ -47,9 +59,9 @@ function addSongs(member, url) {
   dj = getDJ(member);
   dj.addSong(url, function() {
     console.log("done");
-    if (dispatcher == null) {
+    /*if (dispatcher == null) {
       nextSong(member);
-    }
+    }*/
   });
 }
 
@@ -71,13 +83,44 @@ function getDJ(member) {
 function nextSong(mem) {
   var temp = djs.shift();
   var stream = temp.getStream();
+  djs.push(temp);
+  console.log(stream);
+  console.log(mem);
   if(mem.voiceChannel) {
+    console.log("hi");
     mem.voiceChannel.join().then(connection => {
+      conn = connection;
+      console.log("hello");
       dispatcher = connection.play(stream);
       dispatcher.on('end', nextSong());
-      dispatcher.on('error', nextSon());
-    });
+      dispatcher.on('error', nextSong());
+      console.log("using connection");
+      return;
+    }).catch(console.log);
+    console.log(conn);
+    if(conn != null) {
+      console.log("using conn");
+      dispatcher = conn.play(stream);
+    }
   }
+}
+
+function printQueue(mem) {
+  //var temp = JSON.parse(JSON.stringify(djs));
+  const temp = Object.assign(djs);
+  console.log(temp);
+  //console.log(djs);
+  var num = 0;
+  var td = null;
+  var ts = null;
+  while(num < 100) {
+    td = temp.shift();
+    ts = td.getSong();
+    console.log(ts.getTitle());
+    temp.push(td);
+    num++;
+  }
+  console.log(djs);
 }
 
 console.log(Song);

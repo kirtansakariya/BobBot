@@ -40,6 +40,10 @@ Soundcloud.prototype.getStream = function() {
   return this.stream_url;
 };
 
+Soundcloud.prototype.getTitle = function() {
+  return this.title;
+};
+
 module.exports = {
   Soundcloud: Soundcloud
 }

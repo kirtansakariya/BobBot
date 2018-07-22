@@ -15,7 +15,7 @@ function DJ(user) {
   this.songs = [];
 }
 
-function addYoutube(dj, url, callback) {
+async function addYoutube(dj, url, callback) {
   // need to implement adding youtube songs
   if(!url.includes("list")) {
     console.log("adding singular youtube track");
@@ -25,8 +25,8 @@ function addYoutube(dj, url, callback) {
     }));
   }
   console.log("adding youtube playlist: " + url);
-  youtube.getPlaylist(url).then(playlist => {
-    playlist.getVideos().then(videos => {
+  await youtube.getPlaylist(url).then(async function(playlist) {
+    await playlist.getVideos().then(async function(videos) {
       //console.log(videos);
       var fun = 0;
       while(videos.length > 0) {
@@ -34,9 +34,9 @@ function addYoutube(dj, url, callback) {
         console.log(v.raw.status.privacyStatus);
         console.log(v);
         console.log(videos.length);
-        var stream = ytdl('https://www.youtube.com/watch?v=' + v.id, { filter : 'audioonly' }).on('error', (err) => { console.log(err); v = null; });
+        var stream = await ytdl('https://www.youtube.com/watch?v=' + v.id, { filter : 'audioonly' }).on('error', (err) => { console.log(err); v = null; });
         if(v == null) continue;
-        //console.log("still going: " + v.title);
+        console.log("still going: " + v.title);
         dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + v.id, v.title, stream));
         dj.num++;
       }
@@ -146,6 +146,11 @@ DJ.prototype.addSong = function(url, callback) {
 DJ.prototype.getStream = function() {
   return this.songs.shift().getStream();
 };
+
+DJ.prototype.getSong = function() {
+  this.num--;
+  return this.songs.shift();
+}
 
 module.exports = {
   DJ: DJ

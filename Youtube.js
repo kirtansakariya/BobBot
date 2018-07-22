@@ -36,7 +36,12 @@ Youtube.prototype.init = function(u) {
  */
 Youtube.prototype.getStream = function() {
   //return ytdl(this.url, { filter : 'audioonly' });
+  console.log(this.stream);
   return this.stream;
+};
+
+Youtube.prototype.getTitle = function() {
+  return this.title;
 };
 
 module.exports = {
