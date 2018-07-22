@@ -45,10 +45,12 @@ bot.on('message', message => {
 // Add songs to the appropriate DJ
 function addSongs(member, url) {
   dj = getDJ(member);
-  dj.addSong(url);
-  if (dispatcher == null) {
-    nextSong(member);
-  }
+  dj.addSong(url, function() {
+    console.log("done");
+    if (dispatcher == null) {
+      nextSong(member);
+    }
+  });
 }
 
 // Gets the DJ
@@ -69,8 +71,8 @@ function getDJ(member) {
 function nextSong(mem) {
   var temp = djs.shift();
   var stream = temp.getStream();
-  if(member.voiceChannel) {
-    member.voiceChannel.join().then(connection => {
+  if(mem.voiceChannel) {
+    mem.voiceChannel.join().then(connection => {
       dispatcher = connection.play(stream);
       dispatcher.on('end', nextSong());
       dispatcher.on('error', nextSon());
