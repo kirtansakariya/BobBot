@@ -11,22 +11,20 @@ const ytdl = require('ytdl-core');
  */
 function DJ(user) {
   this.user = user;
-  this.num = 0;
   this.songs = [];
 }
 
-async function addYoutube(dj, url, callback) {
+function addYoutube(dj, url, callback) {
   // need to implement adding youtube songs
   if(!url.includes("list")) {
     console.log("adding singular youtube track");
     dj.songs.push(new Youtube.Youtube(url, function() {
-      dj.num++;
       callback();
     }));
   }
   console.log("adding youtube playlist: " + url);
-  await youtube.getPlaylist(url).then(async function(playlist) {
-    await playlist.getVideos().then(async function(videos) {
+  youtube.getPlaylist(url).then(function(playlist) {
+    playlist.getVideos().then(function(videos) {
       //console.log(videos);
       var fun = 0;
       while(videos.length > 0) {
@@ -34,11 +32,10 @@ async function addYoutube(dj, url, callback) {
         console.log(v.raw.status.privacyStatus);
         console.log(v);
         console.log(videos.length);
-        var stream = await ytdl('https://www.youtube.com/watch?v=' + v.id, { filter : 'audioonly' }).on('error', (err) => { console.log(err); v = null; });
+        //var stream = await ytdl('https://www.youtube.com/watch?v=' + v.id, { filter : 'audioonly' }).on('error', (err) => { console.log(err); v = null; });
         if(v == null) continue;
         console.log("still going: " + v.title);
-        dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + v.id, v.title, stream));
-        dj.num++;
+        dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + v.id, v.title));
       }
       console.log(fun);
       callback();
@@ -66,21 +63,18 @@ function addSoundcloud(dj, url, callback) {
       pass(track);
     }*/
     console.log("err: " + err);
-    console.log(track);
+    //console.log(track);
     if(track != null) {
-      data = "hi";
       if(track.kind == "track") {
         console.log("adding singular soundcloud track");
-        dj.songs.push(new Soundcloud.Soundcloud(url, track.stream_url, track.title));
-        dj.num++;
+        dj.songs.push(new Soundcloud.Soundcloud(url, track.stream_url + "?client_id=" + auth.scid, track.title));
         callback();
       }
       console.log("adding soundcloud playlist");
-      while(track.tracks.length >= 0) {
+      while(track.tracks.length > 0) {
         var t = track.tracks.shift();
         //console.log(t);
-        dj.songs.push(new Soundcloud.Soundcloud(t.permalink_url, t.stream_url, t.title));
-        dj.num++;
+        dj.songs.push(new Soundcloud.Soundcloud(t.permalink_url, t.stream_url + "?client_id=" + auth.scid, t.title));
       }
       callback();
     }
@@ -88,7 +82,7 @@ function addSoundcloud(dj, url, callback) {
   console.log("outside");
 }
 
-function pass(track) {
+/*function pass(track) {
   console.log("in pass");
   if(track.kind == "track") {
     console.log("adding singular soundcloud track");
@@ -101,7 +95,7 @@ function pass(track) {
     dj.songs.push(new Soundcloud.Soundcloud(track.tracks.shift().permalink_url));
     dj.num++;
   }
-}
+}*/
 
 /*
  * Add a new DJ
@@ -148,8 +142,17 @@ DJ.prototype.getStream = function() {
 };
 
 DJ.prototype.getSong = function() {
-  this.num--;
-  return this.songs.shift();
+  var song = null;
+  var stream = null;
+  while(song == null && this.songs.length > 0) {
+    song = this.songs.shift();
+    if(song.url.includes("youtube")) {
+      stream = ytdl(song.url, { filter : 'audioonly' }).on('error', (err) => { console.log(err); song = null; });
+    }
+  }
+  if(song == null) return null;
+  if(song.url.includes("youtube")) song.setStream(stream);
+  return song;
 }
 
 module.exports = {

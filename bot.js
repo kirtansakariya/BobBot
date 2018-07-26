@@ -81,6 +81,46 @@ function getDJ(member) {
 }
 
 function nextSong(mem) {
+  console.log(mem.voiceChannel);
+//  return;
+  if(mem.voiceChannel == null) {
+    console.log("please join a voice channel");
+    return;
+  }
+  var temp = djs.shift();
+  if(temp == null) {
+    console.log("no more djs");
+    return;
+  }
+  var song = temp.getSong();
+  if(song == null) {
+    nextSong(mem);
+    return;
+  }
+  if(temp.songs.length != 0) {
+    console.log(temp.songs.length + " more songs");
+    djs.push(temp);
+  }
+  console.log("in mem.voiceChannel");
+  mem.voiceChannel.join().then(connection => {
+    console.log("using connection and logging song");
+    console.log(song);
+    console.log("post song log");
+    var s = song.getStream();
+    console.log("logging stream");
+    console.log(s);
+    console.log("post stream log");
+    dispatcher = connection.play(song.getStream());
+    dispatcher.on('end', nextSong());
+    dispatcher.on('error', nextSong());
+  }).catch(console.log);
+}
+
+/*function nextSong() {
+  console.log("dummy function");
+}*/
+
+/*function nextSong(mem) {
   var temp = djs.shift();
   var stream = temp.getStream();
   djs.push(temp);
@@ -103,7 +143,7 @@ function nextSong(mem) {
       dispatcher = conn.play(stream);
     }
   }
-}
+}*/
 
 function printQueue(mem) {
   //var temp = JSON.parse(JSON.stringify(djs));

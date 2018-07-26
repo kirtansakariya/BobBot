@@ -3,11 +3,11 @@ const ytdl = require('ytdl-core');
 /*
  * Youtube Class
  */
-function Youtube(u, t, s) {
+function Youtube(u, t) {
   this.url = u;
   console.log(u);
   //this.stream = ytdl(u, { filter : 'audioonly' }).on('error', (err) => console.log(err));
-  this.stream = s;
+  this.stream = null;
   this.title = t
   /*ytdl.getInfo(u, function(err, info) {
     this.title = info.title;
@@ -36,12 +36,23 @@ Youtube.prototype.init = function(u) {
  */
 Youtube.prototype.getStream = function() {
   //return ytdl(this.url, { filter : 'audioonly' });
+  console.log("getting stream");
   console.log(this.stream);
   return this.stream;
 };
 
+Youtube.prototype.setStream = function(s) {
+  console.log("setting stream");
+  console.log(s);
+  this.stream = s;
+};
+
 Youtube.prototype.getTitle = function() {
   return this.title;
+};
+
+Youtube.prototype.getUrl = function() {
+  return this.url;
 };
 
 module.exports = {

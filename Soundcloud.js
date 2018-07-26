@@ -37,7 +37,8 @@ Soundcloud.prototype.getStream = function() {
       console.log(track);
       return track.stream_url + "?client_id=" + auth.scid;
   });*/
-  return this.stream_url;
+  console.log("getting stream: " + this.stream);
+  return this.stream;
 };
 
 Soundcloud.prototype.getTitle = function() {
