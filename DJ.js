@@ -10,7 +10,8 @@ const ytdl = require('ytdl-core');
  * DJ class
  */
 function DJ(user) {
-  this.user = user;
+  this.user = user.displayName;
+  this.id = user.id;
   this.songs = [];
 }
 
@@ -35,7 +36,7 @@ function addYoutube(dj, url, callback) {
         //var stream = await ytdl('https://www.youtube.com/watch?v=' + v.id, { filter : 'audioonly' }).on('error', (err) => { console.log(err); v = null; });
         if(v == null) continue;
         console.log("still going: " + v.title);
-        dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + v.id, v.title));
+        dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + v.id, v.title, v.id));
       }
       console.log(fun);
       callback();
@@ -73,7 +74,7 @@ function addSoundcloud(dj, url, callback) {
       console.log("adding soundcloud playlist");
       while(track.tracks.length > 0) {
         var t = track.tracks.shift();
-        //console.log(t);
+        console.log(t);
         dj.songs.push(new Soundcloud.Soundcloud(t.permalink_url, t.stream_url + "?client_id=" + auth.scid, t.title));
       }
       callback();

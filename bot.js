@@ -44,8 +44,21 @@ bot.on('message', message => {
         bot.leaveVoiceChannel(message.member.voiceState.channelID);
         break;
       case 'q' || 'queue':
-        printQueue(message.member);
-        //console.log(djs);
+        var page = args.shift();
+        var queue = getQueue();
+        console.log(page);
+        if(page == null) {
+          printQueue(0, queue);
+        } else {
+          console.log(page);
+          printQueue(page - 1, queue);
+        }
+        break;
+      case 'clean':
+        clean(function() {
+          console.log("done cleaning, updating now");
+          console.log(djs[0].songs);
+        });
         break;
       case 'skip':
         nextSong(message.member);
@@ -59,9 +72,6 @@ function addSongs(member, url) {
   dj = getDJ(member);
   dj.addSong(url, function() {
     console.log("done");
-    /*if (dispatcher == null) {
-      nextSong(member);
-    }*/
   });
 }
 
@@ -79,6 +89,38 @@ function getDJ(member) {
   counter++;
   return dj;
 }
+
+/*function clean(callback) {
+  var temp = [];
+  var dj = djs[0];
+  var length = dj.songs.length;
+  var count = 0;
+  var k = 0;
+  for(var i = 0; i < 100; i++) {
+    console.log("i: " + i);
+    (function(j) {
+      ytdl.getInfo(dj.songs[j].url, function(err, info) {
+        console.log(j);
+        if(info == null) {
+          count++;
+          return;
+        }
+        dj.songs[j].seconds = info.length_seconds;
+        /*var valid = true;
+        var stream = ytdl(dj.songs[j].url, { filter: 'audioonly' }).on('error', (err) => { console.log(err); valid = false; });
+        if(valid) {
+          dj.songs[j].stream = stream;
+        }
+        count++;
+        if(count > 100 - 1) {
+          //dj.songs = temp;
+          //console.log(dj);
+          callback();
+        }
+      });
+    }(i));
+  }
+}*/
 
 function nextSong(mem) {
   console.log(mem.voiceChannel);
@@ -116,51 +158,47 @@ function nextSong(mem) {
   }).catch(console.log);
 }
 
-/*function nextSong() {
-  console.log("dummy function");
-}*/
-
-/*function nextSong(mem) {
-  var temp = djs.shift();
-  var stream = temp.getStream();
-  djs.push(temp);
-  console.log(stream);
-  console.log(mem);
-  if(mem.voiceChannel) {
-    console.log("hi");
-    mem.voiceChannel.join().then(connection => {
-      conn = connection;
-      console.log("hello");
-      dispatcher = connection.play(stream);
-      dispatcher.on('end', nextSong());
-      dispatcher.on('error', nextSong());
-      console.log("using connection");
-      return;
-    }).catch(console.log);
-    console.log(conn);
-    if(conn != null) {
-      console.log("using conn");
-      dispatcher = conn.play(stream);
+function getQueue() {
+  //var temp = deepCopy(djs);
+  var temp = JSON.parse(JSON.stringify(djs));
+  var ret = [];
+  var dj;
+  var song;
+  console.log("temp original");
+  /*for(var i in temp) {
+    console.log("hello");
+    console.log(i);
+    for(var j in temp[i].songs) {
+      console.log(temp[i].songs[j].title);
     }
+  }*/
+  while(temp.length > 0) {
+    var dj = temp.shift();
+    var song = dj.songs.shift();
+    if(song == null) continue;
+    ret.push(song);
+    temp.push(dj);
   }
-}*/
-
-function printQueue(mem) {
-  //var temp = JSON.parse(JSON.stringify(djs));
-  const temp = Object.assign(djs);
+  /*for(var i in ret) {
+    console.log(ret[i].title);
+  }*/
+  return ret;
+  temp[0].songs.shift();
+  temp[0].songs.shift();
+  console.log("temp after");
   console.log(temp);
-  //console.log(djs);
-  var num = 0;
-  var td = null;
-  var ts = null;
-  while(num < 100) {
-    td = temp.shift();
-    ts = td.getSong();
-    console.log(ts.getTitle());
-    temp.push(td);
-    num++;
+}
+
+function printQueue(page, queue) {
+  var i = page * 10;
+  console.log(queue);
+  if(i >= queue.length) {
+    console.log("invalid page");
+    return;
   }
-  console.log(djs);
+  for(var j = 0; j < 10 && (i + j) < queue.length; j++) {
+    console.log(queue[i + j].title);
+  }
 }
 
 console.log(Song);
