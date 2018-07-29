@@ -46,12 +46,17 @@ bot.on('message', message => {
       case 'q' || 'queue':
         var page = args.shift();
         var queue = getQueue();
+        var data = [];
         console.log(page);
         if(page == null) {
-          printQueue(0, queue);
+          printQueue(0, queue, function(q) {
+            console.log("should print now");
+          });
         } else {
           console.log(page);
-          printQueue(page - 1, queue);
+          printQueue(page - 1, queue, data, function(q) {
+            console.log("should print now");
+          });
         }
         break;
       case 'clean':
@@ -189,15 +194,43 @@ function getQueue() {
   console.log(temp);
 }
 
-function printQueue(page, queue) {
+function printQueue(page, queue, d, callback) {
   var i = page * 10;
+  var count = d.length;
   console.log(queue);
   if(i >= queue.length) {
     console.log("invalid page");
     return;
   }
+  var max = d.length - i;
   for(var j = 0; j < 10 && (i + j) < queue.length; j++) {
-    console.log(queue[i + j].title);
+    (function(k) {
+      console.log(queue[i + j].title);
+      if(queue[i + j].url.includes("youtube")) {
+        ytdl.getInfo(dj.songs[i + j].url, function(err, info) {
+          if(info) {
+            console.log(err);
+            dj.songs[i + j].seconds = info.length_seconds;
+          }
+          d[j] = dj.songs[i + j];
+          count++;
+          if(count == 10 || count == max) {
+            remove(i + j, queue, d, callback);
+          }
+        });
+      } else {
+        dj[j] = dj.songs[i + j];
+        count++;
+      }
+    });
+  }
+}
+
+function remove(page, queue, d, callback) {
+  var count = 0;
+  for(var i = 0; i < d.length; i++) {
+    if(d[i].seconds == null) {
+    }
   }
 }
 

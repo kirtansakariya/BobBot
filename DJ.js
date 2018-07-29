@@ -19,9 +19,11 @@ function addYoutube(dj, url, callback) {
   // need to implement adding youtube songs
   if(!url.includes("list")) {
     console.log("adding singular youtube track");
-    dj.songs.push(new Youtube.Youtube(url, function() {
+    ytdl.getInfo(url, function(err, info) {
+      console.log(info);
+      dj.songs.push(new Youtube.Youtube(url, info.title, info.vid, this.id));
       callback();
-    }));
+    });
   }
   console.log("adding youtube playlist: " + url);
   youtube.getPlaylist(url).then(function(playlist) {
@@ -36,7 +38,7 @@ function addYoutube(dj, url, callback) {
         //var stream = await ytdl('https://www.youtube.com/watch?v=' + v.id, { filter : 'audioonly' }).on('error', (err) => { console.log(err); v = null; });
         if(v == null) continue;
         console.log("still going: " + v.title);
-        dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + v.id, v.title, v.id));
+        dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + v.id, v.title, v.id, this.id));
       }
       console.log(fun);
       callback();
