@@ -21,29 +21,42 @@ function addYoutube(dj, url, callback) {
     console.log("adding singular youtube track");
     ytdl.getInfo(url, function(err, info) {
       console.log(info);
+      var stream = ytdl(url, { filter : 'audioonly' }).on('error', (err) => { console.log(err); });
       dj.songs.push(new Youtube.Youtube(url, info.title, info.vid, this.id));
       callback();
     });
-  }
-  console.log("adding youtube playlist: " + url);
-  youtube.getPlaylist(url).then(function(playlist) {
-    playlist.getVideos().then(function(videos) {
-      //console.log(videos);
-      var fun = 0;
-      while(videos.length > 0) {
-        var v = videos.shift();
-        console.log(v.raw.status.privacyStatus);
-        console.log(v);
-        console.log(videos.length);
-        //var stream = await ytdl('https://www.youtube.com/watch?v=' + v.id, { filter : 'audioonly' }).on('error', (err) => { console.log(err); v = null; });
-        if(v == null) continue;
-        console.log("still going: " + v.title);
-        dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + v.id, v.title, v.id, this.id));
-      }
-      console.log(fun);
-      callback();
+  } else {
+    console.log("adding youtube playlist: " + url);
+    youtube.getPlaylist(url).then(function(playlist) {
+      playlist.getVideos().then(async function(videos) {
+        //console.log(videos);
+        var count = 0;
+        //var total = videos.length;
+        //var boo = false;
+        while(videos.length > 0) {
+          var v = videos.shift();
+          console.log(v.raw.status.privacyStatus);
+          //console.log(v);
+          console.log(videos.length);
+          if(v.thumbnails == null) continue;
+          //var stream = await ytdl('https://www.youtube.com/watch?v=' + v.id, { filter : 'audioonly' }).on('error', (err) => { console.log(err); v = null; });
+          //if(v == null) continue;
+          console.log("still going: " + v.title);
+          dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + v.id, v.title, v.id, this.id));
+        }
+        /*console.log(total);
+        for(var i = 0; i < total; i++) {
+          //console.log(i);
+          (function(j) {
+            //console.log(i);
+            var stream = ytdl('https://www.youtube.com/watch?v=' + videos[j].id, { filter : 'audioonly' }).on('error', (err) => { console.log(videos[j]); });
+          }(i));
+        }*/
+        console.log(dj.songs.length);
+        callback();
+      }).catch(console.log);
     }).catch(console.log);
-  }).catch(console.log);
+  }
 }
 
 function addSoundcloud(dj, url, callback) {
@@ -51,6 +64,9 @@ function addSoundcloud(dj, url, callback) {
   //var data = getPromise(url);
   //console.log("data: "+ data);
   var data = null;
+  var duration;
+  var minutes;
+  var seconds;
   SC.init({
     id: auth.scid
   });
@@ -70,14 +86,23 @@ function addSoundcloud(dj, url, callback) {
     if(track != null) {
       if(track.kind == "track") {
         console.log("adding singular soundcloud track");
-        dj.songs.push(new Soundcloud.Soundcloud(url, track.stream_url + "?client_id=" + auth.scid, track.title));
+        //console.log(track);
+        duration = track.duration;
+        minutes = Math.floor(duration / 60000);
+        seconds = ((duration % 60000) / 1000).toFixed(0);
+        //console.log(minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
+        dj.songs.push(new Soundcloud.Soundcloud(url, track.stream_url + "?client_id=" + auth.scid, track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds));
         callback();
       }
       console.log("adding soundcloud playlist");
       while(track.tracks.length > 0) {
         var t = track.tracks.shift();
-        console.log(t);
-        dj.songs.push(new Soundcloud.Soundcloud(t.permalink_url, t.stream_url + "?client_id=" + auth.scid, t.title));
+        //console.log(t);
+        duration = t.duration;
+        minutes = Math.floor(duration / 60000);
+        seconds = ((duration % 60000) / 1000).toFixed(0);
+        //console.log(minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
+        dj.songs.push(new Soundcloud.Soundcloud(t.permalink_url, t.stream_url + "?client_id=" + auth.scid, t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds));
       }
       callback();
     }

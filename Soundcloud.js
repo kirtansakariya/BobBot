@@ -4,11 +4,12 @@ const auth = require('./auth.json');
 /*
  * Soundcloud class
  */
-function Soundcloud(u, s, t, p) {
+function Soundcloud(u, s, t, p, l) {
   this.url = u;
   this.stream = s;
   this.title = t;
   this.pid = p;
+  this.length = l;
   /*SC.get('/resolve?url=' + this.url + '&client_id=' + auth.scid, function(err, track) {
     //console.log(track);
     this.stream = track.stream_url;

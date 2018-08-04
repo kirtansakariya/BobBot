@@ -46,7 +46,6 @@ bot.on('message', message => {
       case 'q' || 'queue':
         var page = args.shift();
         var queue = getQueue();
-        var data = [];
         console.log(page);
         if(page == null) {
           printQueue(0, queue, function(q) {
@@ -54,8 +53,9 @@ bot.on('message', message => {
           });
         } else {
           console.log(page);
-          printQueue(page - 1, queue, data, function(q) {
+          printQueue(page - 1, queue, function(q) {
             console.log("should print now");
+            console.log(q);
           });
         }
         break;
@@ -194,7 +194,7 @@ function getQueue() {
   console.log(temp);
 }
 
-function printQueue(page, queue, d, callback) {
+function printQueue(page, queue, callback) {
   var i = page * 10;
   var count = d.length;
   console.log(queue);
@@ -210,6 +210,8 @@ function printQueue(page, queue, d, callback) {
         ytdl.getInfo(dj.songs[i + j].url, function(err, info) {
           if(info) {
             console.log(err);
+            var seconds = info.length_seconds % 60;
+            var minutes = info.length_seconds / 60;
             dj.songs[i + j].seconds = info.length_seconds;
           }
           d[j] = dj.songs[i + j];
@@ -221,6 +223,9 @@ function printQueue(page, queue, d, callback) {
       } else {
         dj[j] = dj.songs[i + j];
         count++;
+        if(count == 10 || count == max) {
+          remove(i + j, queue, d, callback);
+        }
       }
     });
   }
