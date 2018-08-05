@@ -50,6 +50,7 @@ bot.on('message', message => {
         if(page == null) {
           printQueue(0, queue, function(q) {
             console.log("should print now");
+            console.log(q);
           });
         } else {
           console.log(page);
@@ -75,6 +76,7 @@ bot.on('message', message => {
 // Add songs to the appropriate DJ
 function addSongs(member, url) {
   dj = getDJ(member);
+  console.log(dj);
   dj.addSong(url, function() {
     console.log("done");
   });
@@ -83,11 +85,13 @@ function addSongs(member, url) {
 // Gets the DJ
 function getDJ(member) {
   var dj = 0;
+  console.log("hello in dj");
   while(dj < djs.length) {
     if(djs[dj].user == member) {
       console.log("returning dj: " + djs[dj].user);
       return djs[dj];
     }
+    dj++;
   }
   dj = new DJ.DJ(member);
   djs.push(dj);
@@ -188,46 +192,46 @@ function getQueue() {
     console.log(ret[i].title);
   }*/
   return ret;
-  temp[0].songs.shift();
-  temp[0].songs.shift();
-  console.log("temp after");
-  console.log(temp);
 }
 
 function printQueue(page, queue, callback) {
   var i = page * 10;
-  var count = d.length;
-  console.log(queue);
+  var count = 0;
+  var ret = [];
+  //console.log(queue);
   if(i >= queue.length) {
     console.log("invalid page");
     return;
   }
-  var max = d.length - i;
   for(var j = 0; j < 10 && (i + j) < queue.length; j++) {
     (function(k) {
-      console.log(queue[i + j].title);
+      console.log(j);
+      var song = dj.songs[i + j];
+      var ind = j;
       if(queue[i + j].url.includes("youtube")) {
-        ytdl.getInfo(dj.songs[i + j].url, function(err, info) {
+        ytdl.getInfo(song.url, function(err, info) {
           if(info) {
-            console.log(err);
             var seconds = info.length_seconds % 60;
-            var minutes = info.length_seconds / 60;
-            dj.songs[i + j].seconds = info.length_seconds;
+            var minutes = Math.floor(info.length_seconds / 60);
+            song.length = minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+          } else {
+            song.length = "N/A";
           }
-          d[j] = dj.songs[i + j];
+          console.log("ind: " + ind);
+          ret[ind] = song;
           count++;
-          if(count == 10 || count == max) {
-            remove(i + j, queue, d, callback);
+          if(count == 10 || count + i == queue.length - 1) {
+            callback(ret);
           }
         });
       } else {
-        dj[j] = dj.songs[i + j];
+        ret[ind] = song;
         count++;
-        if(count == 10 || count == max) {
-          remove(i + j, queue, d, callback);
+        if(count == 10 || count + i == queue.length - 1) {
+          callback(ret);
         }
       }
-    });
+    }(i));
   }
 }
 

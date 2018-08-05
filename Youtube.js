@@ -9,7 +9,7 @@ function Youtube(u, t, i, p) {
   //this.stream = ytdl(u, { filter : 'audioonly' }).on('error', (err) => console.log(err));
   this.stream = null;
   this.title = t;
-  this.seconds = null;
+  this.length = null;
   this.id = i;
   this.pid = p;
   /*ytdl.getInfo(u, function(err, info) {
