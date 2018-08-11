@@ -85,9 +85,9 @@ function addSongs(member, url) {
 // Gets the DJ
 function getDJ(member) {
   var dj = 0;
-  console.log("hello in dj");
+  console.log("hello in dj " + member);
   while(dj < djs.length) {
-    if(djs[dj].user == member) {
+    if(djs[dj].id == member) {
       console.log("returning dj: " + djs[dj].user);
       return djs[dj];
     }
@@ -95,45 +95,13 @@ function getDJ(member) {
   }
   dj = new DJ.DJ(member);
   djs.push(dj);
+  console.log("djs:\n" + djs);
   counter++;
   return dj;
 }
 
-/*function clean(callback) {
-  var temp = [];
-  var dj = djs[0];
-  var length = dj.songs.length;
-  var count = 0;
-  var k = 0;
-  for(var i = 0; i < 100; i++) {
-    console.log("i: " + i);
-    (function(j) {
-      ytdl.getInfo(dj.songs[j].url, function(err, info) {
-        console.log(j);
-        if(info == null) {
-          count++;
-          return;
-        }
-        dj.songs[j].seconds = info.length_seconds;
-        /*var valid = true;
-        var stream = ytdl(dj.songs[j].url, { filter: 'audioonly' }).on('error', (err) => { console.log(err); valid = false; });
-        if(valid) {
-          dj.songs[j].stream = stream;
-        }
-        count++;
-        if(count > 100 - 1) {
-          //dj.songs = temp;
-          //console.log(dj);
-          callback();
-        }
-      });
-    }(i));
-  }
-}*/
-
 function nextSong(mem) {
   console.log(mem.voiceChannel);
-//  return;
   if(mem.voiceChannel == null) {
     console.log("please join a voice channel");
     return;
@@ -144,6 +112,7 @@ function nextSong(mem) {
     return;
   }
   var song = temp.getSong();
+  console.log(song);
   if(song == null) {
     nextSong(mem);
     return;
@@ -162,25 +131,24 @@ function nextSong(mem) {
     console.log(s);
     console.log("post stream log");
     dispatcher = connection.play(song.getStream());
-    dispatcher.on('end', nextSong());
-    dispatcher.on('error', nextSong());
+    dispatcher.on('end', nextSong(null, null));
+    dispatcher.on('error', nextSong(null, null));
+    conn = connection;
   }).catch(console.log);
 }
 
+/*function nextSong(a, b) {
+  console.log(a);
+  console.log(b);
+  console.log(conn);
+}*/
+
 function getQueue() {
-  //var temp = deepCopy(djs);
   var temp = JSON.parse(JSON.stringify(djs));
   var ret = [];
   var dj;
   var song;
   console.log("temp original");
-  /*for(var i in temp) {
-    console.log("hello");
-    console.log(i);
-    for(var j in temp[i].songs) {
-      console.log(temp[i].songs[j].title);
-    }
-  }*/
   while(temp.length > 0) {
     var dj = temp.shift();
     var song = dj.songs.shift();
@@ -188,9 +156,7 @@ function getQueue() {
     ret.push(song);
     temp.push(dj);
   }
-  /*for(var i in ret) {
-    console.log(ret[i].title);
-  }*/
+  console.log(ret);
   return ret;
 }
 
@@ -198,14 +164,15 @@ function printQueue(page, queue, callback) {
   var i = page * 10;
   var count = 0;
   var ret = [];
-  //console.log(queue);
+  console.log("QUEUE");
+  console.log(queue);
   if(i >= queue.length) {
     console.log("invalid page");
     return;
   }
   for(var j = 0; j < 10 && (i + j) < queue.length; j++) {
     (function(k) {
-      console.log(j);
+      //console.log('k: ' + k + ' j: ' + j);
       var song = dj.songs[i + j];
       var ind = j;
       if(queue[i + j].url.includes("youtube")) {
@@ -217,17 +184,20 @@ function printQueue(page, queue, callback) {
           } else {
             song.length = "N/A";
           }
-          console.log("ind: " + ind);
+          //console.log("ind: " + ind);
           ret[ind] = song;
           count++;
-          if(count == 10 || count + i == queue.length - 1) {
+          //console.log("count + i: " + (count + i) + " queue.length - 1: " + (queue.length - 1));
+          if(count == 10 || (count + i) == queue.length) {
+            console.log("retting: " + count);
             callback(ret);
           }
         });
       } else {
         ret[ind] = song;
         count++;
-        if(count == 10 || count + i == queue.length - 1) {
+        if(count == 10 || (count + i) == queue.length) {
+          console.log("retting: " + count);
           callback(ret);
         }
       }

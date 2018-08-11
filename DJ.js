@@ -20,7 +20,8 @@ function addYoutube(dj, url, callback) {
   if(!url.includes("list")) {
     console.log("adding singular youtube track");
     ytdl.getInfo(url, function(err, info) {
-      console.log(info);
+      if(err) callback();
+//      console.log(info);
       var stream = ytdl(url, { filter : 'audioonly' }).on('error', (err) => { console.log(err); });
       dj.songs.push(new Youtube.Youtube(url, info.title, info.vid, this.id));
       callback();
