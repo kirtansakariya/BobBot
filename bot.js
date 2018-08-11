@@ -131,17 +131,18 @@ function nextSong(mem) {
     console.log(s);
     console.log("post stream log");
     dispatcher = connection.play(song.getStream());
-    dispatcher.on('end', nextSong(null, null));
+    dispatcher.on('end', nextSongEnd(null, null));
     dispatcher.on('error', nextSong(null, null));
     conn = connection;
   }).catch(console.log);
 }
 
-/*function nextSong(a, b) {
+function nextSongEnd(a, b) {
+  console.log("end song");
   console.log(a);
   console.log(b);
   console.log(conn);
-}*/
+}
 
 function getQueue() {
   var temp = JSON.parse(JSON.stringify(djs));
