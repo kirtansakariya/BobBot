@@ -16,6 +16,7 @@ let dispatcher = null;
 let counter = 0;
 let currCounter = 0;
 let conn = null;
+let current = null;
 
 bot.login(auth.token);
 
@@ -37,27 +38,32 @@ bot.on('message', message => {
         addSongs(message.member, args[0]);
         break;
       case 'start':
-        if(dispatcher == null) nextSong(message.member);
+        if(dispatcher == null) nextSong(message);
         break;
       case 'leave':
-        //console.log(bot);
         bot.leaveVoiceChannel(message.member.voiceState.channelID);
         break;
       case 'q' || 'queue':
         var page = args.shift();
         var queue = getQueue();
         console.log(page);
-        if(page == null) {
+        if(queue.length == 0) {
+          message.channel.send("The queue is currently empty");
+        } else if(page == null) {
           printQueue(0, queue, function(q) {
             console.log("should print now");
-            console.log(q);
+            var mes = parseQueue(q, 0, queue.length);
+            message.channel.send(mes);
           });
-        } else {
+        } else if (page > 0 && ((page - 1) * 10) < queue.length) {
           console.log(page);
           printQueue(page - 1, queue, function(q) {
             console.log("should print now");
-            console.log(q);
+            var mes = parseQueue(q, ((page - 1) * 10), queue.length);
+            message.channel.send(mes);
           });
+        } else {
+          message.channel.send("Please enter a valid page number");
         }
         break;
       case 'clean':
@@ -67,8 +73,14 @@ bot.on('message', message => {
         });
         break;
       case 'skip':
-        nextSong(message.member);
+        nextSong(message);
         break;
+      case 'tiny':
+        message.channel.send("Dong?");
+        break;
+      case 'commands':
+        var mes = 'Play song: `;play <url>`\nStart player: `;start`\nSkip song: `;skip`\nQueue: `;queue` or `;q`\nFun commands: `;tiny`';
+        message.channel.send(mes);
     }
   }
 });
@@ -100,9 +112,9 @@ function getDJ(member) {
   return dj;
 }
 
-function nextSong(mem) {
-  console.log(mem.voiceChannel);
-  if(mem.voiceChannel == null) {
+function nextSong(message) {
+  //console.log(mes);
+  if(message.member.voiceChannel == null) {
     console.log("please join a voice channel");
     return;
   }
@@ -122,7 +134,7 @@ function nextSong(mem) {
     djs.push(temp);
   }
   console.log("in mem.voiceChannel");
-  mem.voiceChannel.join().then(connection => {
+  message.member.voiceChannel.join().then(connection => {
     console.log("using connection and logging song");
     console.log(song);
     console.log("post song log");
@@ -130,9 +142,14 @@ function nextSong(mem) {
     console.log("logging stream");
     console.log(s);
     console.log("post stream log");
+    current = song;
     dispatcher = connection.play(song.getStream());
-    dispatcher.on('end', nextSongEnd(null, null));
-    dispatcher.on('error', nextSong(null, null));
+    dispatcher.on('end', () => nextSong(message));
+    dispatcher.on('error', () => nextSong(message));
+    connection.on('error', () => {
+      message.channel.send('Problem with song: ' + song.title);
+      nextSong(mem);
+    });
     conn = connection;
   }).catch(console.log);
 }
@@ -172,9 +189,10 @@ function printQueue(page, queue, callback) {
     return;
   }
   for(var j = 0; j < 10 && (i + j) < queue.length; j++) {
+    console.log('j: ' + j + ' i + j; ' + (i + j));
     (function(k) {
       //console.log('k: ' + k + ' j: ' + j);
-      var song = dj.songs[i + j];
+      var song = queue[i + j];
       var ind = j;
       if(queue[i + j].url.includes("youtube")) {
         ytdl.getInfo(song.url, function(err, info) {
@@ -206,12 +224,15 @@ function printQueue(page, queue, callback) {
   }
 }
 
-function remove(page, queue, d, callback) {
-  var count = 0;
-  for(var i = 0; i < d.length; i++) {
-    if(d[i].seconds == null) {
-    }
+function parseQueue(q, p, l) {
+  var message = '';
+  console.log("parse");
+  console.log(q);
+  for(var i = 0; i < q.length; i++) {
+    message += (p + i + 1) + '. `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
   }
+  message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
+  return message;
 }
 
 console.log(Song);
