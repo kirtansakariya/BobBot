@@ -15,12 +15,14 @@ const djs = [];
 let dispatcher = null;
 let counter = 0;
 let currCounter = 0;
-let conn = null;
 let current = null;
 
 bot.login(auth.token);
 
 bot.on('ready', function(evt) {
+  bot.user.setActivity(';commands').then(presence => {
+    console.log('setting activity');
+  }).catch(console.error);
   console.log("BobBot is ready");
 });
 
@@ -75,12 +77,61 @@ bot.on('message', message => {
       case 'skip':
         nextSong(message);
         break;
+      case 'current':
+        if(current == null) {
+          message.channel.send("No songs playing currently");
+        } else {
+          message.channel.send('`' + current.title + '` [' + current.length + '] req by ' + current.user);
+        }
+        break;
+      case 'pause':
+      case 'p':
+        if(dispatcher == null) {
+          message.channel.send("No songs playing currently");
+        } else {
+          dispatcher.pause();
+        }
+        break;
+      case 'resume':
+      case 're':
+      case 'r':
+        if(dispatcher == null) {
+          message.channel.send("No songs playing currently");
+        } else {
+          dispatcher.resume();
+        }
+        break;
+      case 'shuffle':
+        var boo = shuffle(message);
+        if(boo) {
+          message.channel.send(message.member.displayName + '\'s songs have been shuffled');
+        } else {
+          message.channel.send(message.member.displayName + ' has no songs in the queue to shuffle');
+        }
+        break;
+      case 'remove':
+      case 'rm':
+        if(args.length == 0) {
+          message.channel.send("Please provide the queue number(s) of the song(s) to remove");
+        } else {
+          var queue = getQueue();
+          var removed = removeElements(args, queue);
+          cleanUp(removed);
+          var remMes = '';
+          for(var i = 0; i < removed.length; i++) {
+            remMes += removed[i][2] + '. ' + removed[i][1] + '\n';
+          }
+          message.channel.send('Removed the following songs:\n' + remMes);
+        }
+        break;
       case 'tiny':
         message.channel.send("Dong?");
         break;
       case 'commands':
-        var mes = 'Play song: `;play <url>`\nStart player: `;start`\nSkip song: `;skip`\nQueue: `;queue` or `;q`\nFun commands: `;tiny`';
+        var mes = 'Play song: `;play <url>`\nStart player: `;start`\nSkip song: `;skip`\nQueue: `;queue` or `;q`\nCurrent song: `;current` or `;curr`\nPause player: `;pause`\nResume player: `;resume` or `;re` or `;r`\n' +
+                  'Fun commands: `;tiny`';
         message.channel.send(mes);
+        break;
     }
   }
 });
@@ -147,10 +198,9 @@ function nextSong(message) {
     dispatcher.on('end', () => nextSong(message));
     dispatcher.on('error', () => nextSong(message));
     connection.on('error', () => {
-      message.channel.send('Problem with song: ' + song.title);
+      message.channel.send('Problem with song: ' + current.title + ' url: ' + current.url);
       nextSong(mem);
     });
-    conn = connection;
   }).catch(console.log);
 }
 
@@ -233,6 +283,60 @@ function parseQueue(q, p, l) {
   }
   message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
   return message;
+}
+
+function shuffle(mes) {
+  var dj = null;
+  for(var i = 0; i < djs.length; i++) {
+    if(djs[i].id == mes.member.id) {
+      dj = djs[i];
+    }
+  }
+  if(dj == null) return false;
+  if(dj.songs.length == 0) return false;
+  var arr = dj.songs;
+  var j;
+  var temp;
+  for(var i = arr.length - 1; i > 0; i--) {
+    j = Math.floor(Math.random() * (i + 1));
+    temp = arr[j];
+    arr[j] = arr[i];
+    arr[i] = temp;
+  }
+  dj.songs = arr;
+  return true;
+}
+
+function removeElements(nums, q) {
+  var j = 0;
+  var arr = [];
+  for(var i = 0; i < nums.length; i++) {
+    j = nums.shift();
+    q[j - 1].remove = true;
+    arr.push([]);
+    arr[arr.length - 1].push(q[j - 1].pid);
+    arr[arr.length - 1].push(q[j - 1].title);
+    arr[arr.length - 1].push(i + 1);
+  }
+  return arr;
+}
+
+function cleanUp(arr) {
+  var dj = null;
+  console.log('cleaning up');
+  for(var i = 0; i < arr.length; i++) {
+    for(var j = 0; j < djs.length; j++) {
+      if(djs[j].id == arr[i][0]) {
+        dj = djs[j];
+      }
+    }
+    for(var k = 0; k < dj.songs.length; k++) {
+      if(dj.songs[k].title == arr[i][1]) {
+        console.log('should remove ' + dj.songs[k].title);
+        dj.songs.splice(k, 1);
+      }
+    }
+  }
 }
 
 console.log(Song);

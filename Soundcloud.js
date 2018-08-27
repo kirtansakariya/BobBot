@@ -11,6 +11,7 @@ function Soundcloud(u, s, t, l, p, pl) {
   this.pid = p;
   this.length = l;
   this.player = pl;
+  this.remove = false;
   /*SC.get('/resolve?url=' + this.url + '&client_id=' + auth.scid, function(err, track) {
     //console.log(track);
     this.stream = track.stream_url;

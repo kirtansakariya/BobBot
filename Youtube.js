@@ -13,6 +13,7 @@ function Youtube(u, t, i, p, pl) {
   this.id = i;
   this.pid = p;
   this.player = pl;
+  this.remove = false;
   /*ytdl.getInfo(u, function(err, info) {
     this.title = info.title;
     console.log(err);
