@@ -45,7 +45,8 @@ bot.on('message', message => {
       case 'leave':
         bot.leaveVoiceChannel(message.member.voiceState.channelID);
         break;
-      case 'q' || 'queue':
+      case 'queue':
+      case 'q':
         var page = args.shift();
         var queue = getQueue();
         console.log(page);
@@ -177,7 +178,7 @@ function nextSong(message) {
   var song = temp.getSong();
   console.log(song);
   if(song == null) {
-    nextSong(mem);
+    nextSong(message);
     return;
   }
   if(temp.songs.length != 0) {
@@ -216,6 +217,7 @@ function getQueue() {
   var ret = [];
   var dj;
   var song;
+  ret.push(current);
   console.log("temp original");
   while(temp.length > 0) {
     var dj = temp.shift();
@@ -279,6 +281,10 @@ function parseQueue(q, p, l) {
   console.log("parse");
   console.log(q);
   for(var i = 0; i < q.length; i++) {
+    if(p == 0 && i == 0) {
+      message += (p + i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
+      continue;
+    }
     message += (p + i + 1) + '. `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
   }
   message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
