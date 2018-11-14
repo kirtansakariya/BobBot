@@ -55,14 +55,16 @@ bot.on('message', message => {
         } else if(page == null) {
           printQueue(0, queue, function(q) {
             console.log("should print now");
-            var mes = parseQueue(q, 0, queue.length);
+            var toPass = q.filter(song => song != null);
+            var mes = parseQueue(toPass, 0, queue.length);
             message.channel.send(mes);
           });
         } else if (page > 0 && ((page - 1) * 10) < queue.length) {
           console.log(page);
           printQueue(page - 1, queue, function(q) {
             console.log("should print now");
-            var mes = parseQueue(q, ((page - 1) * 10), queue.length);
+            var toPass = q.filter(song => song != null);
+            var mes = parseQueue(toPass, ((page - 1) * 10), queue.length);
             message.channel.send(mes);
           });
         } else {
@@ -165,8 +167,9 @@ function getDJ(member) {
 }
 
 function nextSong(message) {
-  //console.log(mes);
-  if(message.member.voiceChannel == null) {
+  console.log(message);
+  console.log(message.member.voice.channel);
+  if(message.member.voice.channel == null) {
     console.log("please join a voice channel");
     return;
   }
@@ -186,7 +189,7 @@ function nextSong(message) {
     djs.push(temp);
   }
   console.log("in mem.voiceChannel");
-  message.member.voiceChannel.join().then(connection => {
+  message.member.voice.channel.join().then(connection => {
     console.log("using connection and logging song");
     console.log(song);
     console.log("post song log");
@@ -246,7 +249,7 @@ function printQueue(page, queue, callback) {
       //console.log('k: ' + k + ' j: ' + j);
       var song = queue[i + j];
       var ind = j;
-      if(queue[i + j].url.includes("youtube")) {
+      if(queue[i + j] != null && queue[i + j].url.includes("youtube")) {
         ytdl.getInfo(song.url, function(err, info) {
           if(info) {
             var seconds = info.length_seconds % 60;
