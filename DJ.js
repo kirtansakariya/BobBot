@@ -1,10 +1,12 @@
 const auth = require('./auth.json');
-const SC = require('node-soundcloud');
+//const SC = require('node-soundcloud');
 const YouTube = require('simple-youtube-api');
 const youtube = new YouTube(auth.youtubeApi);
 const Youtube = require('./Youtube.js');
 const Soundcloud = require('./Soundcloud.js');
 const ytdl = require('ytdl-core');
+const http = require('http');
+const https = require('https');
 
 /*
  * DJ class
@@ -73,45 +75,59 @@ function addSoundcloud(dj, url, callback) {
   var duration;
   var minutes;
   var seconds;
-  SC.init({
+  /*SC.init({
     id: auth.scid
-  });
+  });*/
   console.log("SC");
-  SC.get('/resolve?url=' + url + '&client_id=' + auth.scid, function(err, track) {
-    console.log("making SC call");
-    //console.log(track.kind);
-    //console.log("track: " + track.kind);
-    //console.log("kind: " + track.kind);
-    //data = track;
-    /*if(track != null) {
-      console.log("once");
-      pass(track);
-    }*/
-    console.log("err: " + err);
-    //console.log(track);
-    if(track != null) {
-      if(track.kind == "track") {
-        console.log("adding singular soundcloud track");
-        //console.log(track);
-        duration = track.duration;
-        minutes = Math.floor(duration / 60000);
-        seconds = ((duration % 60000) / 1000).toFixed(0);
-        //console.log(minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
-        dj.songs.push(new Soundcloud.Soundcloud(url, track.stream_url + "?client_id=" + auth.scid, track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
-        callback();
-      }
-      console.log("adding soundcloud playlist");
-      while(track.tracks.length > 0) {
-        var t = track.tracks.shift();
-        //console.log(t);
-        duration = t.duration;
-        minutes = Math.floor(duration / 60000);
-        seconds = ((duration % 60000) / 1000).toFixed(0);
-        //console.log(minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
-        dj.songs.push(new Soundcloud.Soundcloud(t.permalink_url, t.stream_url + "?client_id=" + auth.scid, t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
-      }
-      callback();
-    }
+  http.get('http://api.soundcloud.com/resolve?url=' + url + '&client_id=' + auth.scid, function(resp) {
+    let data1 = '';
+    resp.on('data', (chunk) => {
+      data1 += chunk;
+    });
+
+    resp.on('end', () => {
+      console.log(data1);
+      data1 = JSON.parse(data1);
+      https.get(data1.location, (resp) => {
+        let data2 = '';
+        resp.on('data', (chunk) => {
+          data2 += chunk;
+        });
+
+        resp.on('end', (chunk) => {
+          track = JSON.parse(data2);
+          if(track != null) {
+            console.log(track);
+            if(track.kind == "track") {
+              console.log("adding singular soundcloud track");
+              //console.log(track);
+              duration = track.duration;
+              minutes = Math.floor(duration / 60000);
+              seconds = ((duration % 60000) / 1000).toFixed(0);
+              //console.log(minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
+              dj.songs.push(new Soundcloud.Soundcloud(url, track.stream_url + "?client_id=" + auth.scid, track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
+              callback();
+            } else {
+              console.log("adding soundcloud playlist");
+              while(track.tracks.length > 0) {
+                var t = track.tracks.shift();
+                //console.log(t);
+                duration = t.duration;
+                minutes = Math.floor(duration / 60000);
+                seconds = ((duration % 60000) / 1000).toFixed(0);
+                //console.log(minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
+                dj.songs.push(new Soundcloud.Soundcloud(t.permalink_url, t.stream_url + "?client_id=" + auth.scid, t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
+              }
+              callback();
+            }
+          }
+        });
+      }).on("error", (err) => {
+        console.log("error: " + err.message);
+      });
+    });
+  }).on("error", (err) => {
+    console.log("error: " + err.message);
   });
   console.log("outside");
 }

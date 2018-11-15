@@ -22,7 +22,6 @@
     "simple-youtube-api": "^5.0.2",
     "sodium": "^2.0.3",
     "soundcloud": "^3.3.0",
-    "soundcloud-nodejs-api-wrapper": "^0.3.2",
     "tough-cookie": "^2.4.3",
     "uws": "^9.148.0",
     "ytdl-core": "^0.20.4",
