@@ -1,4 +1,4 @@
-const auth = require('./auth.json');
+const auth = require('../auth.json');
 //const SC = require('node-soundcloud');
 const YouTube = require('simple-youtube-api');
 const youtube = new YouTube(auth.youtubeApi);

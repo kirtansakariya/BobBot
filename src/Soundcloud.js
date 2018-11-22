@@ -1,5 +1,5 @@
 const SC = require('node-soundcloud');
-const auth = require('./auth.json');
+const auth = require('../auth.json');
 
 /*
  * Soundcloud class
