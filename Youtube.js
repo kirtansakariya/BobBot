@@ -5,7 +5,7 @@ const ytdl = require('ytdl-core');
  */
 function Youtube(u, t, i, p, pl) {
   this.url = u;
-  console.log(u);
+  //console.log(u);
   //this.stream = ytdl(u, { filter : 'audioonly' }).on('error', (err) => console.log(err));
   this.stream = null;
   this.title = t;
@@ -19,7 +19,7 @@ function Youtube(u, t, i, p, pl) {
     console.log(err);
     callback();
   });*/
-  console.log("youtube");
+  //console.log("youtube");
 }
 
 /*

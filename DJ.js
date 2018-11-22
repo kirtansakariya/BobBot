@@ -23,9 +23,7 @@ function DJ(user) {
 var final = [];
 function addYoutube(dj, u, arr, page, callback) {
   if(!u.includes('list')) {
-    // console.log('adding singular youtube track');
     var urlParams = url.parse(u, true);
-    // console.log(urlParams);
     https.get('https://content.googleapis.com/youtube/v3/videos?part=snippet&id=' + urlParams.query.v + '&key=' + auth.youtubeApi, (resp) => {
       let data = '';
 
@@ -34,13 +32,8 @@ function addYoutube(dj, u, arr, page, callback) {
       });
 
       resp.on('end', () => {
-        // console.log(JSON.parse(data).items[0].contentDetails);
-        // console.log(moment.duration(JSON.parse(data).items[0].contentDetails.duration).asSeconds());
         var parsed = JSON.parse(data);
-        // console.log(parsed);
-        // console.log(parsed.items.length);
         if(parsed.items.length === 0) {
-          // console.log("calling back");
           callback();
         } else {
           var temp = {
@@ -48,16 +41,13 @@ function addYoutube(dj, u, arr, page, callback) {
             "title": parsed.items[0].snippet.title
           };
           arr.push(temp);
-          // console.log(arr);
           callback();
         }
       });
     })
   } else {
     var urlParams = url.parse(u, true);
-    // console.log(urlParams);
     var append = '';
-    // console.log("page: " + page);
     if(page === undefined) {
       callback();
     } else {
@@ -66,16 +56,14 @@ function addYoutube(dj, u, arr, page, callback) {
       }
       https.get('https://content.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=' + urlParams.query.list + append + '&maxResults=50&key=' + auth.youtubeApi, (resp) => {
         var data = '';
-        
+
         resp.on('data', (chunk) => {
           data += chunk;
         });
 
         resp.on('end', () => {
           var parsed = JSON.parse(data);
-          // console.log(parsed);
           for(var i = 0; i < parsed.items.length; i++) {
-            // console.log(parsed.items[i]);
             var temp = {
               "id": parsed.items[i].snippet.resourceId.videoId,
               "title": parsed.items[i].snippet.title
@@ -84,7 +72,6 @@ function addYoutube(dj, u, arr, page, callback) {
               arr.push(temp);
             }
           }
-          // callback();
           addYoutube(dj, u, arr, parsed.nextPageToken, callback);
         });
       });
@@ -141,6 +128,50 @@ function addYoutube(dj, u, arr, page, callback) {
 //     }).catch(console.log);
 //   }
 // }
+
+var final = [];
+function parseList(arr, store, callback) {
+  // console.log("done with single");
+  // console.log(arr);
+  // console.log(arr.length);
+  var temp = arr.shift();
+  // console.log(temp);
+  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + temp.id + '&key=' + auth.youtubeApi, (resp) => {
+    let data = '';
+
+    resp.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    resp.on('end', () => {
+      var parsed = JSON.parse(data);
+      // console.log(parsed.items[0]);
+      //console.log(parsed.items[0].contentDetails);
+      var mom = moment.duration(parsed.items[0].contentDetails.duration);
+      var seconds = mom.asSeconds() % 60;
+      var minutes = Math.floor(mom.asSeconds() / 60);
+      var tempYoutube = new Youtube.Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + seconds, 'test', 'test');
+      var allowed = undefined;
+      var blocked = undefined;
+      if(parsed.items[0].contentDetails.regionRestriction !== undefined) {
+        allowed = parsed.items[0].contentDetails.regionRestriction.allowed;
+        blocked = parsed.items[0].contentDetails.regionRestriction.blocked;
+      }
+      if(allowed !== undefined && !allowed.includes("US")) {
+        console.log(temp.title + " not allowed");
+      } else if(blocked !== undefined && blocked.includes("US")) {
+        console.log(temp.title + " not allowed");
+      } else {
+        store.push(tempYoutube);
+      }
+      if(arr.length === 0) {
+        callback();
+      } else {
+        parseList(arr, store, callback);
+      }
+    });
+  });
+}
 
 function addSoundcloud(dj, u, callback) {
   console.log("in addSoundcloud");
@@ -284,7 +315,7 @@ module.exports = {
   DJ: DJ
 }
 
-var final = [];
+/*var final = [];
 function parseList(arr, store, callback) {
   // console.log("done with single");
   // console.log(arr);
@@ -301,11 +332,24 @@ function parseList(arr, store, callback) {
     resp.on('end', () => {
       var parsed = JSON.parse(data);
       // console.log(parsed.items[0]);
+      //console.log(parsed.items[0].contentDetails);
       var mom = moment.duration(parsed.items[0].contentDetails.duration);
       var seconds = mom.asSeconds() % 60;
       var minutes = Math.floor(mom.asSeconds() / 60);
       var tempYoutube = new Youtube.Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + seconds, 'test', 'test');
-      store.push(tempYoutube);
+      var allowed = undefined;
+      var blocked = undefined;
+      if(parsed.items[0].contentDetails.regionRestriction !== undefined) {
+        allowed = parsed.items[0].contentDetails.regionRestriction.allowed;
+        blocked = parsed.items[0].contentDetails.regionRestriction.blocked;
+      }
+      if(allowed !== undefined && !allowed.includes("US")) {
+        console.log(temp.title + " not allowed");
+      } else if(blocked !== undefined && blocked.includes("US")) {
+        console.log(temp.title + " not allowed");
+      } else {
+        store.push(tempYoutube);
+      }
       if(arr.length === 0) {
         callback();
       } else {
@@ -313,7 +357,7 @@ function parseList(arr, store, callback) {
       }
     });
   });
-}
+}*/
 
 console.log('starting calls')
 temp = new DJ('Bob');
@@ -333,7 +377,7 @@ addYoutube(temp, single, songs, null, function() {
         // var t1 = perfHooks.performance.now();
         // console.log((t1 - t0));
         for(var i = 0; i < final.length; i++) {
-          ytdl(final[i].url, { filter : 'audioonly' }).on('error', (error) => { console.log(error); });
+          ytdl(final[i].url, { filter : 'audioonly' }).on('error', (error, i, final) => { console.log(error); console.log(i); console.log(final[i]);});
         }
         console.log("done");
       });
