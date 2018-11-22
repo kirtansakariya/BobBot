@@ -8,7 +8,6 @@ const ytdl = require('ytdl-core');
 const streamOptions = { seek: 0, volume: 1 };
 const fs = require('fs');
 const DJ = require('./DJ');
-const Song = require('./Song');
 const Soundcloud = require('./Soundcloud');
 const Youtube = require('./Youtube');
 const djs = [];
@@ -50,23 +49,17 @@ bot.on('message', message => {
         var page = args.shift();
         var queue = getQueue();
         console.log(page);
+        console.log("final");
+        console.log(queue);
         if(queue.length == 0) {
           message.channel.send("The queue is currently empty");
         } else if(page == null) {
-          printQueue(0, queue, function(q) {
-            console.log("should print now");
-            var toPass = q.filter(song => song != null);
-            var mes = parseQueue(toPass, 0, queue.length);
-            message.channel.send(mes);
-          });
+          var mes = parseQueue(queue, 0, queue.length);
+          message.channel.send(mes);
         } else if (page > 0 && ((page - 1) * 10) < queue.length) {
           console.log(page);
-          printQueue(page - 1, queue, function(q) {
-            console.log("should print now");
-            var toPass = q.filter(song => song != null);
-            var mes = parseQueue(toPass, ((page - 1) * 10), queue.length);
-            message.channel.send(mes);
-          });
+          var mes = parseQueue(queue, ((page - 1) * 10), queue.length);
+          message.channel.send(mes);
         } else {
           message.channel.send("Please enter a valid page number");
         }
@@ -220,7 +213,9 @@ function getQueue() {
   var ret = [];
   var dj;
   var song;
-  ret.push(current);
+  if(current != null) {
+    ret.push(current);
+  }
   console.log("temp original");
   while(temp.length > 0) {
     var dj = temp.shift();
@@ -231,52 +226,6 @@ function getQueue() {
   }
   console.log(ret);
   return ret;
-}
-
-function printQueue(page, queue, callback) {
-  var i = page * 10;
-  var count = 0;
-  var ret = [];
-  console.log("QUEUE");
-  console.log(queue);
-  if(i >= queue.length) {
-    console.log("invalid page");
-    return;
-  }
-  for(var j = 0; j < 10 && (i + j) < queue.length; j++) {
-    console.log('j: ' + j + ' i + j; ' + (i + j));
-    (function(k) {
-      //console.log('k: ' + k + ' j: ' + j);
-      var song = queue[i + j];
-      var ind = j;
-      if(queue[i + j] != null && queue[i + j].url.includes("youtube")) {
-        ytdl.getInfo(song.url, function(err, info) {
-          if(info) {
-            var seconds = info.length_seconds % 60;
-            var minutes = Math.floor(info.length_seconds / 60);
-            song.length = minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
-          } else {
-            song.length = "N/A";
-          }
-          //console.log("ind: " + ind);
-          ret[ind] = song;
-          count++;
-          //console.log("count + i: " + (count + i) + " queue.length - 1: " + (queue.length - 1));
-          if(count == 10 || (count + i) == queue.length) {
-            console.log("retting: " + count);
-            callback(ret);
-          }
-        });
-      } else {
-        ret[ind] = song;
-        count++;
-        if(count == 10 || (count + i) == queue.length) {
-          console.log("retting: " + count);
-          callback(ret);
-        }
-      }
-    }(i));
-  }
 }
 
 function parseQueue(q, p, l) {
@@ -348,69 +297,3 @@ function cleanUp(arr) {
   }
 }
 
-console.log(Song);
-console.log(Soundcloud);
-console.log(Youtube);
-console.log(Song.Song);
-//var so = Song.init('A', 'bob1');
-var so = new Song.Song('A', 'bob1');
-//console.log(Song.Song());
-var so2 = new Song.Song('B', 'bob2');
-//var so2 = Song.init('B', 'bob2');
-console.log(so);
-console.log(so.url);
-console.log(so2);
-console.log("afdasdf " + so.getUrl());
-//console.log(so2);
-console.log(so2.getUrl());
-
-/*function play(message) {
-  var so = Song.init('A', 'bob1');
-  var so2 = Song.init('B', 'bob2');
-  console.log(so);
-  so.hello();
-  so.getUrl();
-  so.getUser();
-  console.log("testing: " + so.url + " message.member: " + message.member + " message: " + message + " dream: " + message.author.username);
-  if(message === "bobby1298") console.log("yayyyyyy");
-  so2.getUrl();
-  so2.getUser();
-  console.log("hi");
-  console.log(bot.voiceConnections[0] + "\n\n\n\n\n\n\n" + bot.voiceConnections[1]);
-//  console.log(bot.voiceConnections);
-  console.log(message.channel.connection);
-  message.channel.send('pong');
-  if(message.member.voiceChannel) {
-    message.member.voiceChannel.join()
-      .then(connection => {
-        const stream = ytdl('https://www.youtube.com/watch?v=XAWgeLF9EVQ', { filter : 'audioonly' })
-        const dispatcher = connection.play(stream);
-        // const dispatcher = connection.playFile('/Users/kirtan/Desktop/BobBot/SampleAudio_0.7mb.mp3');
-        console.log(dispatcher);
-        //dispatcher.resume();
-        dispatcher.on('error', console.error);
-        connection.player.on('debug', console.log);
-        connection.player.on('error', console.error);
-        //const dispatcher = connection.playStream(ytdl('https://www.youtube.com/watch?v=_XXOSf0s2nk', { filter: 'audioonly' }, { passes: 3 }));
-        //message.reply("hello");
-        //console.log("catching");
-      })
-      .catch(console.log);
-    var dj = getDJ(message.author.username);
-    console.log("retunred value: " + dj.user);
-  } else {
-    message.channel.send('You must be in a voice chat to join');
-  }
-}
-
-function getDJ(name) {
-  var i = 0;
-  while(i < players.length) {
-    if(name === players[i].user) return players[i];
-    i++;
-  }
-  console.log("new dj: " + name);
-  var temp = new DJ(name);
-  players.push(temp);
-  return temp;
-}*/
