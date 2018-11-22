@@ -3,7 +3,7 @@ const ytdl = require('ytdl-core');
 /*
  * Youtube Class
  */
-function Youtube(u, t, i, p, pl) {
+function Youtube(u, t, i, d, p, pl) {
   this.url = u;
   //console.log(u);
   //this.stream = ytdl(u, { filter : 'audioonly' }).on('error', (err) => console.log(err));
@@ -14,6 +14,7 @@ function Youtube(u, t, i, p, pl) {
   this.pid = p;
   this.player = pl;
   this.remove = false;
+  this.duration = d;
   /*ytdl.getInfo(u, function(err, info) {
     this.title = info.title;
     console.log(err);

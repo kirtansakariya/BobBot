@@ -20,7 +20,6 @@ function DJ(user) {
   this.songs = [];
 }
 
-var final = [];
 function addYoutube(dj, u, arr, page, callback) {
   if(!u.includes('list')) {
     var urlParams = url.parse(u, true);
@@ -130,7 +129,7 @@ function addYoutube(dj, u, arr, page, callback) {
 // }
 
 var final = [];
-function parseList(arr, store, callback) {
+function parseList(dj, arr, store, callback) {
   // console.log("done with single");
   // console.log(arr);
   // console.log(arr.length);
@@ -150,7 +149,7 @@ function parseList(arr, store, callback) {
       var mom = moment.duration(parsed.items[0].contentDetails.duration);
       var seconds = mom.asSeconds() % 60;
       var minutes = Math.floor(mom.asSeconds() / 60);
-      var tempYoutube = new Youtube.Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + seconds, 'test', 'test');
+      var tempYoutube = new Youtube.Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + seconds, dj.id, dj.user);
       var allowed = undefined;
       var blocked = undefined;
       if(parsed.items[0].contentDetails.regionRestriction !== undefined) {
@@ -167,7 +166,7 @@ function parseList(arr, store, callback) {
       if(arr.length === 0) {
         callback();
       } else {
-        parseList(arr, store, callback);
+        parseList(dj, arr, store, callback);
       }
     });
   });
@@ -278,8 +277,16 @@ DJ.prototype.addSong = function(url, callback) {
   console.log(url);
   if(url.includes("youtube")) {
     console.log("adding youtube url");
-    addYoutube(this, url, function() {
-      callback();
+    var songs = [];
+    var dj = this;
+    addYoutube(dj, url, songs, null, function() {
+      console.log(songs);
+      console.log(dj.songs);
+      parseList(dj, songs, dj.songs, function() {
+        console.log(dj.songs);
+        console.log(dj.songs.length);
+        callback();
+      });
     });
   } else if(url.includes("soundcloud")) {
     console.log("adding soundcloud url");
@@ -359,7 +366,7 @@ function parseList(arr, store, callback) {
   });
 }*/
 
-console.log('starting calls')
+/*console.log('starting calls')
 temp = new DJ('Bob');
 var songs = [];
 var final = [];
@@ -383,4 +390,4 @@ addYoutube(temp, single, songs, null, function() {
       });
     });
   });
-});
+});*/
