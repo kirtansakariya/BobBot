@@ -10,11 +10,13 @@ const fs = require('fs');
 const DJ = require('./DJ');
 const Soundcloud = require('./Soundcloud');
 const Youtube = require('./Youtube');
+const https = require('https');
 const djs = [];
 let dispatcher = null;
 let counter = 0;
 let currCounter = 0;
 let current = null;
+let ytSearches = {};
 
 bot.login(auth.token);
 
@@ -59,6 +61,8 @@ bot.on('message', message => {
         } else if (page > 0 && ((page - 1) * 10) < queue.length) {
           console.log(page);
           var mes = parseQueue(queue, ((page - 1) * 10), queue.length);
+          console.log(typeof(mes));
+          console.log(mes);
           message.channel.send(mes);
         } else {
           message.channel.send("Please enter a valid page number");
@@ -122,6 +126,21 @@ bot.on('message', message => {
         break;
       case 'tiny':
         message.channel.send("Dong?");
+        break;
+      case 'youtube':
+      case 'yt':
+        message.channel.send("youtube");
+        if(args.length == 0) {
+          message.channel.send("Need to provide search query");
+        } else {
+         var str = args.join(" ");
+         ytSearch(str, message.member.displayName, function() {
+           //console.log(ytSearches);
+           for(var i = 0; i < ytSearches[message.member.displayName].length; i++) {
+             console.log(ytSearches[message.member.displayName][i]);
+           }
+         });
+        }
         break;
       case 'commands':
         var mes = 'Play song: `;play <url>`\nStart player: `;start`\nSkip song: `;skip`\nQueue: `;queue` or `;q`\nCurrent song: `;current` or `;curr`\nPause player: `;pause`\nResume player: `;resume` or `;re` or `;r`\n' +
@@ -232,7 +251,7 @@ function parseQueue(q, p, l) {
   var message = '';
   console.log("parse");
   console.log(q);
-  for(var i = 0; i < q.length; i++) {
+  for(var i = 0; i < 10 && i < q.length; i++) {
     if(p == 0 && i == 0) {
       message += (p + i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
       continue;
@@ -296,4 +315,52 @@ function cleanUp(arr) {
     }
   }
 }
+
+function ytSearch(str, name, callback) {
+  console.log("query: " + str);
+  https.get('https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + str + '&type=video&key=' + auth.youtubeApi, (resp) => {
+    let data = '';
+
+    resp.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    resp.on('end', () => {
+      var parsed = JSON.parse(data);
+      console.log(parsed);
+      ytSearches[name] = [];
+      for(var i = 0; i < parsed.items.length; i++) {
+        ytSearches[name][i] = {};
+        ytSearches[name][i].title = parsed.items[i].snippet.title;
+        ytSearches[name][i].id = parsed.items[i].id.videoId;
+      }
+      parseVideos(parsed.items, name, callback);
+    });
+  });
+}
+
+function parseVideos(videos, name, callback) {
+  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + auth.youtubeApi, (resp) => {
+    let data = '';
+
+    resp.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    resp.on('end', () => {
+      var parsed = JSON.parse(data);
+      //console.log(parsed.items[0].contentDetails);
+      console.log("len: " + videos.length + " index: " + (((videos.length - 1) % 5) * -1));
+      ytSearches[name][((videos.length - 1) % 5)].info = parsed;
+      console.log(parsed);
+      videos.shift();
+      if(videos.length === 0) {
+        callback();
+      } else {
+        parseVideos(videos, name, callback);
+      }
+    });
+  });
+}
+
 

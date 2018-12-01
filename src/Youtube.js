@@ -1,4 +1,4 @@
-function Youtube(u, t, i, d, p, pl) {
+function Youtube(u, t, i, l, p, pl) {
   this.url = u;
   this.stream = null;
   this.title = t;
@@ -7,7 +7,7 @@ function Youtube(u, t, i, d, p, pl) {
   this.pid = p;
   this.player = pl;
   this.remove = false;
-  this.duration = d;
+  this.length = l;
 }
 
 Youtube.prototype.init = function(u) {
