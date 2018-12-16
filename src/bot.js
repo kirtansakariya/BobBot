@@ -91,10 +91,13 @@ bot.on('message', message => {
         nextSong(message);
         break;
       case 'current':
+      case 'curr':
+      case 'c':
         if(current == null) {
           message.channel.send("No songs playing currently");
         } else {
-          message.channel.send('`' + current.title + '` [' + current.length + '] req by ' + current.user);
+          console.log(current);
+          message.channel.send('`' + current.title + '` [' + current.length + '] req by ' + current.player);
         }
         break;
       case 'pause':
@@ -121,6 +124,10 @@ bot.on('message', message => {
         } else {
           message.channel.send(message.member.displayName + ' has no songs in the queue to shuffle');
         }
+        break;
+      case 'soundcloud':
+      case 'sc':
+        message.channel.send('soundclouding');
         break;
       case 'remove':
       case 'rm':
