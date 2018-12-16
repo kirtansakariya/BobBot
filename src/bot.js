@@ -137,6 +137,30 @@ bot.on('message', message => {
           message.channel.send('Removed the following songs:\n' + remMes);
         }
         break;
+      case 'removeplayer':
+      case 'removePlayer':
+      case 'removepl':
+      case 'removePl':
+      case 'rmplayer':
+      case 'remPlayer':
+      case 'rmpl':
+      case 'rmPl':
+        console.log(args);
+        if(args.length === 0) {
+          message.channel.send("Please provide the player's name");
+        } else {
+          var name = args[0];
+          for(var i = 0; i < djs.length; i++) {
+            console.log(djs[i].user);
+            console.log((djs[i].user === name));
+            console.log("name: " + name);
+            if(djs[i].user === name) {
+              djs.splice(i, 1);
+              message.channel.send('Removing all songs that were added by ' + name);
+            }
+          }
+        }
+        break;
       case 'tiny':
         message.channel.send("Dong?");
         break;
@@ -196,6 +220,7 @@ function getDJ(member) {
 }
 
 function nextSong(message) {
+  current = null;
   console.log(message);
   console.log(message.member.voice.channel);
   if(message.member.voice.channel == null) {
@@ -269,7 +294,7 @@ function parseQueue(q, p, l) {
   console.log("parse");
   console.log(q);
   for(var i = 0; i < 10 && i < q.length; i++) {
-    if(p == 0 && i == 0) {
+    if(p == 0 && i == 0 && current !== null) {
       message += (p + i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
       continue;
     }
