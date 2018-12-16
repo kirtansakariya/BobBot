@@ -11,6 +11,7 @@ const DJ = require('./DJ');
 const Soundcloud = require('./Soundcloud');
 const Youtube = require('./Youtube');
 const https = require('https');
+const moment = require('moment');
 const djs = [];
 let dispatcher = null;
 let counter = 0;
@@ -29,7 +30,19 @@ bot.on('ready', function(evt) {
 
 bot.on('message', message => {
   console.log(message.content + " message: " + message + " member: " + message.member + " type: " + typeof(message));
-  if (message.content.substring(0, 1) == ';') {
+  if(ytSearches[message.member.displayName] !== undefined) {
+    var selection = Number.parseInt(message.content);
+    if(isNaN(selection) || selection < 1 || selection > 5) {
+      message.channel.send("Invalid selection");
+    } else {
+      var song = ytSearches[message.member.displayName][selection - 1];
+      console.log(song);
+      var dj = getDJ(message.member);
+      dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
+      message.channel.send('Added: ' + song.title);
+    }
+    ytSearches[message.member.displayName] = undefined;
+  } else if (message.content.substring(0, 1) == ';') {
     var args = message.content.substring(1).split(' ');
     var cmd = args[0];
     args = args.splice(1);
@@ -129,16 +142,20 @@ bot.on('message', message => {
         break;
       case 'youtube':
       case 'yt':
-        message.channel.send("youtube");
         if(args.length == 0) {
           message.channel.send("Need to provide search query");
         } else {
          var str = args.join(" ");
          ytSearch(str, message.member.displayName, function() {
            //console.log(ytSearches);
+           var send = '**Enter a number from 1-5 to select a song**\n';
            for(var i = 0; i < ytSearches[message.member.displayName].length; i++) {
              console.log(ytSearches[message.member.displayName][i]);
+             var info = ytSearches[message.member.displayName][i];
+             send += (i + 1) + '. **' + info.title + '** - ' + info.duration + '\n';
            }
+           send += '**Songs fetched from YouTube**'
+           message.channel.send(send);
          });
         }
         break;
@@ -352,7 +369,11 @@ function parseVideos(videos, name, callback) {
       //console.log(parsed.items[0].contentDetails);
       console.log("len: " + videos.length + " index: " + (((videos.length - 1) % 5) * -1));
       ytSearches[name][((videos.length - 1) % 5)].info = parsed;
-      console.log(parsed);
+ //     console.log(moment.duration(parsed.items[0].contentDetails.duration));
+      var mom = moment.duration(parsed.items[0].contentDetails.duration);
+      var seconds = mom.asSeconds() % 60;
+      var minutes = Math.floor(mom.asSeconds() / 60);
+      ytSearches[name][((videos.length - 1) % 5)].duration = minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds);
       videos.shift();
       if(videos.length === 0) {
         callback();
