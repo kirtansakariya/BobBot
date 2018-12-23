@@ -11,13 +11,14 @@ const DJ = require('./DJ');
 const Soundcloud = require('./Soundcloud');
 const Youtube = require('./Youtube');
 const https = require('https');
+const http = require('http');
 const moment = require('moment');
 const djs = [];
 let dispatcher = null;
 let counter = 0;
 let currCounter = 0;
 let current = null;
-let ytSearches = {};
+let searches = {};
 
 bot.login(auth.token);
 
@@ -30,18 +31,33 @@ bot.on('ready', function(evt) {
 
 bot.on('message', message => {
   console.log(message.content + " message: " + message + " member: " + message.member + " type: " + typeof(message));
-  if(ytSearches[message.member.displayName] !== undefined) {
+  if(searches[message.member.displayName] !== undefined) {
     var selection = Number.parseInt(message.content);
     if(isNaN(selection) || selection < 1 || selection > 5) {
       message.channel.send("Invalid selection");
     } else {
-      var song = ytSearches[message.member.displayName][selection - 1];
+      var song = searches[message.member.displayName][selection - 1];
       console.log(song);
       var dj = getDJ(message.member);
-      dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
-      message.channel.send('Added: ' + song.title);
+      if(song.type === 'yt') {
+        dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
+      } else {
+        console.log("add sc song");
+        song.pid = message.member.id;
+        song.player = message.member.displayName;
+        dj.songs.push(song);
+      }
+      var queue = getQueue();
+      var i = 0;
+      while(i < queue.length) {
+        if(queue[i].title === song.title) {
+          break;
+        }
+        i++;
+      }
+      message.channel.send('Added **' + song.title + '** at position **' + (i + 1) + '**');
     }
-    ytSearches[message.member.displayName] = undefined;
+    searches[message.member.displayName] = undefined;
   } else if (message.content.substring(0, 1) == ';') {
     var args = message.content.substring(1).split(' ');
     var cmd = args[0];
@@ -51,7 +67,11 @@ bot.on('message', message => {
         play(message);
         break;
       case 'play':
-        addSongs(message.member, args[0]);
+        if(args[0] === undefined) {
+          message.channel.send("Please specify a url");
+        } else {
+          addSongs(message.member, args[0]);
+        }
         break;
       case 'start':
         if(dispatcher == null) nextSong(message);
@@ -66,9 +86,9 @@ bot.on('message', message => {
         console.log(page);
         console.log("final");
         console.log(queue);
-        if(queue.length == 0) {
+        if(queue.length === 0) {
           message.channel.send("The queue is currently empty");
-        } else if(page == null) {
+        } else if(page === undefined) {
           var mes = parseQueue(queue, 0, queue.length);
           message.channel.send(mes);
         } else if (page > 0 && ((page - 1) * 10) < queue.length) {
@@ -108,6 +128,52 @@ bot.on('message', message => {
           dispatcher.pause();
         }
         break;
+      case 'queuePlayer':
+      case 'queueplayer':
+      case 'queuePl':
+      case 'queuepl':
+      case 'qPlayer':
+      case 'qplayer':
+      case 'qPl':
+      case 'qpl':
+      case 'qP':
+      case 'qp':
+        console.log(djs);
+        console.log(args);
+        if(args.length === 0) {
+          message.channel.send("Please provide a non-empty player name");
+        } else {
+          var dj = null;
+          for(var i = 0; i < djs.length; i++) {
+            console.log(djs[i]);
+            console.log((djs[i].user === args[0]));
+            console.log((djs[i].user == args[0]));
+            console.log(typeof(djs[i].user));
+            console.log(typeof(args[0]));
+            if(djs[i].user === args[0]) {
+              dj = djs[i];
+              break;
+            }
+          }
+          if(dj === null) {
+            message.channel.send(args[0] + ' does not have any songs queued');
+          } else {
+            var page = Number.parseInt(args[1]);
+            var msg = "";
+            if(args[1] === undefined) {
+              page = 0;
+            } else if(isNaN(page)) {
+              msg = "Invalid page number, displaying first page instead\n";
+              page = 0;
+            } else if((page * 10) > dj.songs.length || page === 0) {
+              msg = "Invalid page number, displaying first page instead\n";
+              page = 0;
+            }
+            var queue = parsePlayerQueue(dj.songs, page);
+            message.channel.send(msg + queue);
+          }
+        }
+        break;
       case 'resume':
       case 're':
       case 'r':
@@ -127,19 +193,41 @@ bot.on('message', message => {
         break;
       case 'soundcloud':
       case 'sc':
-        message.channel.send('soundclouding');
+        if(args.length === 0) {
+          message.channel.send("Need to provide search query");
+        } else {
+          var str = args.join(" ");
+          scSearch(str, message.member.displayName, function() {
+            console.log(searches[message.member.displayName]);
+            var send = '**Enter a number from 1-5 to select a song**\n';
+            for(var i = 0; i < searches[message.member.displayName].length; i++) {
+              var info = searches[message.member.displayName][i];
+              send += (i + 1) + '. **' + info.title + '** - ' + info.duration + '\n';
+            }
+            send += "**Songs fetched from Soundcloud**";
+            message.channel.send(send);
+          });
+          console.log(str);
+        }
         break;
       case 'remove':
       case 'rm':
         if(args.length == 0) {
           message.channel.send("Please provide the queue number(s) of the song(s) to remove");
         } else {
+          var page = 0;
           var queue = getQueue();
           var removed = removeElements(args, queue);
           cleanUp(removed);
           var remMes = '';
           for(var i = 0; i < removed.length; i++) {
             remMes += removed[i][2] + '. ' + removed[i][1] + '\n';
+          }
+          for(var i = 0; i < djs.length; i++) {
+            if(djs[i].songs.length === 0) {
+              djs.splice(i, 1);
+              i--;
+            }
           }
           message.channel.send('Removed the following songs:\n' + remMes);
         }
@@ -178,11 +266,11 @@ bot.on('message', message => {
         } else {
          var str = args.join(" ");
          ytSearch(str, message.member.displayName, function() {
-           //console.log(ytSearches);
+           //console.log(searches);
            var send = '**Enter a number from 1-5 to select a song**\n';
-           for(var i = 0; i < ytSearches[message.member.displayName].length; i++) {
-             console.log(ytSearches[message.member.displayName][i]);
-             var info = ytSearches[message.member.displayName][i];
+           for(var i = 0; i < searches[message.member.displayName].length; i++) {
+             console.log(searches[message.member.displayName][i]);
+             var info = searches[message.member.displayName][i];
              send += (i + 1) + '. **' + info.title + '** - ' + info.duration + '\n';
            }
            send += '**Songs fetched from YouTube**'
@@ -296,6 +384,19 @@ function getQueue() {
   return ret;
 }
 
+function parsePlayerQueue(q, p) {
+  var message = '';
+  for(var i = p * 10; i < q.length; i++) {
+    if(current !== null && q[i].title === current.title) {
+      message += (i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
+      continue;
+    }
+    message += (i + 1) + '. `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
+  }
+  message += 'Page: ' + (p + 1) + ' Total number of songs: ' + q.length;
+  return message;
+}
+
 function parseQueue(q, p, l) {
   var message = '';
   console.log("parse");
@@ -308,6 +409,7 @@ function parseQueue(q, p, l) {
     message += (p + i + 1) + '. `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
   }
   message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
+  console.log(message);
   return message;
 }
 
@@ -377,11 +479,12 @@ function ytSearch(str, name, callback) {
     resp.on('end', () => {
       var parsed = JSON.parse(data);
       console.log(parsed);
-      ytSearches[name] = [];
+      searches[name] = [];
       for(var i = 0; i < parsed.items.length; i++) {
-        ytSearches[name][i] = {};
-        ytSearches[name][i].title = parsed.items[i].snippet.title;
-        ytSearches[name][i].id = parsed.items[i].id.videoId;
+        searches[name][i] = {};
+        searches[name][i].title = parsed.items[i].snippet.title;
+        searches[name][i].id = parsed.items[i].id.videoId;
+        searches[name][i].type = 'yt';
       }
       parseVideos(parsed.items, name, callback);
     });
@@ -400,12 +503,12 @@ function parseVideos(videos, name, callback) {
       var parsed = JSON.parse(data);
       //console.log(parsed.items[0].contentDetails);
       console.log("len: " + videos.length + " index: " + (((videos.length - 1) % 5) * -1));
-      ytSearches[name][((videos.length - 1) % 5)].info = parsed;
+      searches[name][((videos.length - 1) % 5)].info = parsed;
  //     console.log(moment.duration(parsed.items[0].contentDetails.duration));
       var mom = moment.duration(parsed.items[0].contentDetails.duration);
       var seconds = mom.asSeconds() % 60;
       var minutes = Math.floor(mom.asSeconds() / 60);
-      ytSearches[name][((videos.length - 1) % 5)].duration = minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds);
+      searches[name][((videos.length - 1) % 5)].duration = minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds);
       videos.shift();
       if(videos.length === 0) {
         callback();
@@ -416,4 +519,28 @@ function parseVideos(videos, name, callback) {
   });
 }
 
+function scSearch(str, name, callback) {
+  http.get('http://api.soundcloud.com/tracks?q=' + str + '&client_id=' + auth.scid, function(resp) {
+    let data = '';
+
+    resp.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    resp.on('end', () => {
+      searches[name] = [];
+      var parsed = JSON.parse(data);
+      console.log(parsed);
+      console.log(parsed.length);
+      parsed = parsed.slice(0, 5);
+      for(var i = 0; i < parsed.length; i++) {
+        var duration = parsed[i].duration;
+        mintues = Math.floor(duration / 60000);
+        seconds = ((duration % 60000) / 1000).toFixed(0);
+        searches[name][i] = new Soundcloud.Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + "?client_id=" + auth.scid, parsed[i].title, mintues + ':' + (seconds < 10 ? '0' : '') + seconds);
+      }
+      callback();
+    });
+  });
+}
 
