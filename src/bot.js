@@ -202,7 +202,7 @@ bot.on('message', message => {
             var send = '**Enter a number from 1-5 to select a song**\n';
             for(var i = 0; i < searches[message.member.displayName].length; i++) {
               var info = searches[message.member.displayName][i];
-              send += (i + 1) + '. **' + info.title + '** - ' + info.duration + '\n';
+              send += (i + 1) + '. **' + info.title + '** - ' + info.length + '\n';
             }
             send += "**Songs fetched from Soundcloud**";
             message.channel.send(send);
@@ -501,10 +501,8 @@ function parseVideos(videos, name, callback) {
 
     resp.on('end', () => {
       var parsed = JSON.parse(data);
-      //console.log(parsed.items[0].contentDetails);
       console.log("len: " + videos.length + " index: " + (((videos.length - 1) % 5) * -1));
       searches[name][((videos.length - 1) % 5)].info = parsed;
- //     console.log(moment.duration(parsed.items[0].contentDetails.duration));
       var mom = moment.duration(parsed.items[0].contentDetails.duration);
       var seconds = mom.asSeconds() % 60;
       var minutes = Math.floor(mom.asSeconds() / 60);
@@ -535,9 +533,9 @@ function scSearch(str, name, callback) {
       parsed = parsed.slice(0, 5);
       for(var i = 0; i < parsed.length; i++) {
         var duration = parsed[i].duration;
-        mintues = Math.floor(duration / 60000);
+        minutes = Math.floor(duration / 60000);
         seconds = ((duration % 60000) / 1000).toFixed(0);
-        searches[name][i] = new Soundcloud.Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + "?client_id=" + auth.scid, parsed[i].title, mintues + ':' + (seconds < 10 ? '0' : '') + seconds);
+        searches[name][i] = new Soundcloud.Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + "?client_id=" + auth.scid, parsed[i].title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
       }
       callback();
     });
