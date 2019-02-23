@@ -142,8 +142,10 @@ bot.on('message', message => {
         console.log(args);
         if(args.length === 0) {
           message.channel.send("Please provide a non-empty player name");
-        } else {
-          var dj = null;
+          break;
+        }
+        //else {
+          /*var dj = null;
           for(var i = 0; i < djs.length; i++) {
             console.log(djs[i]);
             console.log((djs[i].user === args[0]));
@@ -171,8 +173,42 @@ bot.on('message', message => {
             }
             var queue = parsePlayerQueue(dj.songs, page);
             message.channel.send(msg + queue);
+          }*/
+        var djName = args.join(' ');
+        var dj = null;
+        var msg = '';
+        for(var i = 0; i < djs.length; i++) {
+          if(djs[i].user === djName) {
+            dj = djs[i];
+            break;
           }
         }
+        if(dj !== null) {
+          msg = parseQueue(dj.songs, 0, dj.songs.length);
+          message.channel.send(msg);
+          break;
+        }
+        var page = Number.parseInt(args[args.length - 1]);
+        if(!isNaN(page)) {
+          djName = args.slice(0, -1).join(' ');
+          for(var i = 0; i < djs.length; i++) {
+            if(djs[i].user === djName) {
+              dj = djs[i];
+              break;
+            }
+          }
+          if(dj === null) {
+            message.channel.send("Invalid player name");
+          } else if(page <= 0 || ((page - 1) * 10) > dj.songs.length) {
+            msg = "Invalid page number, displaying first page instead\n";
+            msg += parseQueue(dj.songs, 0, dj.songs.length);
+            message.channel.send(msg);
+          } else {
+            msg = parseQueue(dj.songs, (page - 1) * 10, dj.songs.length);
+            message.channel.send(msg);
+          }
+        }
+        //}
         break;
       case 'resume':
       case 're':
@@ -290,6 +326,11 @@ bot.on('message', message => {
 // Add songs to the appropriate DJ
 function addSongs(member, url) {
   dj = getDJ(member);
+  /*if(dj === null) {
+    dj = new DJ.DJ(member);
+    djs.push(dj);
+    counter++;
+  }*/
   console.log(dj);
   dj.addSong(url, function() {
     console.log("done");
@@ -401,12 +442,12 @@ function parseQueue(q, p, l) {
   var message = '';
   console.log("parse");
   console.log(q);
-  for(var i = 0; i < 10 && i < q.length; i++) {
+  for(var i = 0; i < 10 && (p + i) < q.length; i++) {
     if(p == 0 && i == 0 && current !== null) {
       message += (p + i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
       continue;
     }
-    message += (p + i + 1) + '. `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
+    message += (p + i + 1) + '. `' + q[p + i].title + '` [' + q[p + i].length + '] req by ' + q[p + i].player + '\n';
   }
   message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
   console.log(message);
