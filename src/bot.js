@@ -144,36 +144,6 @@ bot.on('message', message => {
           message.channel.send("Please provide a non-empty player name");
           break;
         }
-        //else {
-          /*var dj = null;
-          for(var i = 0; i < djs.length; i++) {
-            console.log(djs[i]);
-            console.log((djs[i].user === args[0]));
-            console.log((djs[i].user == args[0]));
-            console.log(typeof(djs[i].user));
-            console.log(typeof(args[0]));
-            if(djs[i].user === args[0]) {
-              dj = djs[i];
-              break;
-            }
-          }
-          if(dj === null) {
-            message.channel.send(args[0] + ' does not have any songs queued');
-          } else {
-            var page = Number.parseInt(args[1]);
-            var msg = "";
-            if(args[1] === undefined) {
-              page = 0;
-            } else if(isNaN(page)) {
-              msg = "Invalid page number, displaying first page instead\n";
-              page = 0;
-            } else if((page * 10) > dj.songs.length || page === 0) {
-              msg = "Invalid page number, displaying first page instead\n";
-              page = 0;
-            }
-            var queue = parsePlayerQueue(dj.songs, page);
-            message.channel.send(msg + queue);
-          }*/
         var djName = args.join(' ');
         var dj = null;
         var msg = '';
@@ -208,7 +178,6 @@ bot.on('message', message => {
             message.channel.send(msg);
           }
         }
-        //}
         break;
       case 'resume':
       case 're':
