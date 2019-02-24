@@ -101,7 +101,7 @@ function parseList(dj, arr, store, callback) {
         store.push(tempYoutube);
       }
       if(arr.length === 0) {
-        callback();
+        callback(store.length);
       } else {
         parseList(dj, arr, store, callback);
       }
@@ -115,6 +115,7 @@ function addSoundcloud(dj, u, callback) {
   var duration;
   var minutes;
   var seconds;
+  var counter = 0;
   console.log("SC");
   http.get('http://api.soundcloud.com/resolve?url=' + u + '&client_id=' + auth.scid, function(resp) {
     let data1 = '';
@@ -141,7 +142,7 @@ function addSoundcloud(dj, u, callback) {
               minutes = Math.floor(duration / 60000);
               seconds = ((duration % 60000) / 1000).toFixed(0);
               dj.songs.push(new Soundcloud.Soundcloud(u, track.stream_url + "?client_id=" + auth.scid, track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
-              callback();
+              callback(1);
             } else {
               console.log("adding soundcloud playlist");
               while(track.tracks.length > 0) {
@@ -150,8 +151,9 @@ function addSoundcloud(dj, u, callback) {
                 minutes = Math.floor(duration / 60000);
                 seconds = ((duration % 60000) / 1000).toFixed(0);
                 dj.songs.push(new Soundcloud.Soundcloud(t.permalink_url, t.stream_url + "?client_id=" + auth.scid, t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
+                counter++;
               }
-              callback();
+              callback(counter);
             }
           }
         });
@@ -180,23 +182,24 @@ DJ.prototype.addSong = function(url, callback) {
     console.log("adding youtube url");
     var songs = [];
     var dj = this;
+    var origLength = dj.songs.length;
     addYoutube(dj, url, songs, null, function() {
       console.log(songs);
       console.log(dj.songs);
-      parseList(dj, songs, dj.songs, function() {
+      parseList(dj, songs, dj.songs, function(num) {
         console.log(dj.songs);
         console.log(dj.songs.length);
-        callback();
+        callback("Added " + (num - origLength) + " songs");
       });
     });
   } else if(url.includes("soundcloud")) {
     console.log("adding soundcloud url");
-    addSoundcloud(this, url, function() {
-      callback();
+    addSoundcloud(this, url, function(num) {
+      callback("Added " + num + " songs");
     });
   } else {
     console.log("needs to provide valid url");
-    callback();
+    callback("Invalid url");
   }
   console.log("outside, no callback");
 };

@@ -70,7 +70,9 @@ bot.on('message', message => {
         if(args[0] === undefined) {
           message.channel.send("Please specify a url");
         } else {
-          addSongs(message.member, args[0]);
+          addSongs(message.member, args[0], function(msg) {
+            message.channel.send(msg);
+          });
         }
         break;
       case 'start':
@@ -293,7 +295,7 @@ bot.on('message', message => {
 });
 
 // Add songs to the appropriate DJ
-function addSongs(member, url) {
+function addSongs(member, url, callback) {
   dj = getDJ(member);
   /*if(dj === null) {
     dj = new DJ.DJ(member);
@@ -301,8 +303,9 @@ function addSongs(member, url) {
     counter++;
   }*/
   console.log(dj);
-  dj.addSong(url, function() {
+  dj.addSong(url, function(msg) {
     console.log("done");
+    callback(msg);
   });
 }
 
