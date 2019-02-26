@@ -286,8 +286,26 @@ bot.on('message', message => {
         }
         break;
       case 'commands':
-        var mes = 'Play song: `;play <url>`\nStart player: `;start`\nSkip song: `;skip`\nQueue: `;queue` or `;q`\nCurrent song: `;current` or `;curr`\nPause player: `;pause`\nResume player: `;resume` or `;re` or `;r`\n' +
-                  'Fun commands: `;tiny`';
+        //var mes = 'Play song: `;play <url>`\nStart player: `;start`\nSkip song: `;skip`\nQueue: `;queue` or `;q`\nCurrent song: `;current` or `;curr`\nPause player: `;pause`\nResume player: `;resume` or `;re` or `;r`\n' +
+        //          'Fun commands: `;tiny`';
+        var play = 'Play song: `;play <url>`';
+        var start = 'Start player: `;start`';
+        var leave = 'Leave player: `;leave`';
+        var queue = 'Queue: `;queue` or `;queue <page number>`';
+        var clean = 'Clean queue: `;clean`';
+        var skip = 'Skip current song: `;skip`';
+        var current = 'Current song: `;current`';
+        var pause = 'Pause player: `;pause`';
+        var qpl = 'Specific player\'s queue: `;queuePlayer`';
+        var resume = 'Resume player: `;resume`';
+        var shuffle = 'Shuffle your songs: `;shuffle`';
+        var sc = 'Search soundcloud: `;soundcloud <query>`';
+        var remove = 'Remove song: `;remove <place in queue>`';
+        var rmpl = 'Remove player\'s queue: `;removePlayer <player name>`';
+        var tiny = 'Tiny: `;tiny`';
+        var yt = 'Search youtube: `;youtube <query>`';
+        var mes = play + '\n' + start + '\n' + leave + '\n' + queue + '\n' + clean + '\n' + skip + '\n' + current + '\n' + pause + '\n' + qpl + '\n' + resume + '\n' + shuffle
+                   + '\n' + sc + '\n' + remove + '\n' + rmpl + '\n' + tiny + '\n' + yt;
         message.channel.send(mes);
         break;
     }
