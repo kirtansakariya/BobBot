@@ -13,6 +13,7 @@ const Youtube = require('./Youtube');
 const https = require('https');
 const http = require('http');
 const moment = require('moment');
+const decode = require('unescape');
 const djs = [];
 let dispatcher = null;
 let counter = 0;
@@ -281,7 +282,7 @@ bot.on('message', message => {
              send += (i + 1) + '. **' + info.title + '** - ' + info.duration + '\n';
            }
            send += '**Songs fetched from YouTube**'
-           message.channel.send(send);
+           message.channel.send(decode(send));
          });
         }
         break;
@@ -298,13 +299,13 @@ bot.on('message', message => {
         var pause = 'Pause player: `;pause`';
         var qpl = 'Specific player\'s queue: `;queuePlayer`';
         var resume = 'Resume player: `;resume`';
-        var shuffle = 'Shuffle your songs: `;shuffle`';
+        var shuff = 'Shuffle your songs: `;shuffle`';
         var sc = 'Search soundcloud: `;soundcloud <query>`';
         var remove = 'Remove song: `;remove <place in queue>`';
         var rmpl = 'Remove player\'s queue: `;removePlayer <player name>`';
         var tiny = 'Tiny: `;tiny`';
         var yt = 'Search youtube: `;youtube <query>`';
-        var mes = play + '\n' + start + '\n' + leave + '\n' + queue + '\n' + clean + '\n' + skip + '\n' + current + '\n' + pause + '\n' + qpl + '\n' + resume + '\n' + shuffle
+        var mes = play + '\n' + start + '\n' + leave + '\n' + queue + '\n' + clean + '\n' + skip + '\n' + current + '\n' + pause + '\n' + qpl + '\n' + resume + '\n' + shuff
                    + '\n' + sc + '\n' + remove + '\n' + rmpl + '\n' + tiny + '\n' + yt;
         message.channel.send(mes);
         break;

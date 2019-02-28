@@ -14,6 +14,7 @@
     "node-opus": "^0.2.9",
     "opusscript": "0.0.6",
     "sodium": "^2.0.3",
+    "unescape": "^1.0.1",
     "uws": "^9.148.0",
     "ytdl-core": "^0.28.0",
     "zlib-sync": "^0.1.4"
