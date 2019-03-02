@@ -11,13 +11,13 @@ function Soundcloud(u, s, t, l, p, pl) {
 }
 
 Soundcloud.prototype.init = function(u) {
-  console.log("soundcloud init");
+  console.log('soundcloud init');
   this.url = u;
   return this;
 };
 
 Soundcloud.prototype.getStream = function() {
-  console.log("getting stream: " + this.stream);
+  console.log('getting stream: ' + this.stream);
   return this.stream;
 };
 
@@ -26,5 +26,5 @@ Soundcloud.prototype.getTitle = function() {
 };
 
 module.exports = {
-  Soundcloud: Soundcloud
-}
+  Soundcloud: Soundcloud,
+};
