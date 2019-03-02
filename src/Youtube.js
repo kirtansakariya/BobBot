@@ -1,5 +1,5 @@
 /**
- * Initialize a Youtube song
+ * Initialize a Youtube song.
  * @param {string} u The url.
  * @param {string} t The title of the song.
  * @param {number} i The Youtube id of the song.
@@ -19,11 +19,12 @@ function Youtube(u, t, i, l, p, pl) {
   this.length = l;
 }
 
-/*Youtube.prototype.init = function(u) {
+Youtube.prototype.init = function(u) {
   console.log('youtube init');
-  Youtube(u);
+  // Youtube(u);
+  this.url = u;
   return this;
-};*/
+};
 
 Youtube.prototype.getStream = function() {
   console.log('getting stream');

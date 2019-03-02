@@ -7,12 +7,24 @@ const https = require('https');
 const url = require('url');
 const moment = require('moment');
 
+/**
+ * Create a new DJ.
+ * @param {Object} user The data for the user.
+ */
 function DJ(user) {
   this.user = user.displayName;
   this.id = user.id;
   this.songs = [];
 }
 
+/**
+ * Add a Youtube song or songs from a playlists.
+ * @param {Object} dj The player to add the songs to.
+ * @param {string} u The url of the song or playlist.
+ * @param {Object} arr The array of songs as pages in the playlist are parsed.
+ * @param {number} page The page of the Youtube playlist.
+ * @param {Object} callback The callback to leave the function.
+ */
 function addYoutube(dj, u, arr, page, callback) {
   if (!u.includes('list')) {
     var urlParams = url.parse(u, true);

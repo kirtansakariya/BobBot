@@ -1,5 +1,12 @@
-const auth = require('../auth.json');
-
+/**
+ * Create a Soundcloud song.
+ * @param {string} u The url of the song.
+ * @param {string} s The url of the stream.
+ * @param {string} t The title of the song.
+ * @param {string} l The length of the song.
+ * @param {string} p The Discord id of the player.
+ * @param {string} pl The name of the player.
+ */
 function Soundcloud(u, s, t, l, p, pl) {
   this.url = u;
   this.stream = s;
