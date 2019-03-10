@@ -93,13 +93,13 @@ bot.on('message', (message) => {
           message.channel.send('The queue is currently empty');
         } else if (page === undefined) {
           var mes = parseQueue(queue, 0, queue.length);
-          message.channel.send(mes);
+          message.channel.send(decode(mes));
         } else if (page > 0 && ((page - 1) * 10) < queue.length) {
           console.log(page);
           var mes = parseQueue(queue, ((page - 1) * 10), queue.length);
           console.log(typeof(mes));
           console.log(mes);
-          message.channel.send(mes);
+          message.channel.send(decode(mes));
         } else {
           message.channel.send('Please enter a valid page number');
         }
@@ -120,7 +120,7 @@ bot.on('message', (message) => {
           message.channel.send('No songs playing currently');
         } else {
           console.log(current);
-          message.channel.send('`' + current.title + '` [' + current.length + '] req by ' + current.player);
+          message.channel.send(decode('`' + current.title + '` [' + current.length + '] req by ' + current.player));
         }
         break;
       case 'pause':
@@ -158,7 +158,7 @@ bot.on('message', (message) => {
         }
         if (dj !== null) {
           msg = parseQueue(dj.songs, 0, dj.songs.length);
-          message.channel.send(msg);
+          message.channel.send(decode(msg));
           break;
         }
         var page = Number.parseInt(args[args.length - 1]);
@@ -175,10 +175,10 @@ bot.on('message', (message) => {
           } else if (page <= 0 || ((page - 1) * 10) > dj.songs.length) {
             msg = 'Invalid page number, displaying first page instead\n';
             msg += parseQueue(dj.songs, 0, dj.songs.length);
-            message.channel.send(msg);
+            message.channel.send(decode(msg));
           } else {
             msg = parseQueue(dj.songs, (page - 1) * 10, dj.songs.length);
-            message.channel.send(msg);
+            message.channel.send(decode(msg));
           }
         }
         break;
@@ -237,7 +237,7 @@ bot.on('message', (message) => {
               i--;
             }
           }
-          message.channel.send('Removed the following songs:\n' + remMes);
+          message.channel.send(decode('Removed the following songs:\n' + remMes));
         }
         break;
       case 'removeplayer':
@@ -252,7 +252,7 @@ bot.on('message', (message) => {
         if (args.length === 0) {
           message.channel.send('Please provide the player\'s name');
         } else {
-          const name = args[0];
+          const name = args.join(" ");
           for (var i = 0; i < djs.length; i++) {
             console.log(djs[i].user);
             console.log((djs[i].user === name));
@@ -295,7 +295,7 @@ bot.on('message', (message) => {
         var queue = 'Queue: `;queue` or `;queue <page number>`';
         var clean = 'Clean queue: `;clean`';
         var skip = 'Skip current song: `;skip`';
-        var current = 'Current song: `;current`';
+        var curr = 'Current song: `;current`';
         var pause = 'Pause player: `;pause`';
         var qpl = 'Specific player\'s queue: `;queuePlayer`';
         var resume = 'Resume player: `;resume`';
@@ -305,7 +305,7 @@ bot.on('message', (message) => {
         var rmpl = 'Remove player\'s queue: `;removePlayer <player name>`';
         var tiny = 'Tiny: `;tiny`';
         var yt = 'Search youtube: `;youtube <query>`';
-        var mes = play + '\n' + start + '\n' + leave + '\n' + queue + '\n' + clean + '\n' + skip + '\n' + current + '\n' + pause + '\n' + qpl + '\n' + resume + '\n' + shuff
+        var mes = play + '\n' + start + '\n' + leave + '\n' + queue + '\n' + clean + '\n' + skip + '\n' + curr + '\n' + pause + '\n' + qpl + '\n' + resume + '\n' + shuff
                    + '\n' + sc + '\n' + remove + '\n' + rmpl + '\n' + tiny + '\n' + yt;
         message.channel.send(mes);
         break;
