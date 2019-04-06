@@ -15,6 +15,7 @@ const http = require('http');
 const moment = require('moment');
 const decode = require('unescape');
 const djs = [];
+const front = {};
 let dispatcher = null;
 let counter = 0;
 const currCounter = 0;
@@ -31,9 +32,15 @@ bot.on('ready', function(evt) {
 });
 
 bot.on('message', (message) => {
+  console.log(message.member);
   console.log(message.content + ' message: ' + message + ' member: ' + message.member + ' type: ' + typeof(message));
+  if(message.channel.name !== "mute_this" && message.content[0] === ";") {
+    message.channel.send("Please type messages for the bot in `mute_this`");
+    return;
+  }
   if (searches[message.member.displayName] !== undefined) {
     const selection = Number.parseInt(message.content);
+    var name = ((message.member.nickname === null) ? message.member.user.username : message.member.nickname);
     if (isNaN(selection) || selection < 1 || selection > 5) {
       message.channel.send('Invalid selection');
     } else {
@@ -41,12 +48,20 @@ bot.on('message', (message) => {
       console.log(song);
       var dj = getDJ(message.member);
       if (song.type === 'yt') {
-        dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
+        if (front[name] === true) {
+          dj.songs.unshift(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
+        } else {
+          dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
+        }
       } else {
         console.log('add sc song');
         song.pid = message.member.id;
         song.player = message.member.displayName;
-        dj.songs.push(song);
+        if(front[name] === true) {
+          dj.songs.unshift(song);
+        } else {
+          dj.songs.push(song);
+        }
       }
       var queue = getQueue();
       var i = 0;
@@ -68,11 +83,33 @@ bot.on('message', (message) => {
         play(message);
         break;
       case 'play':
+        var start = -1;
+        if(front[message.member.nickname] === true) {
+          const name = message.member.nickname;
+          for (var i = 0; i < djs.length; i++) {
+            //console.log(djs[i].user);
+            //console.log((djs[i].user === name));
+            //console.log('name: ' + name);
+            if (djs[i].user === name) {
+              start = djs[i].songs.length;
+            }
+          }
+        }
         if (args[0] === undefined) {
           message.channel.send('Please specify a url');
         } else {
-          addSongs(message.member, args[0], function(msg) {
+          addSongs(message.member, args[0], function(msg, dj) {
             message.channel.send(msg);
+            if(start != -1) {
+              console.log("old size: " + start);
+              console.log("new size: " + dj.songs.length);
+              console.log("diff: " + (dj.songs.length - start));
+              var diff = dj.songs.splice(start);
+              console.log("diff: " + diff.length);
+              console.log("songs: " + dj.songs.length);
+              dj.songs.unshift(...diff);
+              //dj.songs = diff.unshift(...dj.songs);
+            }
           });
         }
         break;
@@ -104,6 +141,16 @@ bot.on('message', (message) => {
           message.channel.send('Please enter a valid page number');
         }
         break;
+      case 'check':
+        console.log(message.member);
+        var name = ((message.member.nickname === null) ? message.member.user.username : message.member.nickname);
+        var stat = front[name];
+        if(stat === undefined || stat === false) {
+          message.channel.send(name + "'s songs will be added to the end of their queue");
+        } else if(stat === true) {
+          message.channel.send(name + "'s songs will be added to the front of their queue");
+        }
+        break;
       case 'clean':
         clean(function() {
           console.log('done cleaning, updating now');
@@ -122,6 +169,12 @@ bot.on('message', (message) => {
           console.log(current);
           message.channel.send(decode('`' + current.title + '` [' + current.length + '] req by ' + current.player));
         }
+        break;
+      case 'front':
+        var name = ((message.member.nickname === null) ? message.member.user.username : message.member.nickname);
+        front[name] = !front[name];
+        console.log(name);
+        message.channel.send(name + "'s songs will now be added to the " + ((front[name]) ? "front" : "end") + " of their queue");
         break;
       case 'pause':
       case 'p':
@@ -324,7 +377,7 @@ function addSongs(member, url, callback) {
   console.log(dj);
   dj.addSong(url, function(msg) {
     console.log('done');
-    callback(msg);
+    callback(msg, dj);
   });
 }
 
