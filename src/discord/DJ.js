@@ -28,7 +28,7 @@ function DJ(user) {
 function addYoutube(dj, u, arr, page, callback) {
   if (!u.includes('list')) {
     var urlParams = url.parse(u, true);
-    https.get('https://content.googleapis.com/youtube/v3/videos?part=snippet&id=' + urlParams.query.v + '&key=' + auth.youtubeApi, (resp) => {
+    https.get('https://content.googleapis.com/youtube/v3/videos?part=snippet&id=' + urlParams.query.v + '&key=' + process.env.YOUTUBE_API, (resp) => {
       let data = '';
 
       resp.on('data', (chunk) => {
@@ -58,7 +58,7 @@ function addYoutube(dj, u, arr, page, callback) {
       if (page !== null) {
         append = '&pageToken=' + page;
       }
-      https.get('https://content.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=' + urlParams.query.list + append + '&maxResults=50&key=' + auth.youtubeApi, (resp) => {
+      https.get('https://content.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=' + urlParams.query.list + append + '&maxResults=50&key=' + process.env.YOUTUBE_API, (resp) => {
         let data = '';
 
         resp.on('data', (chunk) => {
@@ -86,7 +86,7 @@ function addYoutube(dj, u, arr, page, callback) {
 var final = [];
 function parseList(dj, arr, store, callback) {
   const temp = arr.shift();
-  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + temp.id + '&key=' + auth.youtubeApi, (resp) => {
+  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + temp.id + '&key=' + process.env.YOUTUBE_API, (resp) => {
     let data = '';
 
     resp.on('data', (chunk) => {
@@ -129,7 +129,7 @@ function addSoundcloud(dj, u, callback) {
   let seconds;
   let counter = 0;
   console.log('SC');
-  http.get('http://api.soundcloud.com/resolve?url=' + u + '&client_id=' + auth.scid, function(resp) {
+  http.get('http://api.soundcloud.com/resolve?url=' + u + '&client_id=' + process.env.SCID, function(resp) {
     let data1 = '';
     resp.on('data', (chunk) => {
       data1 += chunk;
@@ -153,7 +153,7 @@ function addSoundcloud(dj, u, callback) {
               duration = track.duration;
               minutes = Math.floor(duration / 60000);
               seconds = ((duration % 60000) / 1000).toFixed(0);
-              dj.songs.push(new Soundcloud.Soundcloud(u, track.stream_url + '?client_id=' + auth.scid, track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
+              dj.songs.push(new Soundcloud.Soundcloud(u, track.stream_url + '?client_id=' + process.env.SCID, track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
               callback(1);
             } else {
               console.log('adding soundcloud playlist');
@@ -162,7 +162,7 @@ function addSoundcloud(dj, u, callback) {
                 duration = t.duration;
                 minutes = Math.floor(duration / 60000);
                 seconds = ((duration % 60000) / 1000).toFixed(0);
-                dj.songs.push(new Soundcloud.Soundcloud(t.permalink_url, t.stream_url + '?client_id=' + auth.scid, t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
+                dj.songs.push(new Soundcloud.Soundcloud(t.permalink_url, t.stream_url + '?client_id=' + process.env.SCID, t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
                 counter++;
               }
               callback(counter);

@@ -1,7 +1,6 @@
 const Discord = require('discord.js');
-const auth = require('../../auth.json');
 const bot = new Discord.Client({
-  token: auth.token,
+  token: process.env.TOKEN,
   autorun: true,
 });
 const ytdl = require('ytdl-core');
@@ -22,7 +21,7 @@ const currCounter = 0;
 let current = null;
 const searches = {};
 
-bot.login(auth.token);
+bot.login(process.env.TOKEN);
 
 bot.on('ready', function(evt) {
   bot.user.setActivity(';commands').then((presence) => {
@@ -554,7 +553,7 @@ function cleanUp(arr) {
 
 function ytSearch(str, name, callback) {
   console.log('query: ' + str);
-  https.get('https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + str + '&type=video&key=' + auth.youtubeApi, (resp) => {
+  https.get('https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + str + '&type=video&key=' + process.env.YOUTUBE_API, (resp) => {
     let data = '';
 
     resp.on('data', (chunk) => {
@@ -579,7 +578,7 @@ function ytSearch(str, name, callback) {
 }
 
 function parseVideos(videos, name, callback) {
-  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + auth.youtubeApi, (resp) => {
+  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + process.env.YOUTUBE_API, (resp) => {
     let data = '';
 
     resp.on('data', (chunk) => {
@@ -606,7 +605,7 @@ function parseVideos(videos, name, callback) {
 }
 
 function scSearch(str, name, callback) {
-  http.get('http://api.soundcloud.com/tracks?q=' + str + '&client_id=' + auth.scid, function(resp) {
+  http.get('http://api.soundcloud.com/tracks?q=' + str + '&client_id=' + process.env.SCID, function(resp) {
     let data = '';
 
     resp.on('data', (chunk) => {
@@ -623,7 +622,7 @@ function scSearch(str, name, callback) {
         const duration = parsed[i].duration;
         minutes = Math.floor(duration / 60000);
         seconds = ((duration % 60000) / 1000).toFixed(0);
-        searches[name][i] = new Soundcloud.Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + '?client_id=' + auth.scid, parsed[i].title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
+        searches[name][i] = new Soundcloud.Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + '?client_id=' + process.env.SCID, parsed[i].title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
       }
       callback();
     });
