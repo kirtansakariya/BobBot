@@ -21,6 +21,8 @@ const currCounter = 0;
 let current = null;
 const searches = {};
 
+process.setMaxListeners(0);
+
 bot.login(process.env.TOKEN);
 
 bot.on('ready', function(evt) {
