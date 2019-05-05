@@ -24,7 +24,7 @@ const searches = {};
 
 // process.setMaxListeners(0);
 
-bot.login("hi");
+bot.login(process.env.TOKEN);
 console.log("post bot");
 
 bot.on('ready', function(evt) {
