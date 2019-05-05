@@ -1,4 +1,3 @@
-const auth = require('../../auth.json');
 const Youtube = require('./Youtube.js');
 const Soundcloud = require('./Soundcloud.js');
 const ytdl = require('ytdl-core');
