@@ -7,7 +7,6 @@
       "node": "10.15.3"
   },
   "dependencies": {
-    "libsodium": "0.7.3",
     "@discordjs/uws": "^10.149.0",
     "bufferutil": "^4.0.0",
     "discord.js": "github:discordjs/discord.js",
