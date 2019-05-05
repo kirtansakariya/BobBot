@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Was able to get started thanks to: https://medium.com/davao-js/tutorial-creating-a-simple-discord-bot-9465a2764dc0",
   "main": "index.js",
+  "engines": {
+      "node": "8.11.1"
+  },
   "dependencies": {
     "@discordjs/uws": "^10.149.0",
     "bufferutil": "^4.0.0",
@@ -10,6 +13,7 @@
     "erlpack": "github:discordapp/erlpack",
     "libsodium-wrappers": "^0.7.3",
     "moment": "^2.22.2",
+    "nan": "^2.7.0", 
     "node-opus": "^0.2.9",
     "opusscript": "0.0.6",
     "sodium": "^2.0.3",
