@@ -4,7 +4,6 @@ const bot = new Discord.Client({
   token: process.env.TOKEN,
   autorun: true,
 });
-console.log("post bot");
 const ytdl = require('ytdl-core');
 const streamOptions = {seek: 0, volume: 1};
 const fs = require('fs');
@@ -26,6 +25,7 @@ const searches = {};
 // process.setMaxListeners(0);
 
 bot.login(process.env.TOKEN);
+console.log("post bot");
 
 bot.on('ready', function(evt) {
   bot.user.setActivity(';commands').then((presence) => {
