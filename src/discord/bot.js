@@ -22,7 +22,7 @@ const currCounter = 0;
 let current = null;
 const searches = {};
 
-process.setMaxListeners(0);
+// process.setMaxListeners(0);
 
 bot.login(process.env.TOKEN);
 
