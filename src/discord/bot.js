@@ -571,7 +571,6 @@ function ytSearch(str, name, callback) {
         searches[name][i].type = 'yt';
       }
       parseVideos(parsed.items, name, callback);
-      //console.log("asdfasfasdfasfa");
       //console.log(parsed.items);
     });
   });
