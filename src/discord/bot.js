@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const auth = require('../auth.json');
+const auth = require('../../auth.json');
 const bot = new Discord.Client({
   token: auth.token,
   autorun: true,
@@ -572,6 +572,8 @@ function ytSearch(str, name, callback) {
         searches[name][i].type = 'yt';
       }
       parseVideos(parsed.items, name, callback);
+      //console.log("asdfasfasdfasfa");
+      //console.log(parsed.items);
     });
   });
 }
@@ -588,10 +590,11 @@ function parseVideos(videos, name, callback) {
       const parsed = JSON.parse(data);
       console.log('len: ' + videos.length + ' index: ' + (((videos.length - 1) % 5) * -1));
       searches[name][((videos.length - 1) % 5)].info = parsed;
+      console.log((videos.length - 1) + "     " + ((videos.length - 5) % 5));
       const mom = moment.duration(parsed.items[0].contentDetails.duration);
       const seconds = mom.asSeconds() % 60;
       const minutes = Math.floor(mom.asSeconds() / 60);
-      searches[name][((videos.length - 1) % 5)].duration = minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds);
+      searches[name][(((videos.length - 5) % 5) * -1)].duration = minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds);
       videos.shift();
       if (videos.length === 0) {
         callback();
