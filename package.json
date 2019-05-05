@@ -27,7 +27,8 @@
     "eslint-config-google": "^0.12.0"
   },
   "scripts": {
-    "pretest": "eslint --ignore-path .gitignore ."
+    "pretest": "eslint --ignore-path .gitignore .",
+    "start": "node src/discord/bot.js"
   },
   "repository": {
     "type": "git",
