@@ -1,3 +1,4 @@
+console.log("starting");
 const Discord = require('discord.js');
 const bot = new Discord.Client({
   token: process.env.TOKEN,
