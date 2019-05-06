@@ -122,7 +122,7 @@ bot.on('message', (message) => {
       case 'leave':
         // console.log(message.member);
         console.log("\n\n\n\n\n\n\n\n");
-        console.log(message.member.voice.channel.id);
+        console.log(bot.voiceConnections);
         bot.leaveVoiceChannel(message.member.voice.channel.id);
         break;
       case 'queue':
