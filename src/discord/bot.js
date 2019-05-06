@@ -120,10 +120,8 @@ bot.on('message', (message) => {
         if (dispatcher == null) nextSong(message);
         break;
       case 'leave':
-        // console.log(message.member);
-        // console.log("\n\n\n\n\n\n\n\n");
-        // console.log(bot.voice.connections.get(bot.voice.connections.keys().next().value));
         bot.voice.connections.get(bot.voice.connections.keys().next().value).disconnect();
+        current = null;
         break;
       case 'queue':
       case 'q':
