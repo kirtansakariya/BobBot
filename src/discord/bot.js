@@ -120,10 +120,10 @@ bot.on('message', (message) => {
         if (dispatcher == null) nextSong(message);
         break;
       case 'leave':
-        console.log(message.member);
+        // console.log(message.member);
         console.log("\n\n\n\n\n\n\n\n");
-        console.log(message.member.voice.channel);
-        bot.leaveVoiceChannel(message.member.voiceState.channelID);
+        console.log(message.member.voice.channel.id);
+        bot.leaveVoiceChannel(message.member.voice.channel.id);
         break;
       case 'queue':
       case 'q':
