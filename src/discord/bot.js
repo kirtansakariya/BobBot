@@ -1,7 +1,7 @@
-console.log("starting");
+console.log(process.env.TOKEN);
 const Discord = require('discord.js');
 const bot = new Discord.Client({
-  token: process.env.TOKEN,
+  token: ((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token),
   autorun: true,
 });
 const ytdl = require('ytdl-core');
@@ -24,7 +24,7 @@ const searches = {};
 
 // process.setMaxListeners(0);
 
-bot.login(process.env.TOKEN);
+bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
 console.log("post bot");
 
 bot.on('ready', function(evt) {
@@ -559,7 +559,7 @@ function cleanUp(arr) {
 
 function ytSearch(str, name, callback) {
   console.log('query: ' + str);
-  https.get('https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + str + '&type=video&key=' + process.env.YOUTUBE_API, (resp) => {
+  https.get('https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + str + '&type=video&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
     let data = '';
 
     resp.on('data', (chunk) => {
@@ -583,7 +583,7 @@ function ytSearch(str, name, callback) {
 }
 
 function parseVideos(videos, name, callback) {
-  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + process.env.YOUTUBE_API, (resp) => {
+  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
     let data = '';
 
     resp.on('data', (chunk) => {
@@ -610,7 +610,7 @@ function parseVideos(videos, name, callback) {
 }
 
 function scSearch(str, name, callback) {
-  http.get('http://api.soundcloud.com/tracks?q=' + str + '&client_id=' + process.env.SCID, function(resp) {
+  http.get('http://api.soundcloud.com/tracks?q=' + str + '&client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), function(resp) {
     let data = '';
 
     resp.on('data', (chunk) => {
@@ -627,7 +627,7 @@ function scSearch(str, name, callback) {
         const duration = parsed[i].duration;
         minutes = Math.floor(duration / 60000);
         seconds = ((duration % 60000) / 1000).toFixed(0);
-        searches[name][i] = new Soundcloud.Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + '?client_id=' + process.env.SCID, parsed[i].title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
+        searches[name][i] = new Soundcloud.Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + '?client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), parsed[i].title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
       }
       callback();
     });

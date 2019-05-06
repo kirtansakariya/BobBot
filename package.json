@@ -17,6 +17,7 @@
     "nan": "^2.7.0",
     "node-opus": "^0.2.9",
     "opusscript": "0.0.6",
+    "prism-media": "^1.0.2",
     "sodium": "^3.0.2",
     "unescape": "^1.0.1",
     "uws": "^9.148.0",
