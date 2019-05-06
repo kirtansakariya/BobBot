@@ -121,9 +121,9 @@ bot.on('message', (message) => {
         break;
       case 'leave':
         // console.log(message.member);
-        console.log("\n\n\n\n\n\n\n\n");
-        console.log(bot.voice.connections.get(bot.voice.connections.keys().next().value));
-        bot.leaveVoiceChannel(message.member.voice.channel.id);
+        // console.log("\n\n\n\n\n\n\n\n");
+        // console.log(bot.voice.connections.get(bot.voice.connections.keys().next().value));
+        bot.voice.connections.get(bot.voice.connections.keys().next().value).disconnect();
         break;
       case 'queue':
       case 'q':
