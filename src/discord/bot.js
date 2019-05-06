@@ -122,6 +122,7 @@ bot.on('message', (message) => {
       case 'leave':
         bot.voice.connections.get(bot.voice.connections.keys().next().value).disconnect();
         current = null;
+        dispatcher = null;
         break;
       case 'queue':
       case 'q':
