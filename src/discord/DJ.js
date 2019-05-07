@@ -25,8 +25,9 @@ function DJ(user) {
  * @param {Object} callback The callback to leave the function.
  */
 function addYoutube(dj, u, arr, page, callback) {
+  let urlParams = null;
   if (!u.includes('list')) {
-    var urlParams = url.parse(u, true);
+    urlParams = url.parse(u, true);
     https.get('https://content.googleapis.com/youtube/v3/videos?part=snippet&id=' + urlParams.query.v + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
       let data = '';
 
@@ -43,13 +44,14 @@ function addYoutube(dj, u, arr, page, callback) {
             'id': parsed.items[0].id,
             'title': parsed.items[0].snippet.title,
           };
+          // TODO: Private video check like below before pushing
           arr.push(temp);
           callback();
         }
       });
     });
   } else {
-    var urlParams = url.parse(u, true);
+    urlParams = url.parse(u, true);
     let append = '';
     if (page === undefined) {
       callback();
@@ -82,7 +84,13 @@ function addYoutube(dj, u, arr, page, callback) {
   }
 }
 
-var final = [];
+/**
+ * Retrieves detailed information about each song in the array of songs
+ * @param {Object} dj Player the songs are coming from.
+ * @param {Object} arr Contains the songs to be added.
+ * @param {Object} store Dj's songs array to add the new song into
+ * @param {Object} callback Callback to leave the function.
+ */
 function parseList(dj, arr, store, callback) {
   const temp = arr.shift();
   https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + temp.id + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
@@ -120,9 +128,14 @@ function parseList(dj, arr, store, callback) {
   });
 }
 
+/**
+ * Adds either a single SoundCloud song or a whole playlist of songs
+ * @param {Object} dj Dj to add the songs to.
+ * @param {String} u Url for the song/playlist.
+ * @param {Object} callback Callback to leave the function.
+ */
 function addSoundcloud(dj, u, callback) {
   console.log('in addSoundcloud');
-  const data = null;
   let duration;
   let minutes;
   let seconds;
