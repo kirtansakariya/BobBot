@@ -1,12 +1,8 @@
-console.log(process.env.TOKEN);
 const Discord = require('discord.js');
 const bot = new Discord.Client({
   token: ((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token),
   autorun: true,
 });
-const ytdl = require('ytdl-core');
-const streamOptions = {seek: 0, volume: 1};
-const fs = require('fs');
 const DJ = require('./DJ');
 const Soundcloud = require('./Soundcloud');
 const Youtube = require('./Youtube');
@@ -16,16 +12,15 @@ const moment = require('moment');
 const decode = require('unescape');
 const djs = [];
 const front = {};
+const removeHelp = {};
 let dispatcher = null;
-let counter = 0;
-const currCounter = 0;
 let current = null;
 const searches = {};
 
 // process.setMaxListeners(0);
 
 bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
-console.log("post bot");
+console.log('post bot');
 
 bot.on('ready', function(evt) {
   bot.user.setActivity(';commands').then((presence) => {
@@ -37,21 +32,22 @@ bot.on('ready', function(evt) {
 bot.on('message', (message) => {
   console.log(message.member);
   console.log(message.content + ' message: ' + message + ' member: ' + message.member + ' type: ' + typeof(message));
-  if(message.channel.name !== "mute_this" && message.content[0] === ";") {
-    message.channel.send("Please type messages for the bot in `mute_this`");
+  if (message.channel.name !== 'mute_this' && message.content[0] === ';') {
+    message.channel.send('Please type messages for the bot in `mute_this`');
     return;
   }
-  if (searches[message.member.displayName] !== undefined) {
+  if (searches[message.member.user.id] !== undefined) {
     const selection = Number.parseInt(message.content);
-    var name = ((message.member.nickname === null) ? message.member.user.username : message.member.nickname);
+    // const name = ((message.member.nickname === null) ? message.member.user.username : message.member.nickname);
+    const iden = message.member.user.id;
     if (isNaN(selection) || selection < 1 || selection > 5) {
       message.channel.send('Invalid selection');
     } else {
-      const song = searches[message.member.displayName][selection - 1];
+      const song = searches[message.member.user.id][selection - 1];
       console.log(song);
-      var dj = getDJ(message.member);
+      const dj = getDJ(message.member);
       if (song.type === 'yt') {
-        if (front[name] === true) {
+        if (front[iden] === true) {
           dj.songs.unshift(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
         } else {
           dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
@@ -60,14 +56,14 @@ bot.on('message', (message) => {
         console.log('add sc song');
         song.pid = message.member.id;
         song.player = message.member.displayName;
-        if(front[name] === true) {
+        if (front[iden] === true) {
           dj.songs.unshift(song);
         } else {
           dj.songs.push(song);
         }
       }
-      var queue = getQueue();
-      var i = 0;
+      const queue = getQueue();
+      let i = 0;
       while (i < queue.length) {
         if (queue[i].title === song.title) {
           break;
@@ -76,23 +72,17 @@ bot.on('message', (message) => {
       }
       message.channel.send(decode('Added **' + song.title + '** at position **' + (i + 1) + '**'));
     }
-    searches[message.member.displayName] = undefined;
+    searches[message.member.user.id] = undefined;
   } else if (message.content.substring(0, 1) == ';') {
     let args = message.content.substring(1).split(' ');
     const cmd = args[0];
     args = args.splice(1);
     switch (cmd) {
-      case 'ping':
-        play(message);
-        break;
       case 'play':
-        var start = -1;
-        if(front[message.member.nickname] === true) {
-          const name = message.member.nickname;
-          for (var i = 0; i < djs.length; i++) {
-            //console.log(djs[i].user);
-            //console.log((djs[i].user === name));
-            //console.log('name: ' + name);
+        let start = -1;
+        if (front[message.member.user.id] === true) {
+          const name = message.member.displayName;
+          for (let i = 0; i < djs.length; i++) {
             if (djs[i].user === name) {
               start = djs[i].songs.length;
             }
@@ -103,15 +93,14 @@ bot.on('message', (message) => {
         } else {
           addSongs(message.member, args[0], function(msg, dj) {
             message.channel.send(msg);
-            if(start != -1) {
-              console.log("old size: " + start);
-              console.log("new size: " + dj.songs.length);
-              console.log("diff: " + (dj.songs.length - start));
-              var diff = dj.songs.splice(start);
-              console.log("diff: " + diff.length);
-              console.log("songs: " + dj.songs.length);
+            if (start != -1) {
+              console.log('old size: ' + start);
+              console.log('new size: ' + dj.songs.length);
+              console.log('diff: ' + (dj.songs.length - start));
+              const diff = dj.songs.splice(start);
+              console.log('diff: ' + diff.length);
+              console.log('songs: ' + dj.songs.length);
               dj.songs.unshift(...diff);
-              //dj.songs = diff.unshift(...dj.songs);
             }
           });
         }
@@ -126,19 +115,19 @@ bot.on('message', (message) => {
         break;
       case 'queue':
       case 'q':
-        var page = args.shift();
-        var queue = getQueue();
-        console.log(page);
+        const pg = args.shift();
+        const q = getQueue();
+        console.log(pg);
         console.log('final');
-        console.log(queue);
-        if (queue.length === 0) {
+        console.log(q);
+        if (q.length === 0) {
           message.channel.send('The queue is currently empty');
-        } else if (page === undefined) {
-          var mes = parseQueue(queue, 0, queue.length);
+        } else if (pg === undefined) {
+          const mes = parseQueue(q, 0, q.length);
           message.channel.send(decode(mes));
-        } else if (page > 0 && ((page - 1) * 10) < queue.length) {
-          console.log(page);
-          var mes = parseQueue(queue, ((page - 1) * 10), queue.length);
+        } else if (pg > 0 && ((pg - 1) * 10) < q.length) {
+          console.log(pg);
+          const mes = parseQueue(q, ((pg - 1) * 10), q.length);
           console.log(typeof(mes));
           console.log(mes);
           message.channel.send(decode(mes));
@@ -148,12 +137,12 @@ bot.on('message', (message) => {
         break;
       case 'check':
         console.log(message.member);
-        var name = ((message.member.nickname === null) ? message.member.user.username : message.member.nickname);
-        var stat = front[name];
-        if(stat === undefined || stat === false) {
-          message.channel.send(name + "'s songs will be added to the end of their queue");
-        } else if(stat === true) {
-          message.channel.send(name + "'s songs will be added to the front of their queue");
+        const id = message.member.user.id;
+        const stat = front[id];
+        if (stat === undefined || stat === false) {
+          message.channel.send(name + '\'s songs will be added to the end of their queue');
+        } else if (stat === true) {
+          message.channel.send(name + '\'s songs will be added to the front of their queue');
         }
         break;
       case 'clean':
@@ -176,10 +165,13 @@ bot.on('message', (message) => {
         }
         break;
       case 'front':
-        var name = ((message.member.nickname === null) ? message.member.user.username : message.member.nickname);
-        front[name] = !front[name];
-        console.log(name);
-        message.channel.send(name + "'s songs will now be added to the " + ((front[name]) ? "front" : "end") + " of their queue");
+        const iden = message.member.user.id;
+        front[iden] = !front[iden];
+        // console.log('\n\n\n');
+        // console.log(message.member);
+        // console.log(message.member.constructor.name);
+        // console.log('\n\n\n');
+        message.channel.send(message.member.displayName + '\'s songs will now be added to the ' + ((front[iden]) ? 'front' : 'end') + ' of their queue');
         break;
       case 'pause':
       case 'p':
@@ -205,10 +197,10 @@ bot.on('message', (message) => {
           message.channel.send('Please provide a non-empty player name');
           break;
         }
-        var djName = args.join(' ');
-        var dj = null;
-        var msg = '';
-        for (var i = 0; i < djs.length; i++) {
+        let djName = args.join(' ');
+        let dj = null;
+        let msg = '';
+        for (let i = 0; i < djs.length; i++) {
           if (djs[i].user === djName) {
             dj = djs[i];
             break;
@@ -219,10 +211,10 @@ bot.on('message', (message) => {
           message.channel.send(decode(msg));
           break;
         }
-        var page = Number.parseInt(args[args.length - 1]);
+        const page = Number.parseInt(args[args.length - 1]);
         if (!isNaN(page)) {
           djName = args.slice(0, -1).join(' ');
-          for (var i = 0; i < djs.length; i++) {
+          for (let i = 0; i < djs.length; i++) {
             if (djs[i].user === djName) {
               dj = djs[i];
               break;
@@ -250,7 +242,7 @@ bot.on('message', (message) => {
         }
         break;
       case 'shuffle':
-        var boo = shuffle(message);
+        const boo = shuffle(message);
         if (boo) {
           message.channel.send(message.member.displayName + '\'s songs have been shuffled');
         } else {
@@ -262,12 +254,12 @@ bot.on('message', (message) => {
         if (args.length === 0) {
           message.channel.send('Need to provide search query');
         } else {
-          var str = args.join(' ');
-          scSearch(str, message.member.displayName, function() {
-            console.log(searches[message.member.displayName]);
+          const str = args.join(' ');
+          scSearch(str, message.member.user.id, function() {
+            console.log(searches[message.member.user.id]);
             let send = '**Enter a number from 1-5 to select a song**\n';
-            for (let i = 0; i < searches[message.member.displayName].length; i++) {
-              const info = searches[message.member.displayName][i];
+            for (let i = 0; i < searches[message.member.user.id].length; i++) {
+              const info = searches[message.member.user.id][i];
               send += (i + 1) + '. **' + info.title + '** - ' + info.length + '\n';
             }
             send += '**Songs fetched from Soundcloud**';
@@ -281,15 +273,14 @@ bot.on('message', (message) => {
         if (args.length == 0) {
           message.channel.send('Please provide the queue number(s) of the song(s) to remove');
         } else {
-          var page = 0;
-          var queue = getQueue();
+          const queue = getQueue();
           const removed = removeElements(args, queue);
-          cleanUp(removed);
+          cleanUp();
           let remMes = '';
-          for (var i = 0; i < removed.length; i++) {
+          for (let i = 0; i < removed.length; i++) {
             remMes += removed[i][2] + '. ' + removed[i][1] + '\n';
           }
-          for (var i = 0; i < djs.length; i++) {
+          for (let i = 0; i < djs.length; i++) {
             if (djs[i].songs.length === 0) {
               djs.splice(i, 1);
               i--;
@@ -310,8 +301,8 @@ bot.on('message', (message) => {
         if (args.length === 0) {
           message.channel.send('Please provide the player\'s name');
         } else {
-          const name = args.join(" ");
-          for (var i = 0; i < djs.length; i++) {
+          const name = args.join(' ');
+          for (let i = 0; i < djs.length; i++) {
             console.log(djs[i].user);
             console.log((djs[i].user === name));
             console.log('name: ' + name);
@@ -330,13 +321,12 @@ bot.on('message', (message) => {
         if (args.length == 0) {
           message.channel.send('Need to provide search query');
         } else {
-          var str = args.join(' ');
-          ytSearch(str, message.member.displayName, function() {
-            // console.log(searches);
+          const str = args.join(' ');
+          ytSearch(str, message.member.user.id, function() {
             let send = '**Enter a number from 1-5 to select a song**\n';
-            for (let i = 0; i < searches[message.member.displayName].length; i++) {
-              console.log(searches[message.member.displayName][i]);
-              const info = searches[message.member.displayName][i];
+            for (let i = 0; i < searches[message.member.user.id].length; i++) {
+              console.log(searches[message.member.user.id][i]);
+              const info = searches[message.member.user.id][i];
               send += (i + 1) + '. **' + info.title + '** - ' + info.duration + '\n';
             }
             send += '**Songs fetched from YouTube**';
@@ -347,23 +337,23 @@ bot.on('message', (message) => {
       case 'commands':
         // var mes = 'Play song: `;play <url>`\nStart player: `;start`\nSkip song: `;skip`\nQueue: `;queue` or `;q`\nCurrent song: `;current` or `;curr`\nPause player: `;pause`\nResume player: `;resume` or `;re` or `;r`\n' +
         //          'Fun commands: `;tiny`';
-        var play = 'Play song: `;play <url>`';
-        var start = 'Start player: `;start`';
-        var leave = 'Leave player: `;leave`';
-        var queue = 'Queue: `;queue` or `;queue <page number>`';
-        var clean = 'Clean queue: `;clean`';
-        var skip = 'Skip current song: `;skip`';
-        var curr = 'Current song: `;current`';
-        var pause = 'Pause player: `;pause`';
-        var qpl = 'Specific player\'s queue: `;queuePlayer`';
-        var resume = 'Resume player: `;resume`';
-        var shuff = 'Shuffle your songs: `;shuffle`';
-        var sc = 'Search soundcloud: `;soundcloud <query>`';
-        var remove = 'Remove song: `;remove <place in queue>`';
-        var rmpl = 'Remove player\'s queue: `;removePlayer <player name>`';
-        var tiny = 'Tiny: `;tiny`';
-        var yt = 'Search youtube: `;youtube <query>`';
-        var mes = play + '\n' + start + '\n' + leave + '\n' + queue + '\n' + clean + '\n' + skip + '\n' + curr + '\n' + pause + '\n' + qpl + '\n' + resume + '\n' + shuff
+        const play = 'Play song: `;play <url>`';
+        const st = 'Start player: `;start`';
+        const leave = 'Leave player: `;leave`';
+        const queue = 'Queue: `;queue` or `;queue <page number>`';
+        const clean = 'Clean queue: `;clean`';
+        const skip = 'Skip current song: `;skip`';
+        const curr = 'Current song: `;current`';
+        const pause = 'Pause player: `;pause`';
+        const qpl = 'Specific player\'s queue: `;queuePlayer`';
+        const resume = 'Resume player: `;resume`';
+        const shuff = 'Shuffle your songs: `;shuffle`';
+        const sc = 'Search soundcloud: `;soundcloud <query>`';
+        const remove = 'Remove song: `;remove <place in queue>`';
+        const rmpl = 'Remove player\'s queue: `;removePlayer <player name>`';
+        const tiny = 'Tiny: `;tiny`';
+        const yt = 'Search youtube: `;youtube <query>`';
+        const mes = play + '\n' + st + '\n' + leave + '\n' + queue + '\n' + clean + '\n' + skip + '\n' + curr + '\n' + pause + '\n' + qpl + '\n' + resume + '\n' + shuff
                    + '\n' + sc + '\n' + remove + '\n' + rmpl + '\n' + tiny + '\n' + yt;
         message.channel.send(mes);
         break;
@@ -371,7 +361,12 @@ bot.on('message', (message) => {
   }
 });
 
-// Add songs to the appropriate DJ
+/**
+ * Add songs to the appropriate DJ.
+ * @param {Object} member Requestor from Discord
+ * @param {String} url Url to fetch the songs from
+ * @param {Object} callback Callback to leave the function
+ */
 function addSongs(member, url, callback) {
   dj = getDJ(member);
   /* if(dj === null) {
@@ -386,7 +381,11 @@ function addSongs(member, url, callback) {
   });
 }
 
-// Gets the DJ
+/**
+ * Gets the DJ.
+ * @param {Object} member Requestor from Discord
+ * @return {Object} Dj that was either created or found in current list
+ */
 function getDJ(member) {
   let dj = 0;
   console.log('hello in dj ' + member);
@@ -400,10 +399,13 @@ function getDJ(member) {
   dj = new DJ.DJ(member);
   djs.push(dj);
   console.log('djs:\n' + djs);
-  counter++;
   return dj;
 }
 
+/**
+ * Plays the next song.
+ * @param {Object} message Information about request from Discord
+ */
 function nextSong(message) {
   current = null;
   console.log(message);
@@ -447,25 +449,22 @@ function nextSong(message) {
   }).catch(console.log);
 }
 
-function nextSongEnd(a, b) {
-  console.log('end song');
-  console.log(a);
-  console.log(b);
-  console.log(conn);
-}
-
+/**
+ * Gets the queue.
+ * @return {Object} Array of the songs in the queue
+ */
 function getQueue() {
   const temp = JSON.parse(JSON.stringify(djs));
   const ret = [];
-  var dj;
-  var song;
+  let dj;
+  let song;
   if (current != null) {
     ret.push(current);
   }
   console.log('temp original');
   while (temp.length > 0) {
-    var dj = temp.shift();
-    var song = dj.songs.shift();
+    dj = temp.shift();
+    song = dj.songs.shift();
     if (song == null) continue;
     ret.push(song);
     temp.push(dj);
@@ -474,19 +473,13 @@ function getQueue() {
   return ret;
 }
 
-function parsePlayerQueue(q, p) {
-  let message = '';
-  for (let i = p * 10; i < q.length; i++) {
-    if (current !== null && q[i].title === current.title) {
-      message += (i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
-      continue;
-    }
-    message += (i + 1) + '. `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
-  }
-  message += 'Page: ' + (p + 1) + ' Total number of songs: ' + q.length;
-  return message;
-}
-
+/**
+ * Get up to 10 songs per page.
+ * @param {*} q Queue of songs
+ * @param {*} p Page to access
+ * @param {*} l Length of the queue
+ * @return {String} Information about the songs in that page
+ */
 function parseQueue(q, p, l) {
   let message = '';
   console.log('parse');
@@ -503,9 +496,14 @@ function parseQueue(q, p, l) {
   return message;
 }
 
+/**
+ * Shuffle the songs of a specific DJ.
+ * @param {Object} mes Information about request from Discord
+ * @return {Boolean} If the operation was sucessful or not
+ */
 function shuffle(mes) {
   let dj = null;
-  for (var i = 0; i < djs.length; i++) {
+  for (let i = 0; i < djs.length; i++) {
     if (djs[i].id == mes.member.id) {
       dj = djs[i];
     }
@@ -515,7 +513,7 @@ function shuffle(mes) {
   const arr = dj.songs;
   let j;
   let temp;
-  for (var i = arr.length - 1; i > 0; i--) {
+  for (let i = arr.length - 1; i > 0; i--) {
     j = Math.floor(Math.random() * (i + 1));
     temp = arr[j];
     arr[j] = arr[i];
@@ -525,39 +523,68 @@ function shuffle(mes) {
   return true;
 }
 
+/**
+ * Determines which songs to remove from the specified array of nums.
+ * @param {Object} nums Indexes from which to remove the songs
+ * @param {Object} q Queue of songs
+ * @return {Object} Songs that were removed
+ */
 function removeElements(nums, q) {
   let j = 0;
   const arr = [];
-  for (let i = 0; i < nums.length; i++) {
-    j = nums.shift();
-    q[j - 1].remove = true;
-    arr.push([]);
-    arr[arr.length - 1].push(q[j - 1].pid);
-    arr[arr.length - 1].push(q[j - 1].title);
-    arr[arr.length - 1].push(i + 1);
+  const removeCounter = {};
+  for (let i = 0; i < djs.length; i++) {
+    removeCounter[djs[i].id] = 0;
+    removeHelp[djs[i].id] = [];
+  }
+  nums = nums.filter((num) => !(num < 0 || num >= q.length)).sort();
+  console.log('nums at the end');
+  console.log(nums);
+  for (let i = 0; i < q.length && nums.length > 0; i++) {
+    j = nums[0];
+    if ((j - 1) == i) {
+      arr.push([]);
+      arr[arr.length - 1].push(q[j - 1].pid);
+      arr[arr.length - 1].push(q[j - 1].title);
+      arr[arr.length - 1].push(i + 1);
+      removeHelp[q[j - 1].pid].push(removeCounter[q[j - 1].pid]);
+      nums.shift();
+    }
+    removeCounter[q[j - 1].pid]++;
   }
   return arr;
 }
 
-function cleanUp(arr) {
-  let dj = null;
+/**
+ * Removes the songs based off the indices that were selected in removeElements;
+ */
+function cleanUp() {
+  // let dj = null;
   console.log('cleaning up');
-  for (let i = 0; i < arr.length; i++) {
-    for (let j = 0; j < djs.length; j++) {
-      if (djs[j].id == arr[i][0]) {
-        dj = djs[j];
-      }
-    }
-    for (let k = 0; k < dj.songs.length; k++) {
-      if (dj.songs[k].title == arr[i][1]) {
-        console.log('should remove ' + dj.songs[k].title);
-        dj.songs.splice(k, 1);
+  // console.log(arr);
+  for (let i = 0; i < djs.length; i++) {
+    let offset = 0;
+    for (let j = 0; j < djs[i].songs.length; j++) {
+      if (removeHelp[djs[i].id][0] - offset === j) {
+        console.log('removingremovingremovingremovingremoving');
+        console.log(removeHelp);
+        console.log(djs[i].songs[j].title);
+        djs[i].songs.splice(j, 1);
+        removeHelp[djs[i].id].shift();
+        offset++;
+        j--;
       }
     }
   }
 }
 
-function ytSearch(str, name, callback) {
+/**
+ * Search YouTube based off the serach query that was specified.
+ * @param {String} str Query
+ * @param {Number} id Discord identifier for the searcher
+ * @param {Object} callback Callback to use to leave the async calls
+ */
+function ytSearch(str, id, callback) {
   console.log('query: ' + str);
   https.get('https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + str + '&type=video&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
     let data = '';
@@ -569,20 +596,25 @@ function ytSearch(str, name, callback) {
     resp.on('end', () => {
       const parsed = JSON.parse(data);
       console.log(parsed);
-      searches[name] = [];
+      searches[id] = [];
       for (let i = 0; i < parsed.items.length; i++) {
-        searches[name][i] = {};
-        searches[name][i].title = parsed.items[i].snippet.title;
-        searches[name][i].id = parsed.items[i].id.videoId;
-        searches[name][i].type = 'yt';
+        searches[id][i] = {};
+        searches[id][i].title = parsed.items[i].snippet.title;
+        searches[id][i].id = parsed.items[i].id.videoId;
+        searches[id][i].type = 'yt';
       }
-      parseVideos(parsed.items, name, callback);
-      //console.log(parsed.items);
+      parseVideos(parsed.items, id, callback);
     });
   });
 }
 
-function parseVideos(videos, name, callback) {
+/**
+ * Gets durations of each YouTube video.
+ * @param {Object} videos Array of videos
+ * @param {Number} id Discord identifier for the searcher
+ * @param {Object} callback Callback to use to leave the async calls
+ */
+function parseVideos(videos, id, callback) {
   https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
     let data = '';
 
@@ -593,23 +625,29 @@ function parseVideos(videos, name, callback) {
     resp.on('end', () => {
       const parsed = JSON.parse(data);
       console.log('len: ' + videos.length + ' index: ' + (((videos.length - 1) % 5) * -1));
-      searches[name][((videos.length - 1) % 5)].info = parsed;
-      console.log((videos.length - 1) + "     " + ((videos.length - 5) % 5));
+      searches[id][((videos.length - 1) % 5)].info = parsed;
+      console.log((videos.length - 1) + '     ' + ((videos.length - 5) % 5));
       const mom = moment.duration(parsed.items[0].contentDetails.duration);
       const seconds = mom.asSeconds() % 60;
       const minutes = Math.floor(mom.asSeconds() / 60);
-      searches[name][(((videos.length - 5) % 5) * -1)].duration = minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds);
+      searches[id][(((videos.length - 5) % 5) * -1)].duration = minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds);
       videos.shift();
       if (videos.length === 0) {
         callback();
       } else {
-        parseVideos(videos, name, callback);
+        parseVideos(videos, id, callback);
       }
     });
   });
 }
 
-function scSearch(str, name, callback) {
+/**
+ * Search YouTube based off the serach query that was specified.
+ * @param {*} str Query
+ * @param {*} id Discord identifier for the searcher
+ * @param {*} callback Callback to use to leave the async calls
+ */
+function scSearch(str, id, callback) {
   http.get('http://api.soundcloud.com/tracks?q=' + str + '&client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), function(resp) {
     let data = '';
 
@@ -618,7 +656,7 @@ function scSearch(str, name, callback) {
     });
 
     resp.on('end', () => {
-      searches[name] = [];
+      searches[id] = [];
       let parsed = JSON.parse(data);
       console.log(parsed);
       console.log(parsed.length);
@@ -627,7 +665,7 @@ function scSearch(str, name, callback) {
         const duration = parsed[i].duration;
         minutes = Math.floor(duration / 60000);
         seconds = ((duration % 60000) / 1000).toFixed(0);
-        searches[name][i] = new Soundcloud.Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + '?client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), parsed[i].title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
+        searches[id][i] = new Soundcloud.Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + '?client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), parsed[i].title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
       }
       callback();
     });
