@@ -8,7 +8,7 @@ const moment = require('moment');
 
 /**
  * Create a new DJ.
- * @param {Object} user The data for the user.
+ * @param {Object} user The data for the user
  */
 function DJ(user) {
   this.user = user.displayName;
@@ -18,11 +18,11 @@ function DJ(user) {
 
 /**
  * Add a Youtube song or songs from a playlists.
- * @param {Object} dj The player to add the songs to.
- * @param {string} u The url of the song or playlist.
- * @param {Object} arr The array of songs as pages in the playlist are parsed.
- * @param {number} page The page of the Youtube playlist.
- * @param {Object} callback The callback to leave the function.
+ * @param {Object} dj The player to add the songs to
+ * @param {string} u The url of the song or playlist
+ * @param {Object} arr The array of songs as pages in the playlist are parsed
+ * @param {number} page The page of the Youtube playlist
+ * @param {Object} callback The callback to leave the function
  */
 function addYoutube(dj, u, arr, page, callback) {
   let urlParams = null;
@@ -86,10 +86,10 @@ function addYoutube(dj, u, arr, page, callback) {
 
 /**
  * Retrieves detailed information about each song in the array of songs
- * @param {Object} dj Player the songs are coming from.
- * @param {Object} arr Contains the songs to be added.
+ * @param {Object} dj Player the songs are coming from
+ * @param {Object} arr Contains the songs to be added
  * @param {Object} store Dj's songs array to add the new song into
- * @param {Object} callback Callback to leave the function.
+ * @param {Object} callback Callback to leave the function
  */
 function parseList(dj, arr, store, callback) {
   const temp = arr.shift();
@@ -130,9 +130,9 @@ function parseList(dj, arr, store, callback) {
 
 /**
  * Adds either a single SoundCloud song or a whole playlist of songs
- * @param {Object} dj Dj to add the songs to.
- * @param {String} u Url for the song/playlist.
- * @param {Object} callback Callback to leave the function.
+ * @param {Object} dj Dj to add the songs to
+ * @param {String} u Url for the song/playlist
+ * @param {Object} callback Callback to leave the function
  */
 function addSoundcloud(dj, u, callback) {
   console.log('in addSoundcloud');
