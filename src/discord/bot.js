@@ -17,10 +17,6 @@ let dispatcher = null;
 let current = null;
 const searches = {};
 
-console.log('post bot');
-
-// bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
-
 bot.on('ready', function(evt) {
   bot.user.setActivity(';commands').then((presence) => {
     console.log('setting activity');
