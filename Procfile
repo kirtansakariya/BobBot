@@ -1,1 +1,1 @@
-worker: node --trace-warnings src/discord/bot.js
+worker: node --trace-warnings src/index.js

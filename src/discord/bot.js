@@ -17,10 +17,9 @@ let dispatcher = null;
 let current = null;
 const searches = {};
 
-// process.setMaxListeners(0);
-
-bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
 console.log('post bot');
+
+// bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
 
 bot.on('ready', function(evt) {
   bot.user.setActivity(';commands').then((presence) => {
@@ -672,3 +671,6 @@ function scSearch(str, id, callback) {
   });
 }
 
+module.exports = {
+  bot: bot,
+};
