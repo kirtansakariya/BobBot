@@ -1,4 +1,5 @@
 const express = require('express');
+const db = require('../../database/db');
 const app = express();
 const port = process.env.PORT || 5000;
 const pg = require('pg');
@@ -8,12 +9,12 @@ app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
 
 // console.log(process.env.DATABASE_URL);
-const client = new pg.Client({
-  connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../../auth.json').db_url),
-  ssl: true,
-});
+// const client = new pg.Client({
+//   connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../../auth.json').db_url),
+//   ssl: true,
+// });
 
-client.connect();
+// client.connect();
 
 // client.query('SELECT * FROM user')
 
@@ -26,17 +27,25 @@ client.connect();
 //   values: ['a', 'ab', 'b'],
 // };
 
-const text = 'INSERT INTO users(username, discord_id, status) VALUES($1, $2, $3);';
-const values = ['{a}', '{ab}', '{b}'];
+// const text = 'INSERT INTO users(username, discord_id, status) VALUES($1, $2, $3);';
+// const values = ['{a}', '{ab}', '{b}'];
 
-client.query(text, values, (error, results) => {
-  if (error) {
-    console.log('OH NO');
-    console.log(error);
-  } else {
-    console.log('OH YES');
-    console.log(results);
-  }
+// client.query(text, values, (error, results) => {
+//   if (error) {
+//     console.log('OH NO');
+//     console.log(error);
+//   } else {
+//     console.log('OH YES');
+//     console.log(results);
+//   }
+// });
+
+// db.addUser('test', 't_id', 't_status', function(boo) {
+//   console.log('Opeartion was successful: ' + boo);
+// });
+
+db.getUser('t_id', function(results) {
+  console.log(results);
 });
 
 // client.query('INSERT INTO users (username, discord_id, status) VALUES ($1, $2, $3);', [user, discordId, status], (error, results) => {
@@ -49,10 +58,10 @@ client.query(text, values, (error, results) => {
 //   }
 // });
 
-client.query('SELECT * FROM users;', (err, res) => {
-  if (err) throw err;
-  for (const row of res.rows) {
-    console.log(JSON.stringify(row));
-  }
-  client.end();
-});
+// client.query('SELECT * FROM users;', (err, res) => {
+//   if (err) throw err;
+//   for (const row of res.rows) {
+//     console.log(JSON.stringify(row));
+//   }
+//   client.end();
+// });
