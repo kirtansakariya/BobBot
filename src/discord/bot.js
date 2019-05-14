@@ -6,6 +6,7 @@ const bot = new Discord.Client({
 const DJ = require('./DJ');
 const Soundcloud = require('./Soundcloud');
 const Youtube = require('./Youtube');
+const db = require('../database/db');
 const https = require('https');
 const http = require('http');
 const moment = require('moment');
@@ -29,6 +30,28 @@ bot.on('ready', function(evt) {
 bot.on('message', (message) => {
   console.log(message.member);
   console.log(message.content + ' message: ' + message + ' member: ' + message.member + ' type: ' + typeof(message));
+  if (message.channel.type === 'dm') {
+    if (message.content === 'signup') {
+      db.getUser(message.author.id, function(results) {
+        if (results === null) {
+          console.log('error encountered');
+          message.channel.send('Apologies! Error encountered, please notify the creator.');
+        } else if (results.rows.length == 0) {
+          console.log('user does not exist');
+          message.channel.send('Follow these steps to signup for an account:\n' +
+                               '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
+                               '2. Enter a username.\n' +
+                               '3. Enter a password.\n' +
+                               '4. Enter your discord username.\n' +
+                               '5. Enter your discord id: ' + message.author.id + '\n' +
+                               '6. Enter the auth code: ' + Math.floor(Math.random() * 899999 + 100000) + '\n');
+        } else {
+          console.log('user already exists');
+        }
+      });
+    }
+    return;
+  }
   if (message.channel.name !== 'mute_this' && message.content[0] === ';') {
     message.channel.send('Please type messages for the bot in `mute_this`');
     return;
