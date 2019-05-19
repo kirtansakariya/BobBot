@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const hbs = require('express-handlebars');
 const bodyParser = require('body-parser');
+const flash = require('connect-flash');
 const app = express();
 const port = process.env.PORT || 5000;
 // const pg = require('pg');
@@ -25,6 +26,7 @@ app.use(bodyParser.urlencoded({
   extended: true,
 }));
 app.use(bodyParser.json());
+app.use(flash());
 app.set('view engine', 'hbs');
 app.set('views', __dirname + '/../views');
 // console.log(__dirname);
@@ -75,10 +77,10 @@ app.get('/login', (req, res) => {
       //     res.redirect('/login');
       //   }
       // });
-      res.render('login', {layout: 'default'});
+      res.render('login', {layout: 'default', subtitle: 'Login'});
     } else if (results.rows[0].discord_id === null) { // Session data but no one is logged in
       console.log('redirect to login page');
-      res.render('login', {layout: 'default'});
+      res.render('login', {layout: 'default', subtitle: 'Login'});
     } else { // User is logged in
       console.log('redirect to home page');
       res.redirect('/home');
@@ -89,6 +91,19 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   console.log('POST in /login');
   console.log(req.body);
+  let missing = false;
+  if (req.body['username-field'] === '') {
+    req.flash('username_error', 'Username required');
+    missing = true;
+  }
+  if (req.body['password-field'] === '') {
+    missing = true;
+  }
+  if (missing) {
+    res.render('login', {layout: 'default', subtitle: 'Login',
+      username_error: req.flash('username_error'), password_error: 'Password required',
+      username: req.body['username-field'], password: req.body['password-field']});
+  }
 });
 
 app.get('/signup', (req, res) => {
@@ -97,13 +112,46 @@ app.get('/signup', (req, res) => {
       console.log('error encountered');
       res.redirect('/error');
     } else if (results.rows.length === 0) { // No session data
-      res.render('signup', {layout: 'default'});
+      res.render('signup', {layout: 'default', subtitle: 'Signup'});
     } else if (results.rows[0].discord_id === null) { // Session data but no one is logged in
-      res.render('signup', {layout: 'default'});
+      res.render('signup', {layout: 'default', subtitle: 'Signup'});
     } else { // User is logged in
       res.redirect('/home');
     }
   });
+});
+
+app.post('/signup', (req, res) => {
+  let missing = false;
+  if (req.body['username_field'] === '') {
+    req.flash('username_error', 'Username required');
+    missing = true;
+  }
+  if (req.body['password_field'] === '') {
+    missing = true;
+  }
+  if (req.body['confirm_password_field'] === '') {
+    missing = true;
+  }
+  if (req.body['discord_username_field'] === '') {
+    req.flash('discord_username_error', 'Discord username required');
+    missing = true;
+  }
+  if (req.body['discord_id_field'] === '') {
+    req.flash('discord_id_error', 'Discord ID required');
+    missing = true;
+  }
+  if (req.body['auth_code_field'] === '') {
+    missing = true;
+  }
+  if (missing) {
+    res.render('signup', {layout: 'default', subtitle: 'Login',
+      username_error: req.flash('username_error'), password_error: 'Password required',
+      confirm_password_error: 'Password confirmation required', discord_username_error: req.flash('discord_username_error'),
+      discord_id_error: req.flash('discord_id_error'), auth_code_error: 'Auth code required',
+      username: req.body['username_field'], discord_username: req.body['discord_username_field'],
+      discord_id: req.body['discord_id_field']});
+  }
 });
 
 app.get('/error', (req, res) => {
