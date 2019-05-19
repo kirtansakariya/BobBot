@@ -32,21 +32,46 @@ bot.on('message', (message) => {
   console.log(message.content + ' message: ' + message + ' member: ' + message.member + ' type: ' + typeof(message));
   if (message.channel.type === 'dm') {
     if (message.content === 'signup') {
-      db.getUser(message.author.id, function(results) {
+      db.getUserById(message.author.id, function(results) {
         if (results === null) {
           console.log('error encountered');
-          message.channel.send('Apologies! Error encountered, please notify the creator.');
-        } else if (results.rows.length == 0) {
+          message.channel.send('Apologies! Error encountered when fetching user.');
+        } else if (results.rows.length === 0) {
           console.log('user does not exist');
-          message.channel.send('Follow these steps to signup for an account:\n' +
-                               '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
-                               '2. Enter a username.\n' +
-                               '3. Enter a password.\n' +
-                               '4. Enter your discord username.\n' +
-                               '5. Enter your discord id: ' + message.author.id + '\n' +
-                               '6. Enter the auth code: ' + Math.floor(Math.random() * 899999 + 100000) + '\n');
+          const auth = Math.floor(Math.random() * 899999 + 100000).toString();
+          db.addUser(message.author.id, 'init', auth, message.author.username, (boo) => {
+            console.log(message.author.username);
+            if (boo) {
+              message.channel.send('Follow these steps to signup for an account:\n' +
+                                  '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
+                                  '2. Enter a username.\n' +
+                                  '3. Enter a password.\n' +
+                                  '4. Enter your discord username.\n' +
+                                  '5. Enter your discord id: ' + message.author.id + '\n' +
+                                  '6. Enter the auth code: ' + auth);
+            } else {
+              message.channel.send('Apologies! Error encountered when attempting to create user.');
+            }
+          });
+        } else if (results.rows[0].status === 'init') {
+          console.log('in init phase');
+          const auth = Math.floor(Math.random() * 899999 + 100000).toString();
+          db.updateUser(null, message.author.id, 'init', auth, message.author.username, null, results.rows[0].id, (boo) => {
+            if (boo) {
+              message.channel.send('Follow these steps to signup for an account:\n' +
+                                  '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
+                                  '2. Enter a username.\n' +
+                                  '3. Enter a password.\n' +
+                                  '4. Enter your discord username.\n' +
+                                  '5. Enter your discord id: ' + message.author.id + '\n' +
+                                  '6. Enter the auth code: ' + auth);
+            } else {
+              message.channel.send('Apologies! Error encountered when attempting to generate new auth.');
+            }
+          });
         } else {
           console.log('user already exists');
+          message.channel.send('You already have an account.');
         }
       });
     }

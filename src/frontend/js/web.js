@@ -5,6 +5,7 @@ const session = require('express-session');
 const hbs = require('express-handlebars');
 const bodyParser = require('body-parser');
 const flash = require('connect-flash');
+const bcrypt = require('bcrypt');
 const app = express();
 const port = process.env.PORT || 5000;
 // const pg = require('pg');
@@ -92,23 +93,46 @@ app.post('/login', (req, res) => {
   console.log('POST in /login');
   console.log(req.body);
   let missing = false;
-  if (req.body['username-field'] === '') {
+  if (req.body['username_field'] === '') {
     req.flash('username_error', 'Username required');
     missing = true;
   }
-  if (req.body['password-field'] === '') {
+  if (req.body['password_field'] === '') {
     missing = true;
   }
   if (missing) {
-    res.render('login', {layout: 'default', subtitle: 'Login',
+    return res.render('login', {layout: 'default', subtitle: 'Login',
       username_error: req.flash('username_error'), password_error: 'Password required',
-      username: req.body['username-field'], password: req.body['password-field']});
+      username: req.body['username_field']});
   }
+
+  db.getUserByUsername(req.body['username_field'], (results) => {
+    if (results === null) {
+      return res.render('login', {layout: 'default', subtitle: 'Login',
+        username_error: req.flash('username_error'), password_error: 'Password required',
+        username: req.body['username_field'], credentials_error: 'Invalid credentials.'});
+    } else if (bcrypt.compareSync(req.body['password_field'], results.rows[0].pass_hash)) {
+      console.log('success logging in');
+      db.addSession(req.session.id, req.body['username_field'], (boo) => {
+        if (!boo) {
+          return res.render('login', {layout: 'default', subtitle: 'Login',
+            username_error: req.flash('username_error'), password_error: 'Password required',
+            username: req.body['username_field'], credentials_error: 'Error updating session.'});
+        } else {
+          return res.redirect('/home');
+        }
+      });
+    } else {
+      return res.render('login', {layout: 'default', subtitle: 'Login',
+        username_error: req.flash('username_error'), password_error: 'Password required',
+        username: req.body['username_field'], credentials_error: 'Invalid credentials.'});
+    }
+  });
 });
 
 app.get('/signup', (req, res) => {
   db.getSession(req.sessionID, (results) => {
-    if (results == null) { // Error encountered
+    if (results === null) { // Error encountered
       console.log('error encountered');
       res.redirect('/error');
     } else if (results.rows.length === 0) { // No session data
@@ -145,13 +169,75 @@ app.post('/signup', (req, res) => {
     missing = true;
   }
   if (missing) {
-    res.render('signup', {layout: 'default', subtitle: 'Login',
+    res.render('signup', {layout: 'default', subtitle: 'Signup',
       username_error: req.flash('username_error'), password_error: 'Password required',
       confirm_password_error: 'Password confirmation required', discord_username_error: req.flash('discord_username_error'),
       discord_id_error: req.flash('discord_id_error'), auth_code_error: 'Auth code required',
       username: req.body['username_field'], discord_username: req.body['discord_username_field'],
       discord_id: req.body['discord_id_field']});
+    return;
   }
+  db.getUserById(req.body['discord_id_field'], (results) => {
+    const entry = results.rows[0];
+    if (results === null) {
+      return res.render('signup', {layout: 'default', subtitle: 'Signup',
+        password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+        username: req.body['username_field'], discord_username: req.body['discord_username_field'],
+        discord_id: req.body['discord_id_field'], credentials_error: 'Error fetching user, please try again.'});
+    }
+
+    if (req.body['password_field'] !== req.body['confirm_password_field']) {
+      return res.render('signup', {layout: 'default', subtitle: 'Signup',
+        password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+        username: req.body['username_field'], discord_username: req.body['discord_username_field'],
+        discord_id: req.body['discord_id_field'], credentials_error: 'Passwords do not match.'});
+    }
+
+    console.log(req.body);
+    db.getUserByUsername(req.body['username_field'], (results) => {
+      if (results === null) {
+        return res.render('signup', {layout: 'default', subtitle: 'Signup',
+          password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+          username: req.body['username_field'], discord_username: req.body['discord_username_field'],
+          discord_id: req.body['discord_id_field'], credentials_error: 'Error fetching user, please try again.'});
+      } else if (results.rows.length !== 0) {
+        res.render('signup', {layout: 'default', subtitle: 'Signup',
+          password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+          username: req.body['username_field'], discord_username: req.body['discord_username_field'],
+          discord_id: req.body['discord_id_field'], credentials_error: 'Username taken.'});
+      } else if (entry.discord_id === req.body['discord_id_field'] && entry.status === 'init' && entry.auth === req.body['auth_code_field'] &&
+      entry.discord_username === req.body['discord_username_field'] && req.body['password_field'] === req.body['confirm_password_field']) {
+        db.updateUser(req.body['username_field'], entry.discord_id, 'signed up', null, entry.discord_username, bcrypt.hashSync(req.body['password_field'], 10), entry.id, (boo) => {
+          if (!boo) {
+            res.render('signup', {layout: 'default', subtitle: 'Signup',
+              password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+              username: req.body['username_field'], discord_username: req.body['discord_username_field'],
+              discord_id: req.body['discord_id_field'], credentials_error: 'Error fetching user, please try again.'});
+          } else {
+            res.redirect('/login');
+          }
+        });
+      } else {
+        return res.render('signup', {layout: 'default', subtitle: 'Signup',
+          password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+          username: req.body['username_field'], discord_username: req.body['discord_username_field'],
+          discord_id: req.body['discord_id_field'], credentials_error: 'Invalid credentials, please reissue signup again.'});
+      }
+    });
+  });
+});
+
+app.get('/home', (req, res) => {
+  db.getSession(req.session.id, (results) => {
+    if (results === null) {
+      return res.redirect('/login');
+    } else if (results.rows.length === 0) {
+      return res.redirect('/login');
+    } else {
+      console.log(results.rows);
+      return res.render('home', {layout: 'default', subtitle: results.rows[0].username});
+    }
+  });
 });
 
 app.get('/error', (req, res) => {

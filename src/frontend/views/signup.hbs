@@ -56,6 +56,12 @@
       </div>
     </div>
 
+    {{#if credentials_error}}
+      <div class="container alert alert-danger col-lg-4" role="alert">
+        {{credentials_error}}
+      </div>
+    {{/if}}
+
     <div class="container">
       <button class="btn btn-primary mb-2" id="signup" type="submit">Signup</button>
       <a class="btn btn-primary mb-2" href="/login">Login</a>
