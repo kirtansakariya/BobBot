@@ -1,7 +1,9 @@
 const express = require('express');
 const db = require('../../database/db');
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
+const pg = require('pg');
 const session = require('express-session');
+const PgSession = require('connect-pg-simple')(session);
 const hbs = require('express-handlebars');
 const bodyParser = require('body-parser');
 const flash = require('connect-flash');
@@ -11,18 +13,45 @@ const app = express();
 // const pg = require('pg');
 // let counter = 0;
 
+const pgPool = new pg.Pool({
+  connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../../auth.json').db_url),
+  ssl: true,
+});
+let counter = 0;
+
 // app.use(cookieSession({
 //   name: 'session',
 //   secret: 'shh',
 //   maxAge: 24 * 60 * 60 * 1000,
 // }));
 
-app.use(cookieParser());
+// app.use(cookieParser());
+// app.use(session({
+//   secret: 'shhshhshshshshsh', // just a long random string
+//   resave: false,
+//   saveUninitialized: true,
+// }));
+
 app.use(session({
-  secret: 'shhshhshshshshsh', // just a long random string
+  store: new PgSession({
+    pool: pgPool,
+  }),
+  secret: ((process.env.SECRET !== undefined) ? process.env.SECRET : require('../../../auth.json').secret),
   resave: false,
+  cookie: {maxAge: 30 * 24 * 60 * 60 * 1000},
   saveUninitialized: true,
 }));
+
+// app.use(session({
+//   store: new pgSession({
+//     pool: pgPool,
+//     tableName: 'user_sessions',
+//   }),
+//   secret: process.env.FOO_COOKIE_SECRET,
+//   resave: false,
+//   cookie: {maxAge: 30 * 24 * 60 * 60 * 1000}, // 30 days
+// }));
+
 app.use(bodyParser.urlencoded({
   extended: true,
 }));
@@ -38,55 +67,69 @@ app.engine('hbs', hbs( {
 }));
 
 app.get('/', (req, res) => {
-  console.log(req.localID);
-  db.getSession(req.sessionID, (results) => {
-    if (results === null) { // Error encountered
-      console.log('error encounterd'); // maybe add session?
-      res.redirect('/error');
-    } else if (results.rows.length === 0) { // No session data
-      // db.addSession(req.sessionID, null, (boo) => {
-      //   if (boo == false) {
-      //     console.log('rip, error');
-      //   } else {
-      //     console.log('yay, added, redirection to login page');
-      //     res.redirect('/login');
-      //   }
-      // });
-      res.redirect('/login');
-    } else if (results.rows[0].discord_id === null) { // Session data but no one is logged in
-      console.log('redirect to login page');
-      res.redirect('/login');
-    } else { // User is logge din
-      console.log('redirect to home page');
-      res.redirect('/home');
-    }
-  });
+  // req.session.cookie.counter = counter;
+  // req.session.counter = counter;
+  // req.session.save();
+
+  if (req.session.username === undefined) {
+    res.redirect('/login');
+  } else {
+    res.redirect('/home');
+  }
+
+  // db.getSession(req.sessionID, (results) => {
+  //   if (results === null) { // Error encountered
+  //     console.log('error encounterd'); // maybe add session?
+  //     res.redirect('/error');
+  //   } else if (results.rows.length === 0) { // No session data
+  //     // db.addSession(req.sessionID, null, (boo) => {
+  //     //   if (boo == false) {
+  //     //     console.log('rip, error');
+  //     //   } else {
+  //     //     console.log('yay, added, redirection to login page');
+  //     //     res.redirect('/login');
+  //     //   }
+  //     // });
+  //     res.redirect('/login');
+  //   } else if (results.rows[0].discord_id === null) { // Session data but no one is logged in
+  //     console.log('redirect to login page');
+  //     res.redirect('/login');
+  //   } else { // User is logge din
+  //     console.log('redirect to home page');
+  //     res.redirect('/home');
+  //   }
+  // });
 });
 
 app.get('/login', (req, res) => {
-  console.log(req.query);
-  db.getSession(req.sessionID, (results) => {
-    if (results === null) { // Error encountered
-      console.log('error encounterd'); // maybe add session?
-      res.redirect('/error');
-    } else if (results.rows.length === 0) { // No session data
-      // db.addSession(req.sessionID, null, (boo) => {
-      //   if (boo == false) {
-      //     console.log('rip, error');
-      //   } else {
-      //     console.log('yay, added, redirectiont o login page');
-      //     res.redirect('/login');
-      //   }
-      // });
-      res.render('login', {layout: 'default', subtitle: 'Login'});
-    } else if (results.rows[0].discord_id === null) { // Session data but no one is logged in
-      console.log('redirect to login page');
-      res.render('login', {layout: 'default', subtitle: 'Login'});
-    } else { // User is logged in
-      console.log('redirect to home page');
-      res.redirect('/home');
-    }
-  });
+  if (req.session.username === undefined) {
+    res.render('login', {layout: 'default', subtitle: 'Login'});
+  } else {
+    res.redirect('/home');
+  }
+
+  // db.getSession(req.sessionID, (results) => {
+  //   if (results === null) { // Error encountered
+  //     console.log('error encounterd'); // maybe add session?
+  //     res.redirect('/error');
+  //   } else if (results.rows.length === 0) { // No session data
+  //     // db.addSession(req.sessionID, null, (boo) => {
+  //     //   if (boo == false) {
+  //     //     console.log('rip, error');
+  //     //   } else {
+  //     //     console.log('yay, added, redirectiont o login page');
+  //     //     res.redirect('/login');
+  //     //   }
+  //     // });
+  //     res.render('login', {layout: 'default', subtitle: 'Login'});
+  //   } else if (results.rows[0].discord_id === null) { // Session data but no one is logged in
+  //     console.log('redirect to login page');
+  //     res.render('login', {layout: 'default', subtitle: 'Login'});
+  //   } else { // User is logged in
+  //     console.log('redirect to home page');
+  //     res.redirect('/home');
+  //   }
+  // });
 });
 
 app.post('/login', (req, res) => {
@@ -113,44 +156,48 @@ app.post('/login', (req, res) => {
         username: req.body['username_field'], credentials_error: 'Invalid credentials.'});
     } else if (bcrypt.compareSync(req.body['password_field'], results.rows[0].pass_hash)) {
       console.log('success logging in');
-      db.getUserByUsername(req.body['username_field'], (results) => {
-        if (results === null) {
-          return res.render('login', {layout: 'default', subtitle: 'Login',
-            username_error: req.flash('username_error'), password_error: 'Password required',
-            username: req.body['username_field'], credentials_error: 'Error fetching user session.'});
-        } else {
-          db.addSession(req.session.id, req.body['username_field'], results.rows[0].discord_id, false, (boo) => {
-            if (!boo) {
-              return res.render('login', {layout: 'default', subtitle: 'Login',
-                username_error: req.flash('username_error'), password_error: 'Password required',
-                username: req.body['username_field'], credentials_error: 'Error updating session.'});
-            } else {
-              return res.redirect('/home');
-            }
-          });
-        }
-      });
-    } else {
-      return res.render('login', {layout: 'default', subtitle: 'Login',
-        username_error: req.flash('username_error'), password_error: 'Password required',
-        username: req.body['username_field'], credentials_error: 'Invalid credentials.'});
+      if (results === null) {
+        return res.render('login', {layout: 'default', subtitle: 'Login',
+          username_error: req.flash('username_error'), password_error: 'Password required',
+          username: req.body['username_field'], credentials_error: 'Error fetching user session.'});
+      }
+      req.session.username = req.body['username_field'];
+      req.session.discord_id = results.rows[0].discord_id;
+      req.session.forgot = false;
+      return res.redirect('/home');
+      // db.addSession(req.session.id, req.body['username_field'], results.rows[0].discord_id, false, (boo) => {
+      //   if (!boo) {
+      //     return res.render('login', {layout: 'default', subtitle: 'Login',
+      //       username_error: req.flash('username_error'), password_error: 'Password required',
+      //       username: req.body['username_field'], credentials_error: 'Error updating session.'});
+      //   } else {
+      //     return res.redirect('/home');
+      //   }
+      // });
     }
+    return res.render('login', {layout: 'default', subtitle: 'Login',
+      username_error: req.flash('username_error'), password_error: 'Password required',
+      username: req.body['username_field'], credentials_error: 'Invalid credentials.'});
   });
 });
 
 app.get('/signup', (req, res) => {
-  db.getSession(req.sessionID, (results) => {
-    if (results === null) { // Error encountered
-      console.log('error encountered');
-      res.redirect('/error');
-    } else if (results.rows.length === 0) { // No session data
-      res.render('signup', {layout: 'default', subtitle: 'Signup'});
-    } else if (results.rows[0].discord_id === null) { // Session data but no one is logged in
-      res.render('signup', {layout: 'default', subtitle: 'Signup'});
-    } else { // User is logged in
-      res.redirect('/home');
-    }
-  });
+  if (req.session.username === null) {
+    return res.render('signup', {layout: 'default', subtitle: 'Signup'});
+  }
+  return res.redirect('/home');
+  // db.getSession(req.sessionID, (results) => {
+  //   if (results === null) { // Error encountered
+  //     console.log('error encountered');
+  //     res.redirect('/error');
+  //   } else if (results.rows.length === 0) { // No session data
+  //     res.render('signup', {layout: 'default', subtitle: 'Signup'});
+  //   } else if (results.rows[0].discord_id === null) { // Session data but no one is logged in
+  //     res.render('signup', {layout: 'default', subtitle: 'Signup'});
+  //   } else { // User is logged in
+  //     res.redirect('/home');
+  //   }
+  // });
 });
 
 app.post('/signup', (req, res) => {
@@ -236,16 +283,20 @@ app.post('/signup', (req, res) => {
 });
 
 app.get('/forgot', (req, res) => {
-  db.getSession(req.session.id, (results) => {
-    if (results === null) {
-      return res.render('forgot', {layout: 'default', subtitle: 'Forgot password'});
-    } else if (results.rows.length === 0) {
-      return res.render('forgot', {layout: 'default', subtitle: 'Forgot password'});
-    } else {
-      console.log(results.rows);
-      return res.redirect('/home');
-    }
-  });
+  if (req.session.username === undefined) {
+    return res.render('forgot', {layout: 'default', subtitle: 'Forgot Password'});
+  }
+  return res.redirect('/home');
+  // db.getSession(req.session.id, (results) => {
+  //   if (results === null) {
+  //     return res.render('forgot', {layout: 'default', subtitle: 'Forgot password'});
+  //   } else if (results.rows.length === 0) {
+  //     return res.render('forgot', {layout: 'default', subtitle: 'Forgot password'});
+  //   } else {
+  //     console.log(results.rows);
+  //     return res.redirect('/home');
+  //   }
+  // });
 });
 
 app.post('/forgot', (req, res) => {
@@ -266,16 +317,20 @@ app.post('/forgot', (req, res) => {
 // });
 
 app.get('/home', (req, res) => {
-  db.getSession(req.session.id, (results) => {
-    if (results === null) {
-      return res.redirect('/login');
-    } else if (results.rows.length === 0) {
-      return res.redirect('/login');
-    } else {
-      console.log(results.rows);
-      return res.render('home', {layout: 'default', subtitle: results.rows[0].username});
-    }
-  });
+  if (req.session.username === undefined) {
+    return res.redirect('/login');
+  }
+  return res.render('home', {layout: 'default', subtitle: req.session.username});
+  // db.getSession(req.session.id, (results) => {
+  //   if (results === null) {
+  //     return res.redirect('/login');
+  //   } else if (results.rows.length === 0) {
+  //     return res.redirect('/login');
+  //   } else {
+  //     console.log(results.rows);
+  //     return res.render('home', {layout: 'default', subtitle: results.rows[0].username});
+  //   }
+  // });
 });
 
 app.get('/error', (req, res) => {
