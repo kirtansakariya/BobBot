@@ -119,7 +119,7 @@ app.post('/login', (req, res) => {
             username_error: req.flash('username_error'), password_error: 'Password required',
             username: req.body['username_field'], credentials_error: 'Error fetching user session.'});
         } else {
-          db.addSession(req.session.id, req.body['username_field'], results.rows[0].discord_id, (boo) => {
+          db.addSession(req.session.id, req.body['username_field'], results.rows[0].discord_id, false, (boo) => {
             if (!boo) {
               return res.render('login', {layout: 'default', subtitle: 'Login',
                 username_error: req.flash('username_error'), password_error: 'Password required',
