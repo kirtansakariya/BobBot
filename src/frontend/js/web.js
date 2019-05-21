@@ -331,40 +331,40 @@ app.post('/forgot', (req, res) => {
     missing = true;
   }
   if (missing) {
-    return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+    return res.render('forgot', {layout: 'default', subtitle: 'Forgot Password',
       username_error: req.flash('username_error'), password_error: 'Password required',
       confirm_password_error: 'Password confirmation required', auth_code_error: 'Password required',
       username: req.body['username_field']});
   }
   
   if (req.body['password_field'] !== req.body['confirm_password_field']) {
-    return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+    return res.render('forgot', {layout: 'default', subtitle: 'Forgot Password',
       password_error: 'Password required', confirm_password_error: 'Password confirmation required',
       auth_code_error: 'Password required', credentials_error: 'Passwords do not match.',
       username: req.body['username_field']});
   }
   db.getUserByUsername(req.body['username_field'], (results) => {
     if (results === null) {
-      return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+      return res.render('forgot', {layout: 'default', subtitle: 'Forgot Password',
         password_error: 'Password required', confirm_password_error: 'Password confirmation required',
         auth_code_error: 'Password required', credentials_error: 'Invalid credentials',
         username: req.body['username_field']});
     } else if (results.rows.length === 0) {
-      return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+      return res.render('forgot', {layout: 'default', subtitle: 'Forgot Password',
         password_error: 'Password required', confirm_password_error: 'Password confirmation required',
         auth_code_error: 'Password required', credentials_error: 'Invalid credentials',
         username: req.body['username_field']});
     }
     const user = results.rows[0];
     if (req.body['username_field'] !== user.username || req.body['auth_field'] !== user.auth) {
-      return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+      return res.render('forgot', {layout: 'default', subtitle: 'Forgot Password',
         password_error: 'Password required', confirm_password_error: 'Password confirmation required',
         auth_code_error: 'Password required', credentials_error: 'Invalid credentials',
         username: req.body['username_field']});
     }
     db.updateUser(user.username, user.discord_id, 'signed up', null, user.discord_username, bcrypt.hashSync(req.body['password_field'], 10), user.id, (boo) => {
       if (!boo) {
-        return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+        return res.render('forgot', {layout: 'default', subtitle: 'Forgot Password',
           password_error: 'Password required', confirm_password_error: 'Password confirmation required',
           auth_code_error: 'Password required', credentials_error: 'Error updating new password',
           username: req.body['username_field']});
