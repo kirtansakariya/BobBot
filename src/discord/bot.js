@@ -59,12 +59,12 @@ bot.on('message', (message) => {
           db.updateUser(null, message.author.id, 'init', auth, message.author.username, null, results.rows[0].id, (boo) => {
             if (boo) {
               message.channel.send('Follow these steps to signup for an account:\n' +
-                                  '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
-                                  '2. Enter a username.\n' +
-                                  '3. Enter a password.\n' +
-                                  '4. Enter your discord username.\n' +
-                                  '5. Enter your discord id: ' + message.author.id + '\n' +
-                                  '6. Enter the auth code: ' + auth);
+                                   '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
+                                   '2. Enter a username.\n' +
+                                   '3. Enter a password.\n' +
+                                   '4. Enter your discord username.\n' +
+                                   '5. Enter your discord id: ' + message.author.id + '\n' +
+                                   '6. Enter the auth code: ' + auth);
             } else {
               message.channel.send('Apologies! Error encountered when attempting to generate new auth.');
             }
@@ -72,6 +72,29 @@ bot.on('message', (message) => {
         } else {
           console.log('user already exists');
           message.channel.send('You already have an account.');
+        }
+      });
+    } else if (message.content === 'forgot') {
+      db.getUserById(message.author.id, (results) => {
+        if (results === null) {
+          message.channel.send('Apologies! Error encountered when fetching user.');
+        } else if (results.rows.length === 0) {
+          message.channel.send('No account under your name, message signup to make an account.');
+        } else {
+          const user = results.rows[0];
+          const auth = Math.floor(Math.random() * 899999 + 100000).toString();
+          db.updateUser(user.username, user.discord_id, 'forgot', auth, user.discord_username, user.pass_hash, user.id, (boo) => {
+            if (!boo) {
+              message.channel.send('Error updating user, please try again.');
+            } else {
+              message.channel.send('Follow these steps to signup for an account:\n' +
+                                   '1. Please visit https://the-bobbot.herokuapp.come/forgot.\n' +
+                                   '2. Enter your username.\n' +
+                                   '3. Enter a new password.\n' +
+                                   '4. Confirm the password.\n' +
+                                   '5. Enter the auth code: ' + auth);
+            }
+          });
         }
       });
     }
