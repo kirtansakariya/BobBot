@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const flash = require('connect-flash');
 const bcrypt = require('bcrypt');
 const app = express();
-const port = process.env.PORT || 5000;
+// const port = process.env.PORT || 5000;s
 // const pg = require('pg');
 // let counter = 0;
 
@@ -113,13 +113,21 @@ app.post('/login', (req, res) => {
         username: req.body['username_field'], credentials_error: 'Invalid credentials.'});
     } else if (bcrypt.compareSync(req.body['password_field'], results.rows[0].pass_hash)) {
       console.log('success logging in');
-      db.addSession(req.session.id, req.body['username_field'], (boo) => {
-        if (!boo) {
+      db.getUserByUsername(req.body['username_field'], (results) => {
+        if (results === null) {
           return res.render('login', {layout: 'default', subtitle: 'Login',
             username_error: req.flash('username_error'), password_error: 'Password required',
-            username: req.body['username_field'], credentials_error: 'Error updating session.'});
+            username: req.body['username_field'], credentials_error: 'Error fetching user session.'});
         } else {
-          return res.redirect('/home');
+          db.addSession(req.session.id, req.body['username_field'], results.rows[0].discord_id, (boo) => {
+            if (!boo) {
+              return res.render('login', {layout: 'default', subtitle: 'Login',
+                username_error: req.flash('username_error'), password_error: 'Password required',
+                username: req.body['username_field'], credentials_error: 'Error updating session.'});
+            } else {
+              return res.redirect('/home');
+            }
+          });
         }
       });
     } else {
@@ -227,6 +235,36 @@ app.post('/signup', (req, res) => {
   });
 });
 
+app.get('/forgot', (req, res) => {
+  db.getSession(req.session.id, (results) => {
+    if (results === null) {
+      return res.render('forgot', {layout: 'default', subtitle: 'Forgot password'});
+    } else if (results.rows.length === 0) {
+      return res.render('forgot', {layout: 'default', subtitle: 'Forgot password'});
+    } else {
+      console.log(results.rows);
+      return res.redirect('/home');
+    }
+  });
+});
+
+app.post('/forgot', (req, res) => {
+  console.log(req.body);
+  if (req.body['username_field'] === '') {
+    return res.render('forgot', {layout: 'default', subtitle: 'Forgot password', username_error: 'Invalid username'});
+  }
+});
+
+// app.get('/forgot/auth', (req, res) => {
+//   db.getSession(req.session.id, (results) => {
+//     if (results === null) {
+//       return res.redirect('/error?data=Password+Reset+Not+Requested');
+//     } else if (results.rows.length === 0) {
+//       return res.redirect('/error?data=Password+Reset+Not+Requested');
+//     }
+//   });
+// });
+
 app.get('/home', (req, res) => {
   db.getSession(req.session.id, (results) => {
     if (results === null) {
@@ -242,10 +280,15 @@ app.get('/home', (req, res) => {
 
 app.get('/error', (req, res) => {
   console.log('error nooo');
-  res.render('error', {layout: 'default', data: 'is this', template: 'error-template', subtitle: 'Error'});
+  console.log(req.query);
+  res.render('error', {layout: 'default', data: req.query['data'], template: 'error-template', subtitle: 'Error'});
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+// app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+
+module.exports = {
+  app: app,
+};
 
 
 // console.log(process.env.DATABASE_URL);

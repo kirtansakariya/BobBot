@@ -112,18 +112,20 @@ function updateUser(username, discordId, status, auth, discordUsername, passHash
  * Add a new session to the database.
  * @param {String} sid Session id
  * @param {String} username Username for the frontend portal
+ * @param {String} discordId Discord identifier for an account
+ * @param {Boolean} forgot If user is resetting password or not
  * @param {Object} callback Callback to leave the function
  */
-function addSession(sid, username, callback) {
+function addSession(sid, username, discordId, forgot, callback) {
   const queryConfig = {
-    text: 'INSERT INTO sessions(sid, username) VALUES($1, $2);',
-    values: [sid, username],
+    text: 'INSERT INTO sessions(sid, username, discord_id, forgot) VALUES($1, $2, $3, $4);',
+    values: [sid, username, discordId, forgot],
   };
 
   client.query(queryConfig, (error, results) => {
     if (error) {
       console.log('ERROR in addSession');
-      // console.log(error);
+      console.log(error);
       callback(false);
     } else {
       console.log('SUCCESS in addSession');
@@ -157,6 +159,29 @@ function getSession(sid, callback) {
   });
 }
 
+/**
+ * Set if the user is trying to resert their password or not.
+ * @param {Boolean} forgot If user is resetting password or not
+ * @param {String} sid Session identifier
+ * @param {Object} callback Callback to leave the function
+ */
+function updateSession(forgot, sid, callback) {
+  const queryConfig = {
+    text: 'UPDATE sessions SET forgot = ($1) WHERE sid = ($2)',
+    values: [forgot, sid],
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in updateUser');
+      callback(false);
+    } else {
+      console.log('SUCCESS in updateUser');
+      callback(true);
+    }
+  });
+}
+
 module.exports = {
   addUser: addUser,
   getUserById: getUserById,
@@ -164,4 +189,5 @@ module.exports = {
   updateUser: updateUser,
   addSession: addSession,
   getSession: getSession,
+  updateSession: updateSession,
 };
