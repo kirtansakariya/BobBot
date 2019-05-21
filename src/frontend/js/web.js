@@ -17,7 +17,6 @@ const pgPool = new pg.Pool({
   connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../../auth.json').db_url),
   ssl: true,
 });
-let counter = 0;
 
 // app.use(cookieSession({
 //   name: 'session',
@@ -161,10 +160,25 @@ app.post('/login', (req, res) => {
           username_error: req.flash('username_error'), password_error: 'Password required',
           username: req.body['username_field'], credentials_error: 'Error fetching user session.'});
       }
-      req.session.username = req.body['username_field'];
-      req.session.discord_id = results.rows[0].discord_id;
-      req.session.forgot = false;
-      return res.redirect('/home');
+      if (results.rows[0].status != 'signed up') {
+        const user = results.rows[0];
+        db.updateUser(user.username, user.discord_id, 'signed up', null, user.discord_username, user.pass_hash, user.id, (boo) => {
+          if (!boo) {
+            return res.render('login', {layout: 'default', subtitle: 'Login',
+              username_error: req.flash('username_error'), password_error: 'Password required',
+              username: req.body['username_field'], credentials_error: 'Someone tried to reset your account, please message forgot to BobBot.'});
+          }
+          req.session.username = req.body['username_field'];
+          req.session.discord_id = user.discord_id;
+          req.session.forgot = false;
+          return res.redirect('/home');
+        });
+      } else {
+        req.session.username = req.body['username_field'];
+        req.session.discord_id = results.rows[0].discord_id;
+        req.session.forgot = false;
+        return res.redirect('/home');
+      }
       // db.addSession(req.session.id, req.body['username_field'], results.rows[0].discord_id, false, (boo) => {
       //   if (!boo) {
       //     return res.render('login', {layout: 'default', subtitle: 'Login',
@@ -174,10 +188,11 @@ app.post('/login', (req, res) => {
       //     return res.redirect('/home');
       //   }
       // });
+    } else {
+      return res.render('login', {layout: 'default', subtitle: 'Login',
+        username_error: req.flash('username_error'), password_error: 'Password required',
+        username: req.body['username_field'], credentials_error: 'Invalid credentials.'});
     }
-    return res.render('login', {layout: 'default', subtitle: 'Login',
-      username_error: req.flash('username_error'), password_error: 'Password required',
-      username: req.body['username_field'], credentials_error: 'Invalid credentials.'});
   });
 });
 
@@ -301,9 +316,62 @@ app.get('/forgot', (req, res) => {
 
 app.post('/forgot', (req, res) => {
   console.log(req.body);
+  let missing = false;
   if (req.body['username_field'] === '') {
-    return res.render('forgot', {layout: 'default', subtitle: 'Forgot password', username_error: 'Invalid username'});
+    req.flash('username_error', 'Invalid username');
+    missing = true;
   }
+  if (req.body['password_field'] === '') {
+    missing = true;
+  }
+  if (req.body['confirm_password_field'] === '') {
+    missing = true;
+  }
+  if (req.body['auth_field'] === '') {
+    missing = true;
+  }
+  if (missing) {
+    return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+      username_error: req.flash('username_error'), password_error: 'Password required',
+      confirm_password_error: 'Password confirmation required', auth_code_error: 'Password required',
+      username: req.body['username_field']});
+  }
+  
+  if (req.body['password_field'] !== req.body['confirm_password_field']) {
+    return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+      password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+      auth_code_error: 'Password required', credentials_error: 'Passwords do not match.',
+      username: req.body['username_field']});
+  }
+  db.getUserByUsername(req.body['username_field'], (results) => {
+    if (results === null) {
+      return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+        password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+        auth_code_error: 'Password required', credentials_error: 'Invalid credentials',
+        username: req.body['username_field']});
+    } else if (results.rows.length === 0) {
+      return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+        password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+        auth_code_error: 'Password required', credentials_error: 'Invalid credentials',
+        username: req.body['username_field']});
+    }
+    const user = results.rows[0];
+    if (req.body['username_field'] !== user.username || req.body['auth_field'] !== user.auth) {
+      return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+        password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+        auth_code_error: 'Password required', credentials_error: 'Invalid credentials',
+        username: req.body['username_field']});
+    }
+    db.updateUser(user.username, user.discord_id, 'signed up', null, user.discord_username, bcrypt.hashSync(req.body['password_field'], 10), user.id, (boo) => {
+      if (!boo) {
+        return res.render('signup', {layout: 'default', subtitle: 'Forgot Password',
+          password_error: 'Password required', confirm_password_error: 'Password confirmation required',
+          auth_code_error: 'Password required', credentials_error: 'Error updating new password',
+          username: req.body['username_field']});
+      }
+      return res.redirect('/login');
+    });
+  });
 });
 
 // app.get('/forgot/auth', (req, res) => {
