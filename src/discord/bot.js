@@ -512,7 +512,7 @@ function nextSong(message) {
     dispatcher.on('error', () => nextSong(message));
     connection.on('error', () => {
       message.channel.send(decode('Problem with song: ' + current.title + ' url: ' + current.url));
-      nextSong(mem);
+      nextSong(message);
     });
   }).catch(console.log);
 }
