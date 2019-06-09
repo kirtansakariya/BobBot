@@ -11,6 +11,7 @@ const moment = require('moment');
  * @param {Object} user The data for the user
  */
 function DJ(user) {
+  console.log('DJ');
   this.user = user.displayName;
   this.id = user.id;
   this.songs = [];
@@ -25,6 +26,7 @@ function DJ(user) {
  * @param {Object} callback The callback to leave the function
  */
 function addYoutube(dj, u, arr, page, callback) {
+  console.log('addYoutube');
   let urlParams = null;
   if (!u.includes('list')) {
     urlParams = url.parse(u, true);
@@ -92,6 +94,7 @@ function addYoutube(dj, u, arr, page, callback) {
  * @param {Object} callback Callback to leave the function
  */
 function parseList(dj, arr, store, callback) {
+  console.log('parseList');
   const temp = arr.shift();
   https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + temp.id + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
     let data = '';
@@ -113,9 +116,9 @@ function parseList(dj, arr, store, callback) {
         blocked = parsed.items[0].contentDetails.regionRestriction.blocked;
       }
       if (allowed !== undefined && !allowed.includes('US')) {
-        console.log(temp.title + ' not allowed');
+        // console.log(temp.title + ' not allowed');
       } else if (blocked !== undefined && blocked.includes('US')) {
-        console.log(temp.title + ' not allowed');
+        // console.log(temp.title + ' not allowed');
       } else {
         store.push(tempYoutube);
       }
@@ -135,12 +138,13 @@ function parseList(dj, arr, store, callback) {
  * @param {Object} callback Callback to leave the function
  */
 function addSoundcloud(dj, u, callback) {
-  console.log('in addSoundcloud');
+  console.log('addSoundcloud');
+  // console.log('in addSoundcloud');
   let duration;
   let minutes;
   let seconds;
   let counter = 0;
-  console.log('SC');
+  // console.log('SC');
   http.get('http://api.soundcloud.com/resolve?url=' + u + '&client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), function(resp) {
     let data1 = '';
     resp.on('data', (chunk) => {
@@ -148,7 +152,7 @@ function addSoundcloud(dj, u, callback) {
     });
 
     resp.on('end', () => {
-      console.log(data1);
+      // console.log(data1);
       data1 = JSON.parse(data1);
       https.get(data1.location, (resp) => {
         let data2 = '';
@@ -159,16 +163,16 @@ function addSoundcloud(dj, u, callback) {
         resp.on('end', (chunk) => {
           track = JSON.parse(data2);
           if (track != null) {
-            console.log(track);
+            // console.log(track);
             if (track.kind == 'track') {
-              console.log('adding singular soundcloud track');
+              // console.log('adding singular soundcloud track');
               duration = track.duration;
               minutes = Math.floor(duration / 60000);
               seconds = ((duration % 60000) / 1000).toFixed(0);
               dj.songs.push(new Soundcloud.Soundcloud(u, track.stream_url + '?client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, dj.id, dj.user));
               callback(1);
             } else {
-              console.log('adding soundcloud playlist');
+              // console.log('adding soundcloud playlist');
               while (track.tracks.length > 0) {
                 const t = track.tracks.shift();
                 duration = t.duration;
@@ -188,11 +192,12 @@ function addSoundcloud(dj, u, callback) {
   }).on('error', (err) => {
     console.log('error: ' + err.message);
   });
-  console.log('outside');
+  // console.log('outside');
 }
 
 DJ.prototype.init = function(u) {
-  console.log('need to update inity');
+  console.log('init');
+  // console.log('need to update inity');
   this.songs = [];
   this.num = 0;
   this.user = u;
@@ -200,46 +205,51 @@ DJ.prototype.init = function(u) {
 };
 
 DJ.prototype.addSong = function(url, callback) {
-  console.log(typeof(url));
-  console.log(url);
+  console.log('addSong');
+  // console.log(typeof(url));
+  // console.log(url);
   if (url.includes('youtube')) {
-    console.log('adding youtube url');
+    // console.log('adding youtube url');
     const songs = [];
     const dj = this;
     const origLength = dj.songs.length;
     addYoutube(dj, url, songs, null, function() {
-      console.log(songs);
-      console.log(dj.songs);
+      // console.log(songs);
+      // console.log(dj.songs);
       parseList(dj, songs, dj.songs, function(num) {
-        console.log(dj.songs);
-        console.log(dj.songs.length);
+        // console.log(dj.songs);
+        // console.log(dj.songs.length);
         callback('Added ' + (num - origLength) + ' songs');
       });
     });
   } else if (url.includes('soundcloud')) {
-    console.log('adding soundcloud url');
+    // console.log('adding soundcloud url');
     addSoundcloud(this, url, function(num) {
       callback('Added ' + num + ' songs');
     });
   } else {
-    console.log('needs to provide valid url');
+    // console.log('needs to provide valid url');
     callback('Invalid url');
   }
-  console.log('outside, no callback');
+  // console.log('outside, no callback');
 };
 
 DJ.prototype.getStream = function() {
+  console.log('getStream');
   return this.songs.shift().getStream();
 };
 
 DJ.prototype.getSong = function() {
+  console.log('getSong');
   let song = null;
   let stream = null;
   while (song == null && this.songs.length > 0) {
     song = this.songs.shift();
     if (song.url.includes('youtube')) {
       stream = ytdl(song.url, {filter: 'audioonly'}).on('error', (err) => {
-        console.log(err); song = null;
+        console.log('error in ytdl');
+        console.log(err);
+        song = null;
       });
     }
   }

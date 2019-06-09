@@ -18,17 +18,18 @@ function Soundcloud(u, s, t, l, p, pl) {
 }
 
 Soundcloud.prototype.init = function(u) {
-  console.log('soundcloud init');
+  console.log('init');
   this.url = u;
   return this;
 };
 
 Soundcloud.prototype.getStream = function() {
-  console.log('getting stream: ' + this.stream);
+  console.log('getStream');
   return this.stream;
 };
 
 Soundcloud.prototype.getTitle = function() {
+  console.log('getTitle');
   return this.title;
 };
 
