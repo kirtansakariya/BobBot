@@ -28,8 +28,8 @@ bot.on('ready', function(evt) {
 });
 
 bot.on('message', (message) => {
-  console.log(message.member);
-  console.log(message.content + ' message: ' + message + ' member: ' + message.member + ' type: ' + typeof(message));
+  // console.log(message.member);
+  console.log('\n' + message.content + ' message: ' + message + ' member: ' + message.member + ' type: ' + typeof(message));
   if (message.channel.type === 'dm') {
     if (message.content === 'signup') {
       db.getUserById(message.author.id, function(results) {
@@ -112,7 +112,7 @@ bot.on('message', (message) => {
       message.channel.send('Invalid selection');
     } else {
       const song = searches[message.member.user.id][selection - 1];
-      console.log(song);
+      // console.log(song);
       const dj = getDJ(message.member);
       if (song.type === 'yt') {
         if (front[iden] === true) {
@@ -121,7 +121,7 @@ bot.on('message', (message) => {
           dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
         }
       } else {
-        console.log('add sc song');
+        // console.log('add sc song');
         song.pid = message.member.id;
         song.player = message.member.displayName;
         if (front[iden] === true) {
@@ -162,49 +162,53 @@ bot.on('message', (message) => {
           addSongs(message.member, args[0], function(msg, dj) {
             message.channel.send(msg);
             if (start != -1) {
-              console.log('old size: ' + start);
-              console.log('new size: ' + dj.songs.length);
-              console.log('diff: ' + (dj.songs.length - start));
+              // console.log('old size: ' + start);
+              // console.log('new size: ' + dj.songs.length);
+              // console.log('diff: ' + (dj.songs.length - start));
               const diff = dj.songs.splice(start);
-              console.log('diff: ' + diff.length);
-              console.log('songs: ' + dj.songs.length);
+              // console.log('diff: ' + diff.length);
+              // console.log('songs: ' + dj.songs.length);
               dj.songs.unshift(...diff);
             }
           });
         }
         break;
       case 'start':
+        console.log('in start case');
         if (dispatcher == null) nextSong(message);
         break;
       case 'leave':
+        console.log('in leave case');
         bot.voice.connections.get(bot.voice.connections.keys().next().value).disconnect();
         current = null;
         dispatcher = null;
         break;
       case 'queue':
       case 'q':
+        console.log('in queue case');
         const pg = args.shift();
         const q = getQueue();
-        console.log(pg);
-        console.log('final');
-        console.log(q);
+        // console.log(pg);
+        // console.log('final');
+        // console.log(q);
         if (q.length === 0) {
           message.channel.send('The queue is currently empty');
         } else if (pg === undefined) {
           const mes = parseQueue(q, 0, q.length);
           message.channel.send(decode(mes));
         } else if (pg > 0 && ((pg - 1) * 10) < q.length) {
-          console.log(pg);
+          // console.log(pg);
           const mes = parseQueue(q, ((pg - 1) * 10), q.length);
-          console.log(typeof(mes));
-          console.log(mes);
+          // console.log(typeof(mes));
+          // console.log(mes);
           message.channel.send(decode(mes));
         } else {
           message.channel.send('Please enter a valid page number');
         }
         break;
       case 'check':
-        console.log(message.member);
+        console.log('in check case');
+        // console.log(message.member);
         const id = message.member.user.id;
         const stat = front[id];
         if (stat === undefined || stat === false) {
@@ -214,25 +218,29 @@ bot.on('message', (message) => {
         }
         break;
       case 'clean':
+        console.log('in clean case');
         clean(function() {
-          console.log('done cleaning, updating now');
-          console.log(djs[0].songs);
+          // console.log('done cleaning, updating now');
+          // console.log(djs[0].songs);
         });
         break;
       case 'skip':
+        console.log('in skip case');
         nextSong(message);
         break;
       case 'current':
       case 'curr':
       case 'c':
+        console.log('in current case');
         if (current == null) {
           message.channel.send('No songs playing currently');
         } else {
-          console.log(current);
+          // console.log(current);
           message.channel.send(decode('`' + current.title + '` [' + current.length + '] req by ' + current.player));
         }
         break;
       case 'front':
+        console.log('in front case');
         const iden = message.member.user.id;
         front[iden] = !front[iden];
         // console.log('\n\n\n');
@@ -243,6 +251,7 @@ bot.on('message', (message) => {
         break;
       case 'pause':
       case 'p':
+        console.log('in pause case');
         if (dispatcher == null) {
           message.channel.send('No songs playing currently');
         } else {
@@ -259,8 +268,9 @@ bot.on('message', (message) => {
       case 'qpl':
       case 'qP':
       case 'qp':
-        console.log(djs);
-        console.log(args);
+        console.log('in queuePlayer case');
+        // console.log(djs);
+        // console.log(args);
         if (args.length === 0) {
           message.channel.send('Please provide a non-empty player name');
           break;
@@ -303,6 +313,7 @@ bot.on('message', (message) => {
       case 'resume':
       case 're':
       case 'r':
+        console.log('in resume case');
         if (dispatcher == null) {
           message.channel.send('No songs playing currently');
         } else {
@@ -310,6 +321,7 @@ bot.on('message', (message) => {
         }
         break;
       case 'shuffle':
+        console.log('in shuffle case');
         const boo = shuffle(message);
         if (boo) {
           message.channel.send(message.member.displayName + '\'s songs have been shuffled');
@@ -319,12 +331,13 @@ bot.on('message', (message) => {
         break;
       case 'soundcloud':
       case 'sc':
+        console.log('in soundcloud case');
         if (args.length === 0) {
           message.channel.send('Need to provide search query');
         } else {
           const str = args.join(' ');
           scSearch(str, message.member.user.id, function() {
-            console.log(searches[message.member.user.id]);
+            // console.log(searches[message.member.user.id]);
             let send = '**Enter a number from 1-5 to select a song**\n';
             for (let i = 0; i < searches[message.member.user.id].length; i++) {
               const info = searches[message.member.user.id][i];
@@ -333,11 +346,12 @@ bot.on('message', (message) => {
             send += '**Songs fetched from Soundcloud**';
             message.channel.send(decode(send));
           });
-          console.log(str);
+          // console.log(str);
         }
         break;
       case 'remove':
       case 'rm':
+        console.log('in remove case');
         if (args.length == 0) {
           message.channel.send('Please provide the queue number(s) of the song(s) to remove');
         } else {
@@ -365,15 +379,16 @@ bot.on('message', (message) => {
       case 'remPlayer':
       case 'rmpl':
       case 'rmPl':
-        console.log(args);
+        console.log('in removePlayer case');
+        // console.log(args);
         if (args.length === 0) {
           message.channel.send('Please provide the player\'s name');
         } else {
           const name = args.join(' ');
           for (let i = 0; i < djs.length; i++) {
-            console.log(djs[i].user);
-            console.log((djs[i].user === name));
-            console.log('name: ' + name);
+            // console.log(djs[i].user);
+            // console.log((djs[i].user === name));
+            // console.log('name: ' + name);
             if (djs[i].user === name) {
               djs.splice(i, 1);
               message.channel.send('Removing all songs that were added by ' + name);
@@ -382,10 +397,12 @@ bot.on('message', (message) => {
         }
         break;
       case 'tiny':
+        console.log('in tiny case');
         message.channel.send('Dong?');
         break;
       case 'youtube':
       case 'yt':
+        console.log('in youtube case');
         if (args.length == 0) {
           message.channel.send('Need to provide search query');
         } else {
@@ -393,7 +410,7 @@ bot.on('message', (message) => {
           ytSearch(str, message.member.user.id, function() {
             let send = '**Enter a number from 1-5 to select a song**\n';
             for (let i = 0; i < searches[message.member.user.id].length; i++) {
-              console.log(searches[message.member.user.id][i]);
+              // console.log(searches[message.member.user.id][i]);
               const info = searches[message.member.user.id][i];
               send += (i + 1) + '. **' + info.title + '** - ' + info.duration + '\n';
             }
@@ -403,6 +420,7 @@ bot.on('message', (message) => {
         }
         break;
       case 'commands':
+        console.log('in commands case');
         // var mes = 'Play song: `;play <url>`\nStart player: `;start`\nSkip song: `;skip`\nQueue: `;queue` or `;q`\nCurrent song: `;current` or `;curr`\nPause player: `;pause`\nResume player: `;resume` or `;re` or `;r`\n' +
         //          'Fun commands: `;tiny`';
         const play = 'Play song: `;play <url>`';
@@ -436,15 +454,16 @@ bot.on('message', (message) => {
  * @param {Object} callback Callback to leave the function
  */
 function addSongs(member, url, callback) {
+  console.log('addSongs');
   dj = getDJ(member);
   /* if(dj === null) {
     dj = new DJ.DJ(member);
     djs.push(dj);
     counter++;
   }*/
-  console.log(dj);
+  // console.log(dj);
   dj.addSong(url, function(msg) {
-    console.log('done');
+    // console.log('done');
     callback(msg, dj);
   });
 }
@@ -455,18 +474,19 @@ function addSongs(member, url, callback) {
  * @return {Object} Dj that was either created or found in current list
  */
 function getDJ(member) {
+  console.log('getDJ');
   let dj = 0;
-  console.log('hello in dj ' + member);
+  // console.log('hello in dj ' + member);
   while (dj < djs.length) {
     if (djs[dj].id == member) {
-      console.log('returning dj: ' + djs[dj].user);
+      // console.log('returning dj: ' + djs[dj].user);
       return djs[dj];
     }
     dj++;
   }
   dj = new DJ.DJ(member);
   djs.push(dj);
-  console.log('djs:\n' + djs);
+  // console.log('djs:\n' + djs);
   return dj;
 }
 
@@ -475,37 +495,38 @@ function getDJ(member) {
  * @param {Object} message Information about request from Discord
  */
 function nextSong(message) {
+  console.log('nextSong');
   current = null;
-  console.log(message);
-  console.log(message.member.voice.channel);
+  // console.log(message);
+  // console.log(message.member.voice.channel);
   if (message.member.voice.channel == null) {
-    console.log('please join a voice channel');
+    // console.log('please join a voice channel');
     return;
   }
   const temp = djs.shift();
   if (temp == null) {
-    console.log('no more djs');
+    // console.log('no more djs');
     return;
   }
   const song = temp.getSong();
-  console.log(song);
+  // console.log(song);
   if (song == null) {
     nextSong(message);
     return;
   }
   if (temp.songs.length != 0) {
-    console.log(temp.songs.length + ' more songs');
+    // console.log(temp.songs.length + ' more songs');
     djs.push(temp);
   }
-  console.log('in mem.voiceChannel');
+  // console.log('in mem.voiceChannel');
   message.member.voice.channel.join().then((connection) => {
-    console.log('using connection and logging song');
-    console.log(song);
-    console.log('post song log');
-    const s = song.getStream();
-    console.log('logging stream');
-    console.log(s);
-    console.log('post stream log');
+    // console.log('using connection and logging song');
+    // console.log(song);
+    // console.log('post song log');
+    // const s = song.getStream();
+    // console.log('logging stream');
+    // console.log(s);
+    // console.log('post stream log');
     current = song;
     dispatcher = connection.play(song.getStream());
     dispatcher.on('end', () => nextSong(message));
@@ -522,6 +543,7 @@ function nextSong(message) {
  * @return {Object} Array of the songs in the queue
  */
 function getQueue() {
+  console.log('getQueue');
   const temp = JSON.parse(JSON.stringify(djs));
   const ret = [];
   let dj;
@@ -529,7 +551,7 @@ function getQueue() {
   if (current != null) {
     ret.push(current);
   }
-  console.log('temp original');
+  // console.log('temp original');
   while (temp.length > 0) {
     dj = temp.shift();
     song = dj.songs.shift();
@@ -537,7 +559,7 @@ function getQueue() {
     ret.push(song);
     temp.push(dj);
   }
-  console.log(ret);
+  // console.log(ret);
   return ret;
 }
 
@@ -549,9 +571,10 @@ function getQueue() {
  * @return {String} Information about the songs in that page
  */
 function parseQueue(q, p, l) {
+  console.log('parseQueue');
   let message = '';
-  console.log('parse');
-  console.log(q);
+  // console.log('parse');
+  // console.log(q);
   for (let i = 0; i < 10 && (p + i) < q.length; i++) {
     if (p == 0 && i == 0 && current !== null) {
       message += (p + i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
@@ -560,7 +583,7 @@ function parseQueue(q, p, l) {
     message += (p + i + 1) + '. `' + q[p + i].title + '` [' + q[p + i].length + '] req by ' + q[p + i].player + '\n';
   }
   message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
-  console.log(message);
+  // console.log(message);
   return message;
 }
 
@@ -570,6 +593,7 @@ function parseQueue(q, p, l) {
  * @return {Boolean} If the operation was sucessful or not
  */
 function shuffle(mes) {
+  console.log('shuffle');
   let dj = null;
   for (let i = 0; i < djs.length; i++) {
     if (djs[i].id == mes.member.id) {
@@ -598,6 +622,7 @@ function shuffle(mes) {
  * @return {Object} Songs that were removed
  */
 function removeElements(nums, q) {
+  console.log('removeElements');
   let j = 0;
   const arr = [];
   const removeCounter = {};
@@ -606,8 +631,8 @@ function removeElements(nums, q) {
     removeHelp[djs[i].id] = [];
   }
   nums = nums.filter((num) => !(num < 0 || num >= q.length)).sort();
-  console.log('nums at the end');
-  console.log(nums);
+  // console.log('nums at the end');
+  // console.log(nums);
   for (let i = 0; i < q.length && nums.length > 0; i++) {
     j = nums[0];
     if ((j - 1) == i) {
@@ -627,16 +652,17 @@ function removeElements(nums, q) {
  * Removes the songs based off the indices that were selected in removeElements;
  */
 function cleanUp() {
+  console.log('cleanUp');
   // let dj = null;
-  console.log('cleaning up');
+  // console.log('cleaning up');
   // console.log(arr);
   for (let i = 0; i < djs.length; i++) {
     let offset = 0;
     for (let j = 0; j < djs[i].songs.length; j++) {
       if (removeHelp[djs[i].id][0] - offset === j) {
-        console.log('removingremovingremovingremovingremoving');
-        console.log(removeHelp);
-        console.log(djs[i].songs[j].title);
+        // console.log('removingremovingremovingremovingremoving');
+        // console.log(removeHelp);
+        // console.log(djs[i].songs[j].title);
         djs[i].songs.splice(j, 1);
         removeHelp[djs[i].id].shift();
         offset++;
@@ -653,7 +679,8 @@ function cleanUp() {
  * @param {Object} callback Callback to use to leave the async calls
  */
 function ytSearch(str, id, callback) {
-  console.log('query: ' + str);
+  console.log('ytSearch');
+  // console.log('query: ' + str);
   https.get('https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + str + '&type=video&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
     let data = '';
 
@@ -663,7 +690,7 @@ function ytSearch(str, id, callback) {
 
     resp.on('end', () => {
       const parsed = JSON.parse(data);
-      console.log(parsed);
+      // console.log(parsed);
       searches[id] = [];
       for (let i = 0; i < parsed.items.length; i++) {
         searches[id][i] = {};
@@ -683,6 +710,7 @@ function ytSearch(str, id, callback) {
  * @param {Object} callback Callback to use to leave the async calls
  */
 function parseVideos(videos, id, callback) {
+  console.log('parseVideos');
   https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
     let data = '';
 
@@ -692,9 +720,9 @@ function parseVideos(videos, id, callback) {
 
     resp.on('end', () => {
       const parsed = JSON.parse(data);
-      console.log('len: ' + videos.length + ' index: ' + (((videos.length - 1) % 5) * -1));
+      // console.log('len: ' + videos.length + ' index: ' + (((videos.length - 1) % 5) * -1));
       searches[id][((videos.length - 1) % 5)].info = parsed;
-      console.log((videos.length - 1) + '     ' + ((videos.length - 5) % 5));
+      // console.log((videos.length - 1) + '     ' + ((videos.length - 5) % 5));
       const mom = moment.duration(parsed.items[0].contentDetails.duration);
       const seconds = mom.asSeconds() % 60;
       const minutes = Math.floor(mom.asSeconds() / 60);
@@ -716,6 +744,7 @@ function parseVideos(videos, id, callback) {
  * @param {*} callback Callback to use to leave the async calls
  */
 function scSearch(str, id, callback) {
+  console.log('scSearch');
   http.get('http://api.soundcloud.com/tracks?q=' + str + '&client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), function(resp) {
     let data = '';
 
@@ -726,8 +755,8 @@ function scSearch(str, id, callback) {
     resp.on('end', () => {
       searches[id] = [];
       let parsed = JSON.parse(data);
-      console.log(parsed);
-      console.log(parsed.length);
+      // console.log(parsed);
+      // console.log(parsed.length);
       parsed = parsed.slice(0, 5);
       for (let i = 0; i < parsed.length; i++) {
         const duration = parsed[i].duration;

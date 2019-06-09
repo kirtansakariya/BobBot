@@ -20,29 +20,28 @@ function Youtube(u, t, i, l, p, pl) {
 }
 
 Youtube.prototype.init = function(u) {
-  console.log('youtube init');
-  // Youtube(u);
+  console.log('init');
   this.url = u;
   return this;
 };
 
 Youtube.prototype.getStream = function() {
-  console.log('getting stream');
-  console.log(this.stream);
+  console.log('getStream');
   return this.stream;
 };
 
 Youtube.prototype.setStream = function(s) {
-  console.log('setting stream');
-  console.log(s);
+  console.log('setStream');
   this.stream = s;
 };
 
 Youtube.prototype.getTitle = function() {
+  console.log('getTitle');
   return this.title;
 };
 
 Youtube.prototype.getUrl = function() {
+  console.log('getUrl');
   return this.url;
 };
 
