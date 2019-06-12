@@ -34,6 +34,7 @@ const pgPool = new pg.Pool({
 app.use(session({
   store: new PgSession({
     pool: pgPool,
+    tableName: 'sessions',
   }),
   secret: ((process.env.SECRET !== undefined) ? process.env.SECRET : require('../../../auth.json').secret),
   resave: false,
@@ -336,7 +337,7 @@ app.post('/forgot', (req, res) => {
       confirm_password_error: 'Password confirmation required', auth_code_error: 'Password required',
       username: req.body['username_field']});
   }
-  
+
   if (req.body['password_field'] !== req.body['confirm_password_field']) {
     return res.render('forgot', {layout: 'default', subtitle: 'Forgot Password',
       password_error: 'Password required', confirm_password_error: 'Password confirmation required',
