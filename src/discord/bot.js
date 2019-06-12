@@ -25,6 +25,11 @@ bot.on('ready', function(evt) {
     console.log('setting activity');
   }).catch(console.error);
   console.log('BobBot is ready');
+  console.log('loading queue');
+  db.getQueue((results) => {
+    console.log(results.rows[0]);
+    initQueue(results);
+  });
 });
 
 bot.on('message', (message) => {
@@ -445,6 +450,7 @@ bot.on('message', (message) => {
         break;
     }
   }
+  updateQueue(getQueue());
 });
 
 /**
@@ -455,7 +461,7 @@ bot.on('message', (message) => {
  */
 function addSongs(member, url, callback) {
   console.log('addSongs');
-  dj = getDJ(member);
+  dj = getDJ(member.displayName, member.id);
   /* if(dj === null) {
     dj = new DJ.DJ(member);
     djs.push(dj);
@@ -469,22 +475,23 @@ function addSongs(member, url, callback) {
 }
 
 /**
- * Gets the DJ.
- * @param {Object} member Requestor from Discord
- * @return {Object} Dj that was either created or found in current list
+ * Gets the DJ
+ * @param {String} displayName Name of the user
+ * @param {Number} id Discord ID of the user
+ * @return {Object} DJ
  */
-function getDJ(member) {
+function getDJ(displayName, id) {
   console.log('getDJ');
   let dj = 0;
   // console.log('hello in dj ' + member);
   while (dj < djs.length) {
-    if (djs[dj].id == member) {
+    if (djs[dj].id === id) {
       // console.log('returning dj: ' + djs[dj].user);
       return djs[dj];
     }
     dj++;
   }
-  dj = new DJ.DJ(member);
+  dj = new DJ.DJ(displayName, id);
   djs.push(dj);
   // console.log('djs:\n' + djs);
   return dj;
@@ -585,6 +592,54 @@ function parseQueue(q, p, l) {
   message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
   // console.log(message);
   return message;
+}
+
+/**
+ * Initialize the queue
+ * @param {Object} results Results to parse through from getQueue query
+ */
+function initQueue(results) {
+  if (results.rows.length === 0) return;
+  const q = results.rows[0].data;
+  let dj = null;
+  for (let i = 0; i < q.length; i++) {
+    dj = getDJ(q[i].player, q[i].pid);
+    dj.songs.push(q[i]);
+  }
+}
+
+/**
+ * Adds the queue to the DB
+ * @param {Object} q Queue to update
+ */
+function updateQueue(q) {
+  db.getQueue((results) => {
+    if (results === null) {
+      console.log('could not add queue');
+      return;
+    } else if (results.rows.length === 0) {
+      console.log('no rows');
+      db.addQueue(q, (boo) => {
+        if (!boo) {
+          console.log('addQueue failed');
+          return;
+        } else {
+          console.log('addQueue succeeded');
+          return;
+        }
+      });
+    } else {
+      db.updateQueue(results.rows[0].id, q, (boo) => {
+        if (!boo) {
+          console.log('updateQueue failed');
+          return;
+        } else {
+          console.log('updateQueue succeeded');
+          return;
+        }
+      });
+    }
+  });
 }
 
 /**

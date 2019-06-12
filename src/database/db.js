@@ -184,22 +184,22 @@ function updateSession(forgot, sid, callback) {
 
 /**
  * Gets the current queue
- * @param {Number} id ID where the queue is in the table
  * @param {Object} callback Callback to leave the function
  */
-function getQueue(id, callback) {
+function getQueue(callback) {
   const queryConfig = {
-    text: 'SELECT * FROM queues WHERE id = $1',
-    values: [id],
+    text: 'SELECT * FROM queues',
   };
+
+  // console.log('getting queue');
 
   client.query(queryConfig, (error, results) => {
     if (error) {
-      console.log('ERROR in getSession');
+      console.log('ERROR in getQueue');
       // console.log(error);
       callback(null);
     } else {
-      console.log('SUCCESS in getSession');
+      console.log('SUCCESS in getQueue');
       // console.log(results);
       callback(results);
     }
@@ -219,11 +219,11 @@ function addQueue(queue, callback) {
 
   client.query(queryConfig, (error, results) => {
     if (error) {
-      console.log('ERROR in addSession');
+      console.log('ERROR in addQueue');
       console.log(error);
       callback(false);
     } else {
-      console.log('SUCCESS in addSession');
+      console.log('SUCCESS in addQueue');
       // console.log(results);
       callback(true);
     }
@@ -242,12 +242,16 @@ function updateQueue(id, queue, callback) {
     values: [id, queue],
   };
 
+  // console.log(queue);
+
   client.query(queryConfig, (error, results) => {
     if (error) {
-      console.log('ERROR in updateUser');
+      console.log('ERROR in updateQueue');
+      // console.log(error);
       callback(false);
     } else {
-      console.log('SUCCESS in updateUser');
+      console.log('SUCCESS in updateQueue');
+      // console.log(results);
       callback(true);
     }
   });

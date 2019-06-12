@@ -8,12 +8,13 @@ const moment = require('moment');
 
 /**
  * Create a new DJ.
- * @param {Object} user The data for the user
+ * @param {String} displayName Name of the user
+ * @param {Number} id Discord ID of the user
  */
-function DJ(user) {
+function DJ(displayName, id) {
   console.log('DJ');
-  this.user = user.displayName;
-  this.id = user.id;
+  this.user = displayName;
+  this.id = id;
   this.songs = [];
 }
 
