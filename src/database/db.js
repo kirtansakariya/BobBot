@@ -182,6 +182,77 @@ function updateSession(forgot, sid, callback) {
   });
 }
 
+/**
+ * Gets the current queue
+ * @param {Number} id ID where the queue is in the table
+ * @param {Object} callback Callback to leave the function
+ */
+function getQueue(id, callback) {
+  const queryConfig = {
+    text: 'SELECT * FROM queues WHERE id = $1',
+    values: [id],
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in getSession');
+      // console.log(error);
+      callback(null);
+    } else {
+      console.log('SUCCESS in getSession');
+      // console.log(results);
+      callback(results);
+    }
+  });
+}
+
+/**
+ * Adds the queue to the table
+ * @param {Object} queue Queue to add
+ * @param {Object} callback Callback to leave the function
+ */
+function addQueue(queue, callback) {
+  const queryConfig = {
+    text: 'INSERT INTO queues(data) VALUES($1);',
+    values: [queue],
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in addSession');
+      console.log(error);
+      callback(false);
+    } else {
+      console.log('SUCCESS in addSession');
+      // console.log(results);
+      callback(true);
+    }
+  });
+}
+
+/**
+ * Updates the queue in the table
+ * @param {Number} id ID to update the queue at
+ * @param {Object} queue Queue to be updated
+ * @param {*} callback Callback to leave the function
+ */
+function updateQueue(id, queue, callback) {
+  const queryConfig = {
+    text: 'UPDATE queues SET data = ($2) WHERE id = ($1)',
+    values: [id, queue],
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in updateUser');
+      callback(false);
+    } else {
+      console.log('SUCCESS in updateUser');
+      callback(true);
+    }
+  });
+}
+
 module.exports = {
   addUser: addUser,
   getUserById: getUserById,
@@ -190,4 +261,7 @@ module.exports = {
   addSession: addSession,
   getSession: getSession,
   updateSession: updateSession,
+  getQueue: getQueue,
+  addQueue: addQueue,
+  updateQueue: updateQueue,
 };
