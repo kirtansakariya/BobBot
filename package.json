@@ -30,6 +30,7 @@
     "sodium": "^3.0.2",
     "unescape": "^1.0.1",
     "uws": "^9.148.0",
+    "youtube-dl": "^2.0.0",
     "ytdl-core": "^0.28.0",
     "zlib-sync": "^0.1.4"
   },
