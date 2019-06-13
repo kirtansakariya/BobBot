@@ -602,9 +602,17 @@ function initQueue(results) {
   if (results.rows.length === 0) return;
   const q = results.rows[0].data;
   let dj = null;
+  let song = null;
   for (let i = 0; i < q.length; i++) {
     dj = getDJ(q[i].player, q[i].pid);
-    dj.songs.push(q[i]);
+    if (q[i].url.includes('youtube')) {
+      song = new Youtube.Youtube(q[i].url, q[i].title, q[i].id, q[i].length, q[i].pid, q[i].player);
+      dj.songs.push(song);
+    } else {
+      song = new Soundcloud.Soundcloud(q[i].url, q[i].stream, q[i].title, q[i].length, q[i].pid, q[i].player);
+      dj.songs.push(song);
+    }
+    // dj.songs.push(q[i]);
   }
 }
 
