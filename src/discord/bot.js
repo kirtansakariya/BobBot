@@ -34,6 +34,7 @@ bot.on('ready', function(evt) {
 
 bot.on('message', (message) => {
   // console.log(message.member);
+  // console.log(djs);
   console.log('\n' + message.content + ' message: ' + message + ' member: ' + message.member + ' type: ' + typeof(message));
   if (message.channel.type === 'dm') {
     if (message.content === 'signup') {
@@ -118,7 +119,7 @@ bot.on('message', (message) => {
     } else {
       const song = searches[message.member.user.id][selection - 1];
       // console.log(song);
-      const dj = getDJ(message.member);
+      const dj = getDJ(message.member.user.username, message.member.user.id);
       if (song.type === 'yt') {
         if (front[iden] === true) {
           dj.songs.unshift(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
@@ -461,7 +462,7 @@ bot.on('message', (message) => {
  */
 function addSongs(member, url, callback) {
   console.log('addSongs');
-  dj = getDJ(member.displayName, member.id);
+  dj = getDJ(member.user.username, member.user.id);
   /* if(dj === null) {
     dj = new DJ.DJ(member);
     djs.push(dj);
