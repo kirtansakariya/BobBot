@@ -88,13 +88,14 @@ function getUserByUsername(username, callback) {
  * @param {String} auth Auth code to verify the user
  * @param {String} discordUsername Discord username
  * @param {String} passHash Hash of the password
+ * @param {Object} playlists Array of playlists and their song counts
  * @param {String} id Id of entry in the DB
  * @param {Object} callback Callback to laeve the function
  */
-function updateUser(username, discordId, status, auth, discordUsername, passHash, id, callback) {
+function updateUser(username, discordId, status, auth, discordUsername, passHash, playlists, id, callback) {
   const queryConfig = {
-    text: 'UPDATE users SET username = ($1), discord_id = ($2), status = ($3), auth = ($4), discord_username = ($5), pass_hash = ($6) WHERE id = ($7)',
-    values: [username, discordId, status, auth, discordUsername, passHash, id],
+    text: 'UPDATE users SET username = ($1), discord_id = ($2), status = ($3), auth = ($4), discord_username = ($5), pass_hash = ($6), playlists = ($7) WHERE id = ($8)',
+    values: [username, discordId, status, auth, discordUsername, passHash, playlists, id],
   };
 
   client.query(queryConfig, (error, results) => {

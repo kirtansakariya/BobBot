@@ -389,7 +389,18 @@ app.get('/home', (req, res) => {
   if (req.session.username === undefined) {
     return res.redirect('/login');
   }
-  return res.render('home', {layout: 'default', subtitle: req.session.username});
+  db.getUserById(req.session.discord_id, (results) => {
+    if (results === null) {
+      console.log('getUserById failed');
+      return res.redirect('error');
+    } else if (results.rows.length === 0) {
+      console.log('no users with the id');
+      return res.redirect('error');
+    }
+    console.log('playlists: ' + results.rows[0].playlists);
+    return res.render('home', {layout: 'default', subtitle: req.session.username, playlists: results.rows[0].playlists});
+  });
+  // return res.render('home', {layout: 'default', subtitle: req.session.username});
   // db.getSession(req.session.id, (results) => {
   //   if (results === null) {
   //     return res.redirect('/login');
@@ -400,6 +411,12 @@ app.get('/home', (req, res) => {
   //     return res.render('home', {layout: 'default', subtitle: results.rows[0].username});
   //   }
   // });
+});
+
+app.get('/playlist/new', (req, res) => {
+  if (req.session.username === undefined) {
+    return res.redirect('/login');
+  }
 });
 
 app.get('/error', (req, res) => {
