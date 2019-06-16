@@ -11,7 +11,9 @@
         </tr>
         {{#each playlists}}
           <tr>
-            <td>{{this.name}}</td>
+            <td>
+              <a href="/playlist?name={{this.name}}">{{this.name}}</a>
+            </td>
             <td>{{this.songs.length}}</td>
           </tr>
         {{/each}}
