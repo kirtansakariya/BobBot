@@ -398,7 +398,7 @@ app.get('/home', (req, res) => {
       return res.redirect('error');
     }
     console.log('playlists: ' + results.rows[0].playlists);
-    return res.render('home', {layout: 'default', subtitle: req.session.username, playlists: results.rows[0].playlists});
+    return res.render('home', {layout: 'default', subtitle: req.session.username, playlists: results.rows[0].playlists, error: req.flash('error')});
   });
   // return res.render('home', {layout: 'default', subtitle: req.session.username});
   // db.getSession(req.session.id, (results) => {
@@ -411,6 +411,32 @@ app.get('/home', (req, res) => {
   //     return res.render('home', {layout: 'default', subtitle: results.rows[0].username});
   //   }
   // });
+});
+
+app.get('/playlist', (req, res) => {
+  if (req.session.username === undefined) {
+    return res.redirect('/login');
+  }
+  console.log(req.query.name);
+  if (req.query.name === undefined || req.query.name === '') {
+    return res.redirect('/home');
+  }
+  db.getUserById(req.session.discord_id, (results) => {
+    if (results === null) {
+      console.log('error w/results in GET /playlist');
+      return res.redirect('/home');
+    }
+    if (results.rows.length === 0) {
+      console.log('no results in GET /playlist');
+    }
+    const user = results.rows[0];
+    for (let i = 0; i < user.playlists.length; i++) {
+      if (user.playlists[i].name === req.query.name) {
+        return res.render('playlist', {layout: 'default', subtitle: 'BobBot - Playlist: ' + req.query.name, name: user.playlists[i].name});
+      }
+    }
+    return res.redirect('/home');
+  });
 });
 
 app.get('/playlist/new', (req, res) => {
