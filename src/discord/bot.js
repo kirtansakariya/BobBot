@@ -62,7 +62,7 @@ bot.on('message', (message) => {
         } else if (results.rows[0].status === 'init') {
           console.log('in init phase');
           const auth = Math.floor(Math.random() * 899999 + 100000).toString();
-          db.updateUser(null, message.author.id, 'init', auth, message.author.username, null, results.rows[0].id, (boo) => {
+          db.updateUser(null, message.author.id, 'init', auth, message.author.username, null, results.rows[0].playlists, results.rows[0].id, (boo) => {
             if (boo) {
               message.channel.send('Follow these steps to signup for an account:\n' +
                                    '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
@@ -89,7 +89,7 @@ bot.on('message', (message) => {
         } else {
           const user = results.rows[0];
           const auth = Math.floor(Math.random() * 899999 + 100000).toString();
-          db.updateUser(user.username, user.discord_id, 'forgot', auth, user.discord_username, user.pass_hash, user.id, (boo) => {
+          db.updateUser(user.username, user.discord_id, 'forgot', auth, user.discord_username, user.pass_hash, user.playlists, user.id, (boo) => {
             if (!boo) {
               message.channel.send('Error updating user, please try again.');
             } else {
