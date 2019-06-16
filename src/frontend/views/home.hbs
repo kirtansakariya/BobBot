@@ -1,4 +1,24 @@
 <div class="container text-center">
   <h3>Welcome {{subtitle}}</h3>
   <hr>
+  <div class="container">
+    <h5 id="playlist-title">Playlist(s)</h5>
+    <div class="container">
+      <table class="table table-bordered table-striped">
+        <tr>
+          <th>Playlist</th>
+          <th>Number of Songs</th>
+        </tr>
+        {{#each playlists}}
+          <tr>
+            <td>{{this.name}}</td>
+            <td>{{this.songs.length}}</td>
+          </tr>
+        {{/each}}
+      </table>
+    </div>
+    <div class="container">
+      <a class="btn btn-primary mb-2" id="new-playlist" href="/playlist/new">New Playlist</a>
+    </div>
+  </div>
 </div>
