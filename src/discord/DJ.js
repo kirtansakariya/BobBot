@@ -13,6 +13,10 @@ const moment = require('moment');
  * @param {Number} id Discord ID of the user
  */
 function DJ(displayName, id) {
+  console.log('dname:');
+  console.log(displayName);
+  console.log('id:');
+  console.log(id);
   console.log('DJ');
   this.user = displayName;
   this.id = id;
