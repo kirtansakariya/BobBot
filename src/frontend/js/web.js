@@ -134,7 +134,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   console.log('POST in /login');
-  console.log(req.body);
+  // console.log(req.body);
   let missing = false;
   if (req.body['username_field'] === '') {
     req.flash('username_error', 'Username required');
@@ -201,7 +201,7 @@ app.get('/signup', (req, res) => {
   if (req.session.username === undefined) {
     return res.render('signup', {layout: 'default', subtitle: 'Signup'});
   }
-  console.log(req.session.username);
+  // console.log(req.session.username);
   return res.redirect('/home');
   // db.getSession(req.sessionID, (results) => {
   //   if (results === null) { // Error encountered
@@ -265,7 +265,7 @@ app.post('/signup', (req, res) => {
         discord_id: req.body['discord_id_field'], credentials_error: 'Passwords do not match.'});
     }
 
-    console.log(req.body);
+    // console.log(req.body);
     db.getUserByUsername(req.body['username_field'], (results) => {
       if (results === null) {
         return res.render('signup', {layout: 'default', subtitle: 'Signup',
@@ -486,71 +486,9 @@ app.post('/playlist/new', (req, res) => {
 
 app.get('/error', (req, res) => {
   console.log('error nooo');
-  console.log(req.query);
   res.render('error', {layout: 'default', data: req.query['data'], template: 'error-template', subtitle: 'Error'});
 });
-
-// app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
 module.exports = {
   app: app,
 };
-
-
-// console.log(process.env.DATABASE_URL);
-// const client = new pg.Client({
-//   connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../../auth.json').db_url),
-//   ssl: true,
-// });
-
-// client.connect();
-
-// client.query('SELECT * FROM user')
-
-// const user = 'test';
-// const discordId = '123';
-// const status = 'signing up';
-
-// const queryConfig = {
-//   text: 'INSERT INTO users(username, discord_id, status) VALUES($1, $2, $3);',
-//   values: ['a', 'ab', 'b'],
-// };
-
-// const text = 'INSERT INTO users(username, discord_id, status) VALUES($1, $2, $3);';
-// const values = ['{a}', '{ab}', '{b}'];
-
-// client.query(text, values, (error, results) => {
-//   if (error) {
-//     console.log('OH NO');
-//     console.log(error);
-//   } else {
-//     console.log('OH YES');
-//     console.log(results);
-//   }
-// });
-
-// db.addUser('test', 't_id', 't_status', function(boo) {
-//   console.log('Opeartion was successful: ' + boo);
-// });
-
-// db.getUser('t_id', function(results) {
-//   console.log(results);
-// });
-
-// client.query('INSERT INTO users (username, discord_id, status) VALUES ($1, $2, $3);', [user, discordId, status], (error, results) => {
-//   if (error) {
-//     console.log('OH NO');
-//     console.log(error);
-//   } else {
-//     console.log('OH YES');
-//     console.log(results);
-//   }
-// });
-
-// client.query('SELECT * FROM users;', (err, res) => {
-//   if (err) throw err;
-//   for (const row of res.rows) {
-//     console.log(JSON.stringify(row));
-//   }
-//   client.end();
-// });
