@@ -163,7 +163,7 @@ app.post('/login', (req, res) => {
       }
       if (results.rows[0].status != 'signed up') {
         const user = results.rows[0];
-        db.updateUser(user.username, user.discord_id, 'signed up', null, user.discord_username, user.pass_hash, user.id, (boo) => {
+        db.updateUser(user.username, user.discord_id, 'signed up', null, user.discord_username, user.pass_hash, user.playlists, user.id, (boo) => {
           if (!boo) {
             return res.render('login', {layout: 'default', subtitle: 'Login',
               username_error: req.flash('username_error'), password_error: 'Password required',
@@ -278,7 +278,7 @@ app.post('/signup', (req, res) => {
           discord_id: req.body['discord_id_field'], credentials_error: 'Username taken.'});
       } else if (entry.discord_id === req.body['discord_id_field'] && entry.status === 'init' && entry.auth === req.body['auth_code_field'] &&
       entry.discord_username === req.body['discord_username_field'] && req.body['password_field'] === req.body['confirm_password_field']) {
-        db.updateUser(req.body['username_field'], entry.discord_id, 'signed up', null, entry.discord_username, bcrypt.hashSync(req.body['password_field'], 10), entry.id, (boo) => {
+        db.updateUser(req.body['username_field'], entry.discord_id, 'signed up', null, entry.discord_username, bcrypt.hashSync(req.body['password_field'], 10), entry.playlists, entry.id, (boo) => {
           if (!boo) {
             res.render('signup', {layout: 'default', subtitle: 'Signup',
               password_error: 'Password required', confirm_password_error: 'Password confirmation required',
@@ -316,7 +316,7 @@ app.get('/forgot', (req, res) => {
 });
 
 app.post('/forgot', (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   let missing = false;
   if (req.body['username_field'] === '') {
     req.flash('username_error', 'Invalid username');
@@ -363,7 +363,7 @@ app.post('/forgot', (req, res) => {
         auth_code_error: 'Password required', credentials_error: 'Invalid credentials',
         username: req.body['username_field']});
     }
-    db.updateUser(user.username, user.discord_id, 'signed up', null, user.discord_username, bcrypt.hashSync(req.body['password_field'], 10), user.id, (boo) => {
+    db.updateUser(user.username, user.discord_id, 'signed up', null, user.discord_username, bcrypt.hashSync(req.body['password_field'], 10), user.playlists, user.id, (boo) => {
       if (!boo) {
         return res.render('forgot', {layout: 'default', subtitle: 'Forgot Password',
           password_error: 'Password required', confirm_password_error: 'Password confirmation required',
