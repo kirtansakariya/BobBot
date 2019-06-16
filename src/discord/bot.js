@@ -26,10 +26,10 @@ bot.on('ready', function(evt) {
   }).catch(console.error);
   console.log('BobBot is ready');
   console.log('loading queue');
-  // db.getQueue((results) => {
-  //   console.log(results.rows[0]);
-  //   initQueue(results);
-  // });
+  db.getQueue((results) => {
+    console.log(results.rows[0]);
+    initQueue(results);
+  });
 });
 
 bot.on('message', (message) => {
@@ -461,7 +461,7 @@ bot.on('message', (message) => {
         break;
     }
   }
-  // updateQueue(getQueue());
+  updateQueue(getQueue());
 });
 
 /**
