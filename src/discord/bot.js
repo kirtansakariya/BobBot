@@ -94,7 +94,7 @@ bot.on('message', (message) => {
               message.channel.send('Error updating user, please try again.');
             } else {
               message.channel.send('Follow these steps to signup for an account:\n' +
-                                   '1. Please visit https://the-bobbot.herokuapp.come/forgot.\n' +
+                                   '1. Please visit https://the-bobbot.herokuapp.com/forgot.\n' +
                                    '2. Enter your username.\n' +
                                    '3. Enter a new password.\n' +
                                    '4. Confirm the password.\n' +
