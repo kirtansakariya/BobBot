@@ -198,9 +198,10 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/signup', (req, res) => {
-  if (req.session.username === null) {
+  if (req.session.username === undefined) {
     return res.render('signup', {layout: 'default', subtitle: 'Signup'});
   }
+  console.log(req.session.username);
   return res.redirect('/home');
   // db.getSession(req.sessionID, (results) => {
   //   if (results === null) { // Error encountered
