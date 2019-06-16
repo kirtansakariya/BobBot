@@ -1,3 +1,7 @@
+const https = require('https');
+const url = require('url');
+const moment = require('moment');
+
 /**
  * Initialize a Youtube song.
  * @param {string} u The url.
@@ -17,6 +21,7 @@ function Youtube(u, t, i, l, p, pl) {
   this.player = pl;
   this.remove = false;
   this.length = l;
+  this.type = 'yt';
 }
 
 Youtube.prototype.init = function(u) {
@@ -45,6 +50,243 @@ Youtube.prototype.getUrl = function() {
   return this.url;
 };
 
+/**
+ * Add a Youtube song or songs from a playlists.
+ * @param {string} u The url of the song or playlist
+ * @param {Object} arr The array of songs as pages in the playlist are parsed
+ * @param {number} page The page of the Youtube playlist
+ * @param {Object} callback The callback to leave the function
+ */
+function addYoutube(u, arr, page, callback) {
+  console.log('addYoutube');
+  let urlParams = null;
+  if (!u.includes('list')) {
+    urlParams = url.parse(u, true);
+    https.get('https://content.googleapis.com/youtube/v3/videos?part=snippet&id=' + urlParams.query.v + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
+      let data = '';
+
+      resp.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      resp.on('end', () => {
+        const parsed = JSON.parse(data);
+        if (parsed.items.length === 0) {
+          callback();
+        } else {
+          // const mom = moment.duration(parsed.items[0].contentDetails.duration);
+          // const seconds = mom.asSeconds() % 60;
+          // const minutes = Math.floor(mom.asSeconds() / 60);
+          // const id = parsed.items[0].id;
+          // const title = parsed.items[0].snippet.title;
+          // const tempYoutube = new Youtube.Youtube('https://www.youtube.com/watch?v=' + id, title, id, minutes + ':' + seconds, discordId, username);
+          const temp = {
+            'id': parsed.items[0].id,
+            'title': parsed.items[0].snippet.title,
+          };
+          // TODO: Private video check like below before pushing
+          if (temp.title !== 'Private video') {
+            console.log('pushing');
+            arr.push(temp);
+          }
+          // let allowed = undefined;
+          // let blocked = undefined;
+          // if (parsed.items[0].contentDetails.regionRestriction !== undefined) {
+          //   allowed = parsed.items[0].contentDetails.regionRestriction.allowed;
+          //   blocked = parsed.items[0].contentDetails.regionRestriction.blocked;
+          // }
+          // if (allowed !== undefined && !allowed.includes('US')) {
+          //   // console.log(temp.title + ' not allowed');
+          // } else if (blocked !== undefined && blocked.includes('US')) {
+          //   // console.log(temp.title + ' not allowed');
+          // } else {
+          //   arr.push(tempYoutube);
+          // }
+          // arr.push(temp);
+          callback();
+        }
+      });
+    });
+  } else {
+    urlParams = url.parse(u, true);
+    let append = '';
+    if (page === undefined) {
+      // console.log('leaving');
+      // console.log(arr);
+      callback();
+    } else {
+      if (page !== null) {
+        append = '&pageToken=' + page;
+      }
+      https.get('https://content.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=' + urlParams.query.list + append + '&maxResults=50&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
+        let data = '';
+
+        resp.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        resp.on('end', () => {
+          const parsed = JSON.parse(data);
+          // console.log(parsed);
+          for (let i = 0; i < parsed.items.length; i++) {
+            // const mom = moment.duration(parsed.items[i].contentDetails.duration);
+            // console.log(parsed.items[i].contentDetails);
+            // const seconds = mom.asSeconds() % 60;
+            // const minutes = Math.floor(mom.asSeconds() / 60);
+            // const id = parsed.items[i].id;
+            // const title = parsed.items[i].snippet.title;
+            // const tempYoutube = new Youtube.Youtube('https://www.youtube.com/watch?v=' + id, title, id, minutes + ':' + seconds, discordId, username);
+            const temp = {
+              'id': parsed.items[i].snippet.resourceId.videoId,
+              'title': parsed.items[i].snippet.title,
+            };
+            // TODO: Private video check like below before pushing
+            if (temp.title !== 'Private video') {
+              console.log('pushing');
+              arr.push(temp);
+            }
+            // let allowed = undefined;
+            // let blocked = undefined;
+            // if (parsed.items[i].contentDetails.regionRestriction !== undefined) {
+            //   allowed = parsed.items[i].contentDetails.regionRestriction.allowed;
+            //   blocked = parsed.items[i].contentDetails.regionRestriction.blocked;
+            // }
+            // if (allowed !== undefined && !allowed.includes('US')) {
+            //   // console.log(temp.title + ' not allowed');
+            // } else if (blocked !== undefined && blocked.includes('US')) {
+            //   // console.log(temp.title + ' not allowed');
+            // } else if (tempYoutube.title === 'Private video') {
+            //   // console.log(tempYoutube.title + ' not allowed');
+            // } else {
+            //   arr.push(tempYoutube);
+            // }
+          }
+          addYoutube(u, arr, parsed.nextPageToken, callback);
+        });
+      });
+    }
+  }
+}
+
+/**
+ * Retrieves detailed information about each song in the array of songs
+ * @param {Object} arr Contains the songs to be added
+ * @param {Object} store Dj's songs array to add the new song into
+ * @param {String} discordId Discord identifier of the player
+ * @param {String} username Discord username of the player
+ * @param {Object} callback Callback to leave the function
+ */
+function parseList(arr, store, discordId, username, callback) {
+  console.log('parseList');
+  const temp = arr.shift();
+  // console.log(temp);
+  // console.log(temp.id);
+  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + temp.id + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
+    let data = '';
+
+    resp.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    resp.on('end', () => {
+      const parsed = JSON.parse(data);
+      // console.log(parsed);
+      const mom = moment.duration(parsed.items[0].contentDetails.duration);
+      const seconds = mom.asSeconds() % 60;
+      const minutes = Math.floor(mom.asSeconds() / 60);
+      const tempYoutube = new Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + seconds, discordId, username);
+      let allowed = undefined;
+      let blocked = undefined;
+      if (parsed.items[0].contentDetails.regionRestriction !== undefined) {
+        allowed = parsed.items[0].contentDetails.regionRestriction.allowed;
+        blocked = parsed.items[0].contentDetails.regionRestriction.blocked;
+      }
+      if (allowed !== undefined && !allowed.includes('US')) {
+        // console.log(temp.title + ' not allowed');
+      } else if (blocked !== undefined && blocked.includes('US')) {
+        // console.log(temp.title + ' not allowed');
+      } else {
+        store.push(tempYoutube);
+      }
+      if (arr.length === 0) {
+        callback(store.length);
+      } else {
+        parseList(arr, store, discordId, username, callback);
+      }
+    });
+  });
+}
+
+/**
+ * Search YouTube based off the serach query that was specified.
+ * @param {String} str Query
+ * @param {Number} id Discord identifier for the searcher
+ * @param {Object} searches Array holding all searches from users
+ * @param {Object} callback Callback to use to leave the async calls
+ */
+function ytSearch(str, id, searches, callback) {
+  console.log('ytSearch');
+  // console.log('query: ' + str);
+  https.get('https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + str + '&type=video&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
+    let data = '';
+
+    resp.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    resp.on('end', () => {
+      const parsed = JSON.parse(data);
+      // console.log(parsed);
+      searches[id] = [];
+      for (let i = 0; i < parsed.items.length; i++) {
+        searches[id][i] = {};
+        searches[id][i].title = parsed.items[i].snippet.title;
+        searches[id][i].id = parsed.items[i].id.videoId;
+        searches[id][i].type = 'yt';
+      }
+      parseVideos(parsed.items, id, searches, callback);
+    });
+  });
+}
+
+/**
+ * Gets durations of each YouTube video.
+ * @param {Object} videos Array of videos
+ * @param {Number} id Discord identifier for the searcher
+ * @param {Object} searches Array holding all searches from users
+ * @param {Object} callback Callback to use to leave the async calls
+ */
+function parseVideos(videos, id, searches, callback) {
+  console.log('parseVideos');
+  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
+    let data = '';
+
+    resp.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    resp.on('end', () => {
+      const parsed = JSON.parse(data);
+      // console.log('len: ' + videos.length + ' index: ' + (((videos.length - 1) % 5) * -1));
+      searches[id][((videos.length - 1) % 5)].info = parsed;
+      // console.log((videos.length - 1) + '     ' + ((videos.length - 5) % 5));
+      const mom = moment.duration(parsed.items[0].contentDetails.duration);
+      const seconds = mom.asSeconds() % 60;
+      const minutes = Math.floor(mom.asSeconds() / 60);
+      searches[id][(((videos.length - 5) % 5) * -1)].duration = minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds);
+      videos.shift();
+      if (videos.length === 0) {
+        callback();
+      } else {
+        parseVideos(videos, id, searches, callback);
+      }
+    });
+  });
+}
+
 module.exports = {
   Youtube: Youtube,
+  addYoutube: addYoutube,
+  parseList: parseList,
+  ytSearch: ytSearch,
 };

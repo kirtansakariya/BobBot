@@ -26,10 +26,10 @@ bot.on('ready', function(evt) {
   }).catch(console.error);
   console.log('BobBot is ready');
   console.log('loading queue');
-  db.getQueue((results) => {
-    console.log(results.rows[0]);
-    initQueue(results);
-  });
+  // db.getQueue((results) => {
+  //   console.log(results.rows[0]);
+  //   initQueue(results);
+  // });
 });
 
 bot.on('message', (message) => {
@@ -119,7 +119,7 @@ bot.on('message', (message) => {
     } else {
       const song = searches[message.member.user.id][selection - 1];
       // console.log(song);
-      const dj = getDJ(message.member.user.username, message.member.user.id);
+      const dj = getDJ(message.member.displayName, message.member.user.id);
       if (song.type === 'yt') {
         if (front[iden] === true) {
           dj.songs.unshift(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
@@ -165,17 +165,27 @@ bot.on('message', (message) => {
         if (args[0] === undefined) {
           message.channel.send('Please specify a url');
         } else {
-          addSongs(message.member, args[0], function(msg, dj) {
-            message.channel.send(msg);
-            if (start != -1) {
-              // console.log('old size: ' + start);
-              // console.log('new size: ' + dj.songs.length);
-              // console.log('diff: ' + (dj.songs.length - start));
-              const diff = dj.songs.splice(start);
-              // console.log('diff: ' + diff.length);
-              // console.log('songs: ' + dj.songs.length);
-              dj.songs.unshift(...diff);
+          // addSongs(message.member, args[0], function(msg, dj) {
+          //   message.channel.send(msg);
+          //   if (start != -1) {
+          //     // console.log('old size: ' + start);
+          //     // console.log('new size: ' + dj.songs.length);
+          //     // console.log('diff: ' + (dj.songs.length - start));
+          //     const diff = dj.songs.splice(start);
+          //     // console.log('diff: ' + diff.length);
+          //     // console.log('songs: ' + dj.songs.length);
+          //     dj.songs.unshift(...diff);
+          //   }
+          // });
+          DJ.getSongsFromUrl(args[0], message.member.user.id, message.member.displayName, (msg, arr) => {
+            const dj = getDJ(message.member.displayName, message.member.user.id);
+            console.log(dj);
+            if (start !== -1) {
+              dj.songs.unshift(...arr);
+            } else {
+              dj.songs.push(...arr);
             }
+            message.channel.send(msg);
           });
         }
         break;
@@ -196,7 +206,7 @@ bot.on('message', (message) => {
         const q = getQueue();
         // console.log(pg);
         // console.log('final');
-        // console.log(q);
+        console.log(q);
         if (q.length === 0) {
           message.channel.send('The queue is currently empty');
         } else if (pg === undefined) {
@@ -342,7 +352,7 @@ bot.on('message', (message) => {
           message.channel.send('Need to provide search query');
         } else {
           const str = args.join(' ');
-          scSearch(str, message.member.user.id, function() {
+          Soundcloud.scSearch(str, message.member.user.id, searches, function() {
             // console.log(searches[message.member.user.id]);
             let send = '**Enter a number from 1-5 to select a song**\n';
             for (let i = 0; i < searches[message.member.user.id].length; i++) {
@@ -413,7 +423,7 @@ bot.on('message', (message) => {
           message.channel.send('Need to provide search query');
         } else {
           const str = args.join(' ');
-          ytSearch(str, message.member.user.id, function() {
+          Youtube.ytSearch(str, message.member.user.id, searches, function() {
             let send = '**Enter a number from 1-5 to select a song**\n';
             for (let i = 0; i < searches[message.member.user.id].length; i++) {
               // console.log(searches[message.member.user.id][i]);
@@ -451,7 +461,7 @@ bot.on('message', (message) => {
         break;
     }
   }
-  updateQueue(getQueue());
+  // updateQueue(getQueue());
 });
 
 /**
@@ -591,7 +601,7 @@ function parseQueue(q, p, l) {
     message += (p + i + 1) + '. `' + q[p + i].title + '` [' + q[p + i].length + '] req by ' + q[p + i].player + '\n';
   }
   message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
-  // console.log(message);
+  console.log(message);
   return message;
 }
 
@@ -734,103 +744,6 @@ function cleanUp() {
       }
     }
   }
-}
-
-/**
- * Search YouTube based off the serach query that was specified.
- * @param {String} str Query
- * @param {Number} id Discord identifier for the searcher
- * @param {Object} callback Callback to use to leave the async calls
- */
-function ytSearch(str, id, callback) {
-  console.log('ytSearch');
-  // console.log('query: ' + str);
-  https.get('https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + str + '&type=video&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
-    let data = '';
-
-    resp.on('data', (chunk) => {
-      data += chunk;
-    });
-
-    resp.on('end', () => {
-      const parsed = JSON.parse(data);
-      // console.log(parsed);
-      searches[id] = [];
-      for (let i = 0; i < parsed.items.length; i++) {
-        searches[id][i] = {};
-        searches[id][i].title = parsed.items[i].snippet.title;
-        searches[id][i].id = parsed.items[i].id.videoId;
-        searches[id][i].type = 'yt';
-      }
-      parseVideos(parsed.items, id, callback);
-    });
-  });
-}
-
-/**
- * Gets durations of each YouTube video.
- * @param {Object} videos Array of videos
- * @param {Number} id Discord identifier for the searcher
- * @param {Object} callback Callback to use to leave the async calls
- */
-function parseVideos(videos, id, callback) {
-  console.log('parseVideos');
-  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
-    let data = '';
-
-    resp.on('data', (chunk) => {
-      data += chunk;
-    });
-
-    resp.on('end', () => {
-      const parsed = JSON.parse(data);
-      // console.log('len: ' + videos.length + ' index: ' + (((videos.length - 1) % 5) * -1));
-      searches[id][((videos.length - 1) % 5)].info = parsed;
-      // console.log((videos.length - 1) + '     ' + ((videos.length - 5) % 5));
-      const mom = moment.duration(parsed.items[0].contentDetails.duration);
-      const seconds = mom.asSeconds() % 60;
-      const minutes = Math.floor(mom.asSeconds() / 60);
-      searches[id][(((videos.length - 5) % 5) * -1)].duration = minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds);
-      videos.shift();
-      if (videos.length === 0) {
-        callback();
-      } else {
-        parseVideos(videos, id, callback);
-      }
-    });
-  });
-}
-
-/**
- * Search YouTube based off the serach query that was specified.
- * @param {*} str Query
- * @param {*} id Discord identifier for the searcher
- * @param {*} callback Callback to use to leave the async calls
- */
-function scSearch(str, id, callback) {
-  console.log('scSearch');
-  http.get('http://api.soundcloud.com/tracks?q=' + str + '&client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), function(resp) {
-    let data = '';
-
-    resp.on('data', (chunk) => {
-      data += chunk;
-    });
-
-    resp.on('end', () => {
-      searches[id] = [];
-      let parsed = JSON.parse(data);
-      // console.log(parsed);
-      // console.log(parsed.length);
-      parsed = parsed.slice(0, 5);
-      for (let i = 0; i < parsed.length; i++) {
-        const duration = parsed[i].duration;
-        minutes = Math.floor(duration / 60000);
-        seconds = ((duration % 60000) / 1000).toFixed(0);
-        searches[id][i] = new Soundcloud.Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + '?client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), parsed[i].title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
-      }
-      callback();
-    });
-  });
 }
 
 module.exports = {
