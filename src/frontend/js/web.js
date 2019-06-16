@@ -417,6 +417,44 @@ app.get('/playlist/new', (req, res) => {
   if (req.session.username === undefined) {
     return res.redirect('/login');
   }
+  return res.render('new-playlist', {layout: 'default', subtitle: 'New Playlist'});
+});
+
+app.post('/playlist/new', (req, res) => {
+  if (req.session.username === undefined) {
+    return res.redirect('/login');
+  }
+  if (req.body['playlist_field'] === '') {
+    req.flash('playlist_error', 'Please enter a non-empty playlist name');
+    return res.render('new-playlist', {layout: 'default', subtitle: 'New Playlist', playlist_error: req.flash('playlist_error')});
+  }
+  db.getUserById(req.session.discord_id, (results) => {
+    if (results === null) {
+      req.flash('credentials_error', 'Error fetching user');
+      return res.render('new-playlist', {layout: 'default', subtitle: 'New Playlist', credentials_error: req.flash('credentials_error')});
+    }
+    if (results.rows.length === 0) {
+      req.flash('credentials_error', 'No users exist');
+      return res.render('new-playlist', {layout: 'default', subtitle: 'New Playlist', credentials_error: req.flash('credentials_error')});
+    }
+    let i = 0;
+    if (results.rows[0].playlists === null) results.rows[0].playlists = [];
+    for (; i < results.rows[0].playlists.length; i++) {
+      if (results.rows[0].playlists[i].name === req.body['playlist_field']) {
+        req.flash('playlist_error', 'Playlist name already taken');
+        return res.render('new-playlist', {layout: 'default', subtitle: 'New Playlist', playlist_error: req.flash('playlist_error')});
+      }
+    }
+    const user = results.rows[0];
+    user.playlists[i] = {'name': req.body['playlist_field'], 'songs': []};
+    db.updateUser(user.username, user.discord_id, user.status, user.auth, user.discord_username, user.pass_hash, user.playlists, user.id, (boo) => {
+      if (!boo) {
+        req.flash('credentials_error', 'Failed to update user');
+        return res.render('new-playlist', {layout: 'default', subtitle: 'New Playlist', credentials_error: req.flash('credentials_error')});
+      }
+      return res.redirect('/home');
+    });
+  });
 });
 
 app.get('/error', (req, res) => {

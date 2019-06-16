@@ -9,6 +9,12 @@
           <th>Playlist</th>
           <th>Number of Songs</th>
         </tr>
+        {{#each playlists}}
+          <tr>
+            <td>{{this.name}}</td>
+            <td>{{this.songs.length}}</td>
+          </tr>
+        {{/each}}
       </table>
     </div>
     <div class="container">
