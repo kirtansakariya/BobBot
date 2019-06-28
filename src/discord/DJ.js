@@ -1,6 +1,6 @@
 const Youtube = require('./Youtube.js');
 const Soundcloud = require('./Soundcloud.js');
-// const ytdl = require('ytdl-core');
+const ytdl = require('ytdl-core');
 const youtubedl = require('youtube-dl');
 const http = require('http');
 const https = require('https');
@@ -85,12 +85,15 @@ DJ.prototype.getSong = function() {
   while (song == null && this.songs.length > 0) {
     song = this.songs.shift();
     if (song.url.includes('youtube')) {
-      // stream = ytdl(song.url, {filter: 'audioonly'}).on('error', (err) => {
-      //   console.log('error in ytdl');
+      stream = ytdl(song.url, {filter: 'audioonly'}).on('error', (err) => {
+        console.log('error in ytdl');
+        console.log(err);
+        song = null;
+      });
+      // stream = youtubedl(song.url);
+      // stream.on('error', (err) => {
       //   console.log(err);
-      //   song = null;
       // });
-      stream = youtubedl(song.url);
     }
   }
   if (song == null) return null;
