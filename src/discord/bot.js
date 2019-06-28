@@ -28,7 +28,7 @@ bot.on('ready', function(evt) {
   console.log('loading queue');
   db.getQueue((results) => {
     console.log(results.rows[0]);
-    // initQueue(results);
+    initQueue(results);
   });
 });
 
@@ -461,7 +461,7 @@ bot.on('message', (message) => {
         break;
     }
   }
-  // updateQueue(getQueue());
+  updateQueue(getQueue());
 });
 
 /**
