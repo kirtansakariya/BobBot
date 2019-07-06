@@ -129,7 +129,7 @@ function scSearch(str, id, searches, callback) {
         const duration = parsed[i].duration;
         minutes = Math.floor(duration / 60000);
         seconds = ((duration % 60000) / 1000).toFixed(0);
-        searches[id][i] = new Soundcloud(parsed[i].permalink_url, parsed[i].stream_url + '?client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), parsed[i].title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
+        searches[id][i] = new Soundcloud(parsed[i].permalink_url, parsed[i].stream_url, parsed[i].title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
       }
       callback();
     });
