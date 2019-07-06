@@ -8,6 +8,7 @@ const hbs = require('express-handlebars');
 const bodyParser = require('body-parser');
 const flash = require('connect-flash');
 const bcrypt = require('bcrypt');
+const path = require('path');
 const app = express();
 // const port = process.env.PORT || 5000;s
 // const pg = require('pg');
@@ -65,6 +66,7 @@ app.engine('hbs', hbs( {
   defaultView: 'default',
   layoutsDir: __dirname + '/../views/layouts/',
 }));
+app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/', (req, res) => {
   // req.session.cookie.counter = counter;

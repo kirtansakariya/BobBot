@@ -1,9 +1,31 @@
+<script src="../js/script.js"></script>
 <div class="container text-center">
   <h3>Playlist - {{name}}</h3>
   <hr>
-  <div class="contaienr">
-    <div class="container">
-      <a class="btn btn-primary mb-2" href="/home">Home</a>
+  <div class="row">
+    <div class="col-lg-6">
+      <h4>Songs</h4>
     </div>
+    <div class="col-lg-6">
+      <h4>Search</h4>
+      <div class="row">
+        <select class="custom-select col-lg-2" id="type" required>
+          <option value="1">Link</option>
+          <option value="2">SC</option>
+          <option value="3">YT</option>
+        </select>
+        <div class="form-group col-lg-10">
+        {{!-- <form class="col-lg-10" id="search-form"> --}}
+          <input type="text" class="form-control" id="search-form" onkeypress="search(event)" placeholder="Enter to search">
+        {{!-- </form> --}}
+        </div>
+      </div>
+      <div id="results"></div>
+    </div>
+  </div>
+<br />
+<div class="container">
+  <div class="container">
+    <a class="btn btn-primary mb-2" href="/home">Home</a>
   </div>
 </div>

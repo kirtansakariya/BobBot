@@ -29,7 +29,7 @@ Soundcloud.prototype.init = function(u) {
 
 Soundcloud.prototype.getStream = function() {
   console.log('getStream');
-  return this.stream;
+  return this.stream + '?client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid);
 };
 
 Soundcloud.prototype.getTitle = function() {
@@ -77,7 +77,7 @@ function addSoundcloud(arr, u, discordId, username, callback) {
               duration = track.duration;
               minutes = Math.floor(duration / 60000);
               seconds = ((duration % 60000) / 1000).toFixed(0);
-              arr.push(new Soundcloud(u, track.stream_url + '?client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, discordId, username));
+              arr.push(new Soundcloud(u, track.stream_url, track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, discordId, username));
               callback(1);
             } else {
               // console.log('adding soundcloud playlist');
@@ -86,7 +86,7 @@ function addSoundcloud(arr, u, discordId, username, callback) {
                 duration = t.duration;
                 minutes = Math.floor(duration / 60000);
                 seconds = ((duration % 60000) / 1000).toFixed(0);
-                arr.push(new Soundcloud(t.permalink_url, t.stream_url + '?client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, discordId, username));
+                arr.push(new Soundcloud(t.permalink_url, t.stream_url, t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, discordId, username));
                 counter++;
               }
               callback(counter);
