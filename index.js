@@ -8,6 +8,7 @@ bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('./au
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
 if (process.env.IDLE === 'FALSE') {
+  console.log('using setInterval');
   setInterval(() => {
     https.get('https://the-bobbot.herokuapp.com/');
   }, 1500000);
