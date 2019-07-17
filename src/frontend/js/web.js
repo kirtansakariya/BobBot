@@ -10,6 +10,8 @@ const flash = require('connect-flash');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const app = express();
+const DJ = require('../../discord/DJ');
+const discord = require('discord.js');
 // const port = process.env.PORT || 5000;s
 // const pg = require('pg');
 // let counter = 0;
@@ -420,7 +422,6 @@ app.get('/playlist', (req, res) => {
   if (req.session.username === undefined) {
     return res.redirect('/login');
   }
-  console.log(req.query.name);
   if (req.query.name === undefined || req.query.name === '') {
     return res.redirect('/home');
   }
@@ -489,6 +490,21 @@ app.post('/playlist/new', (req, res) => {
 app.get('/error', (req, res) => {
   console.log('error nooo');
   res.render('error', {layout: 'default', data: req.query['data'], template: 'error-template', subtitle: 'Error'});
+});
+
+app.post('/api/urlsongs', (req, res) => {
+  console.log('query is: ' + req.query['query']);
+  DJ.getSongsFromUrl(req.query['query'], null, null, (arr) => {
+    const obj = {};
+    if (arr.length === 0) {
+      obj['songs'] = [];
+      res.send(obj);
+    } else {
+      console.log(arr);
+      obj['songs'] = JSON.stringify(arr);
+      res.send(obj);
+    }
+  });
 });
 
 module.exports = {

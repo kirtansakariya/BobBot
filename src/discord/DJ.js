@@ -52,23 +52,23 @@ function getSongsFromUrl(url, discordId, username, callback) {
       console.log(songs);
       // console.log(dj.songs);
       const final = [];
-      Youtube.parseList(songs, final, discordId, username, (num) => {
+      Youtube.parseList(songs, final, discordId, username, () => {
         // console.log(dj.songs);
         // console.log(dj.songs.length);
         console.log('done w/parseList');
         console.log(final);
-        callback('Added ' + final.length + ' songs', final);
+        callback(final);
       });
     });
   } else if (url.includes('soundcloud')) {
     // console.log('adding soundcloud url');
     const songs = [];
-    Soundcloud.addSoundcloud(songs, url, discordId, username, (num) => {
-      callback('Added ' + num + ' songs', songs);
+    Soundcloud.addSoundcloud(songs, url, discordId, username, () => {
+      callback(songs);
     });
   } else {
     // console.log('needs to provide valid url');
-    callback('Invalid url');
+    callback([]);
   }
   // console.log('outside, no callback');
 };

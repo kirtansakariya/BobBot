@@ -177,7 +177,7 @@ bot.on('message', (message) => {
           //     dj.songs.unshift(...diff);
           //   }
           // });
-          DJ.getSongsFromUrl(args[0], message.member.user.id, message.member.displayName, (msg, arr) => {
+          DJ.getSongsFromUrl(args[0], message.member.user.id, message.member.displayName, (arr) => {
             const dj = getDJ(message.member.displayName, message.member.user.id);
             console.log(dj);
             if (start !== -1) {
@@ -185,7 +185,11 @@ bot.on('message', (message) => {
             } else {
               dj.songs.push(...arr);
             }
-            message.channel.send(msg);
+            if (arr.length === 0) {
+              message.channel.send('Invalid url.');
+            } else {
+              message.channel.send('Added ' + arr.length + ' songs.');
+            }
           });
         }
         break;

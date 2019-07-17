@@ -51,7 +51,6 @@ function addSoundcloud(arr, u, discordId, username, callback) {
   let duration;
   let minutes;
   let seconds;
-  let counter = 0;
   // console.log('SC');
   http.get('http://api.soundcloud.com/resolve?url=' + u + '&client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), function(resp) {
     let data1 = '';
@@ -78,7 +77,7 @@ function addSoundcloud(arr, u, discordId, username, callback) {
               minutes = Math.floor(duration / 60000);
               seconds = ((duration % 60000) / 1000).toFixed(0);
               arr.push(new Soundcloud(u, track.stream_url, track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, discordId, username));
-              callback(1);
+              callback();
             } else {
               // console.log('adding soundcloud playlist');
               while (track.tracks.length > 0) {
@@ -87,9 +86,8 @@ function addSoundcloud(arr, u, discordId, username, callback) {
                 minutes = Math.floor(duration / 60000);
                 seconds = ((duration % 60000) / 1000).toFixed(0);
                 arr.push(new Soundcloud(t.permalink_url, t.stream_url, t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, discordId, username));
-                counter++;
               }
-              callback(counter);
+              callback();
             }
           }
         });
