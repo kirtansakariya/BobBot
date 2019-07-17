@@ -1,0 +1,26 @@
+img {
+    max-width: 80%;
+}
+
+.song {
+    margin-top: 10px;
+}
+
+.checkbox {
+    margin-right: 7px;
+}
+
+.div-sel-img {
+    margin-right: 0px;
+    padding-right: 0px;
+    align-self: center;
+}
+
+.song-info {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+#results {
+    overflow-y: auto;
+}

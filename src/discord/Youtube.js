@@ -10,8 +10,10 @@ const moment = require('moment');
  * @param {string} l The length of the song.
  * @param {string} p The Discord player id of the player.
  * @param {string} pl The Discord name of the player.
+ * @param {String} th The thumbnail url of the song.
+ * @param {String} c The channel the song is from.
  */
-function Youtube(u, t, i, l, p, pl) {
+function Youtube(u, t, i, l, p, pl, th, c) {
   this.url = u;
   this.stream = null;
   this.title = t;
@@ -22,6 +24,8 @@ function Youtube(u, t, i, l, p, pl) {
   this.remove = false;
   this.length = l;
   this.type = 'yt';
+  this.thumbnail = th;
+  this.channel = c;
 }
 
 Youtube.prototype.init = function(u) {
@@ -83,6 +87,7 @@ function addYoutube(u, arr, page, callback) {
           const temp = {
             'id': parsed.items[0].id,
             'title': parsed.items[0].snippet.title,
+            'thumbnail': parsed.items[0].snippet.thumbnails.medium.url,
           };
           // TODO: Private video check like below before pushing
           if (temp.title !== 'Private video') {
@@ -108,6 +113,7 @@ function addYoutube(u, arr, page, callback) {
       });
     });
   } else {
+    console.log('playlist');
     urlParams = url.parse(u, true);
     let append = '';
     if (page === undefined) {
@@ -136,9 +142,11 @@ function addYoutube(u, arr, page, callback) {
             // const id = parsed.items[i].id;
             // const title = parsed.items[i].snippet.title;
             // const tempYoutube = new Youtube.Youtube('https://www.youtube.com/watch?v=' + id, title, id, minutes + ':' + seconds, discordId, username);
+            console.log(parsed.items[i].snippet.thumbnails);
             const temp = {
               'id': parsed.items[i].snippet.resourceId.videoId,
               'title': parsed.items[i].snippet.title,
+              'thumbnail': parsed.items[i].snippet.thumbnails.medium.url,
             };
             // TODO: Private video check like below before pushing
             if (temp.title !== 'Private video') {
@@ -181,7 +189,7 @@ function parseList(arr, store, discordId, username, callback) {
   const temp = arr.shift();
   // console.log(temp);
   // console.log(temp.id);
-  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + temp.id + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
+  https.get('https://content.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=' + temp.id + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
     let data = '';
 
     resp.on('data', (chunk) => {
@@ -194,7 +202,8 @@ function parseList(arr, store, discordId, username, callback) {
       const mom = moment.duration(parsed.items[0].contentDetails.duration);
       const seconds = mom.asSeconds() % 60;
       const minutes = Math.floor(mom.asSeconds() / 60);
-      const tempYoutube = new Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + seconds, discordId, username);
+      const channel = parsed.items[0].snippet.channelTitle;
+      const tempYoutube = new Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds), discordId, username, temp.thumbnail, channel);
       let allowed = undefined;
       let blocked = undefined;
       if (parsed.items[0].contentDetails.regionRestriction !== undefined) {
@@ -209,7 +218,7 @@ function parseList(arr, store, discordId, username, callback) {
         store.push(tempYoutube);
       }
       if (arr.length === 0) {
-        callback(store.length);
+        callback();
       } else {
         parseList(arr, store, discordId, username, callback);
       }
