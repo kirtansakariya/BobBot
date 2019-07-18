@@ -3,14 +3,16 @@ const https = require('https');
 
 /**
  * Create a Soundcloud song.
- * @param {string} u The url of the song.
- * @param {string} s The url of the stream.
- * @param {string} t The title of the song.
- * @param {string} l The length of the song.
- * @param {string} p The Discord id of the player.
- * @param {string} pl The name of the player.
+ * @param {String} u The url of the song.
+ * @param {String} s The url of the stream.
+ * @param {String} t The title of the song.
+ * @param {String} l The length of the song.
+ * @param {String} p The Discord id of the player.
+ * @param {String} pl The name of the player.
+ * @param {String} th The thumbnail of the song.
+ * @param {String} c The user that uploaded the song.
  */
-function Soundcloud(u, s, t, l, p, pl) {
+function Soundcloud(u, s, t, l, p, pl, th, c) {
   this.url = u;
   this.stream = s;
   this.title = t;
@@ -19,6 +21,8 @@ function Soundcloud(u, s, t, l, p, pl) {
   this.player = pl;
   this.remove = false;
   this.type = 'sc';
+  this.thumbnail = th;
+  this.channel = c;
 }
 
 Soundcloud.prototype.init = function(u) {
@@ -51,6 +55,8 @@ function addSoundcloud(arr, u, discordId, username, callback) {
   let duration;
   let minutes;
   let seconds;
+  let thumbnail;
+  let channel;
   // console.log('SC');
   http.get('http://api.soundcloud.com/resolve?url=' + u + '&client_id=' + ((process.env.SCID !== undefined) ? process.env.SCID : require('../../auth.json').scid), function(resp) {
     let data1 = '';
@@ -76,7 +82,11 @@ function addSoundcloud(arr, u, discordId, username, callback) {
               duration = track.duration;
               minutes = Math.floor(duration / 60000);
               seconds = ((duration % 60000) / 1000).toFixed(0);
-              arr.push(new Soundcloud(u, track.stream_url, track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, discordId, username));
+              thumbnail = track.artwork_url;
+              if (thumbnail === null) thumbnail = track.user.avatar_url;
+              if (!thumbnail.includes('default_avatar_large.png')) thumbnail = thumbnail.replace('large', 't300x300');
+              channel = track.user.username;
+              arr.push(new Soundcloud(u, track.stream_url, track.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, discordId, username, thumbnail, channel));
               callback();
             } else {
               // console.log('adding soundcloud playlist');
@@ -85,7 +95,14 @@ function addSoundcloud(arr, u, discordId, username, callback) {
                 duration = t.duration;
                 minutes = Math.floor(duration / 60000);
                 seconds = ((duration % 60000) / 1000).toFixed(0);
-                arr.push(new Soundcloud(t.permalink_url, t.stream_url, t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, discordId, username));
+                console.log(t);
+                console.log(t.artwork_url);
+                thumbnail = t.artwork_url;
+                if (thumbnail === null) thumbnail = t.user.avatar_url;
+                console.log(thumbnail);
+                if (!thumbnail.includes('default_avatar_large.png')) thumbnail = thumbnail.replace('large', 't300x300');
+                channel = t.user.username;
+                arr.push(new Soundcloud(t.permalink_url, t.stream_url, t.title, minutes + ':' + (seconds < 10 ? '0' : '') + seconds, discordId, username, thumbnail, channel));
               }
               callback();
             }

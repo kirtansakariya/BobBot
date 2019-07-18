@@ -16,9 +16,13 @@ img {
     align-self: center;
 }
 
-.song-info {
+.song-info-p {
     margin-top: 0px;
     margin-bottom: 0px;
+}
+
+.song-info-div {
+    align-self: center;
 }
 
 #results {

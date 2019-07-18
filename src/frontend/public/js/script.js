@@ -32,6 +32,7 @@ function search(e) {
 function link(query) {
   // console.log(Session);
   console.log('first query: ' + query);
+  document.getElementById('select').classList.add('d-none');
   const request = makeRequest('/api/urlsongs?query=' + encodeURIComponent(query));
   request.send();
   request.onload = () => {
@@ -48,9 +49,10 @@ function link(query) {
     // console.log('window: ' + window.innerHeight);
     document.getElementById('select').classList.remove('d-none');
     // console.log(document.body.clientHeight);
-    const resultsHeight = window.innerHeight - document.body.clientHeight;
+    const resultsHeight = window.innerHeight - document.body.clientHeight + results.style.height;
     results.style.height = resultsHeight + 'px';
     console.log(resultsHeight);
+    console.log(songs);
     for (let i = 0; i < songs.length; i++) {
       const divSong = document.createElement('div');
       divSong.classList = ['song row'];
@@ -66,10 +68,10 @@ function link(query) {
       divSelImg.appendChild(img);
 
       const divP = document.createElement('div');
-      divP.classList = ['col-lg-8'];
+      divP.classList = ['col-lg-8 song-info-div'];
       const p = document.createElement('p');
       p.innerHTML = songs[i].title + '<br />Length: ' + songs[i].length + '<br />Channel: ' + songs[i].channel;
-      p.classList = ['song-info'];
+      p.classList = ['song-info-p'];
       divP.appendChild(p);
 
       divSong.appendChild(divSelImg);
