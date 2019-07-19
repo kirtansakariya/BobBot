@@ -29,3 +29,7 @@ img {
     overflow-x: hidden;
     overflow-y: auto;
 }
+
+#wrapper {
+    max-width: none;
+}
