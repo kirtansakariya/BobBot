@@ -19,6 +19,7 @@ function search(e) {
       link(query);
     } else if (type === '2') {
       console.log('is SC');
+      sc(query);
     } else if (type === '3') {
       console.log('YT');
     }
@@ -31,7 +32,7 @@ function search(e) {
  */
 function link(query) {
   // console.log(Session);
-  console.log('first query: ' + query);
+  // console.log('first query: ' + query);
   document.getElementById('select').classList.add('d-none');
   const request = makeRequest('/api/urlsongs?query=' + encodeURIComponent(query));
   request.send();
@@ -86,12 +87,35 @@ function link(query) {
 }
 
 /**
+ * Searches for SoundCloud songs based off the query
+ * @param {String} query Query for the song
+ */
+function sc(query) {
+  // console.log('sc query: ' + query);
+  document.getElementById('select').classList.remove('d-none');
+  const request = makeRequest('/api/scsongs?query=' + query);
+  request.send();
+  request.onload = () => {
+    const data = JSON.parse(request.responseText);
+    const songs = JSON.parse(data.songs);
+    document.getElementById('loading').classList.add('d-none');
+    if (songs.length === 0) {
+      document.getElementById('invalid').classList.remove('d-none');
+      return;
+    }
+    // const results = document.getElementById('results');
+    const results = document.getElementById('results');
+    document.getElementById('select').classList.add('d-none');
+  };
+}
+
+/**
  * Makes a XMLHttpRequest before sending it
  * @param {String} uri Endpoint to make the request to
  * @return {Object} XMLHttpRequest
  */
 function makeRequest(uri) {
-  const url = 'https://the-bobbot.herokuapp.com' + uri;
+  const url = 'http://localhost:5000' + uri;
   const request = new XMLHttpRequest();
   request.open('POST', url, true);
   return request;

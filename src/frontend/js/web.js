@@ -11,6 +11,7 @@ const bcrypt = require('bcrypt');
 const path = require('path');
 const app = express();
 const DJ = require('../../discord/DJ');
+const SC = require('../../discord/Soundcloud');
 const discord = require('discord.js');
 // const port = process.env.PORT || 5000;s
 // const pg = require('pg');
@@ -493,17 +494,30 @@ app.get('/error', (req, res) => {
 });
 
 app.post('/api/urlsongs', (req, res) => {
-  console.log('query is: ' + req.query['query']);
+  console.log('query in urlsongs is: ' + req.query['query']);
   DJ.getSongsFromUrl(req.query['query'], null, null, (arr) => {
     const obj = {};
     if (arr.length === 0) {
       obj['songs'] = [];
-      res.send(obj);
     } else {
       console.log(arr);
       obj['songs'] = JSON.stringify(arr);
-      res.send(obj);
     }
+    res.send(obj);
+  });
+});
+
+app.post('/api/scsongs', (req, res) => {
+  console.log('query in scsongs is: ' + req.query['query']);
+  const searches = {};
+  SC.scSearch(req.query['query'], req.session.discord_id, searches, () => {
+    const obj = {};
+    if (searches[req.session.discord_id].length === 0) {
+      obj['songs'] = [];
+    } else {
+      obj['songs'] = JSON.stringify(searches[req.session.discord_id]);
+    }
+    res.send(obj);
   });
 });
 
