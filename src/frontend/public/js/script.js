@@ -22,6 +22,7 @@ function search(e) {
       sc(query);
     } else if (type === '3') {
       console.log('YT');
+      yt(query);
     }
   }
 }
@@ -34,6 +35,7 @@ function link(query) {
   // console.log(Session);
   // console.log('first query: ' + query);
   document.getElementById('select').classList.add('d-none');
+  document.getElementById('results').innerHTML = '';
   const request = makeRequest('/api/urlsongs?query=' + encodeURIComponent(query));
   request.send();
   request.onload = () => {
@@ -54,32 +56,7 @@ function link(query) {
     results.style.height = resultsHeight + 'px';
     console.log(resultsHeight);
     console.log(songs);
-    for (let i = 0; i < songs.length; i++) {
-      const divSong = document.createElement('div');
-      divSong.classList = ['song row'];
-
-      const divSelImg = document.createElement('div');
-      divSelImg.classList = ['col-lg-4 div-sel-img'];
-      const select = document.createElement('input');
-      select.type = 'checkbox';
-      select.classList = ['checkbox'];
-      const img = document.createElement('img');
-      img.src = songs[i].thumbnail;
-      divSelImg.appendChild(select);
-      divSelImg.appendChild(img);
-
-      const divP = document.createElement('div');
-      divP.classList = ['col-lg-8 song-info-div'];
-      const p = document.createElement('p');
-      p.innerHTML = songs[i].title + '<br />Length: ' + songs[i].length + '<br />Channel: ' + songs[i].channel;
-      p.classList = ['song-info-p'];
-      divP.appendChild(p);
-
-      divSong.appendChild(divSelImg);
-      divSong.appendChild(divP);
-
-      results.appendChild(divSong);
-    }
+    displaySongs(songs);
   };
   request.onerror = () => {
     console.log(request.error);
@@ -88,12 +65,13 @@ function link(query) {
 
 /**
  * Searches for SoundCloud songs based off the query
- * @param {String} query Query for the song
+ * @param {String} query Query for the SoundCloud song
  */
 function sc(query) {
   // console.log('sc query: ' + query);
-  document.getElementById('select').classList.remove('d-none');
-  const request = makeRequest('/api/scsongs?query=' + query);
+  document.getElementById('select').classList.add('d-none');
+  document.getElementById('results').innerHTML = '';
+  const request = makeRequest('/api/scsongs?query=' + encodeURIComponent(query));
   request.send();
   request.onload = () => {
     const data = JSON.parse(request.responseText);
@@ -106,7 +84,77 @@ function sc(query) {
     // const results = document.getElementById('results');
     const results = document.getElementById('results');
     document.getElementById('select').classList.add('d-none');
+    const resultsHeight = window.innerHeight - document.body.clientHeight + results.style.height;
+    results.style.height = resultsHeight + 'px';
+    displaySongs(songs);
   };
+}
+
+/**
+ * Searches for YouTube songs based off the query
+ * @param {String} query Query for the YouTube song
+ */
+function yt(query) {
+  document.getElementById('select').classList.add('d-none');
+  document.getElementById('results').innerHTML = '';
+  const request = makeRequest('/api/ytsongs?query=' + encodeURIComponent(query));
+  request.send();
+  request.onload = () => {
+    console.log(request.responseText);
+    const data = JSON.parse(request.responseText);
+    const songs = JSON.parse(data.songs);
+    document.getElementById('loading').classList.add('d-none');
+    if (songs.length === 0) {
+      document.getElementById('invalid').classList.remove('d-none');
+      return;
+    }
+    const results = document.getElementById('results');
+    document.getElementById('select').classList.add('d-none');
+    const resultsHeight = window.innerHeight - document.body.clientHeight + results.style.height;
+    results.style.height = resultsHeight + 'px';
+    displaySongs(songs);
+  };
+}
+
+/**
+ * Displays the songs on the page
+ * @param {*} songs Songs to be added
+ */
+function displaySongs(songs) {
+  for (let i = 0; i < songs.length; i++) {
+    const divSong = document.createElement('div');
+    divSong.classList = ['song row'];
+
+    const divSelImg = document.createElement('div');
+    divSelImg.classList = ['col-lg-4 div-sel-img'];
+    const select = document.createElement('input');
+    select.type = 'checkbox';
+    select.classList = ['checkbox'];
+    const img = document.createElement('img');
+    img.src = songs[i].thumbnail;
+    divSelImg.appendChild(select);
+    divSelImg.appendChild(img);
+
+    const divP = document.createElement('div');
+    divP.classList = ['col-lg-6 song-info-div'];
+    const p = document.createElement('p');
+    p.innerHTML = songs[i].title + '<br />Length: ' + songs[i].length + '<br />Channel: ' + songs[i].channel;
+    p.classList = ['song-info-p'];
+    divP.appendChild(p);
+
+    const divButton = document.createElement('div');
+    divButton.classList = ['col-lg-2 song-info-button'];
+    const button = document.createElement('button');
+    button.textContent = 'Add';
+    button.classList = ['btn btn-danger'];
+    divButton.appendChild(button);
+
+    divSong.appendChild(divSelImg);
+    divSong.appendChild(divP);
+    divSong.appendChild(divButton);
+
+    results.appendChild(divSong);
+  }
 }
 
 /**

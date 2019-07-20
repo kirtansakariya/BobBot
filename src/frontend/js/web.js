@@ -12,7 +12,7 @@ const path = require('path');
 const app = express();
 const DJ = require('../../discord/DJ');
 const SC = require('../../discord/Soundcloud');
-const discord = require('discord.js');
+const YT = require('../../discord/Youtube');
 // const port = process.env.PORT || 5000;s
 // const pg = require('pg');
 // let counter = 0;
@@ -511,6 +511,20 @@ app.post('/api/scsongs', (req, res) => {
   console.log('query in scsongs is: ' + req.query['query']);
   const searches = {};
   SC.scSearch(req.query['query'], req.session.discord_id, searches, () => {
+    const obj = {};
+    if (searches[req.session.discord_id].length === 0) {
+      obj['songs'] = [];
+    } else {
+      obj['songs'] = JSON.stringify(searches[req.session.discord_id]);
+    }
+    res.send(obj);
+  });
+});
+
+app.post('/api/ytsongs', (req, res) => {
+  console.log('query in ytsongs is: ' + req.query['query']);
+  const searches = {};
+  YT.ytSearch(req.query['query'], req.session.discord_id, searches, () => {
     const obj = {};
     if (searches[req.session.discord_id].length === 0) {
       obj['songs'] = [];

@@ -252,6 +252,9 @@ function ytSearch(str, id, searches, callback) {
         searches[id][i].title = parsed.items[i].snippet.title;
         searches[id][i].id = parsed.items[i].id.videoId;
         searches[id][i].type = 'yt';
+        searches[id][i].url = 'https://www.youtube.com/watch?v=' + parsed.items[i].id.videoId;
+        searches[id][i].thumbnail = parsed.items[i].snippet.thumbnails.medium.url;
+        searches[id][i].channel = parsed.items[i].snippet.channelTitle;
       }
       parseVideos(parsed.items, id, searches, callback);
     });
@@ -282,7 +285,8 @@ function parseVideos(videos, id, searches, callback) {
       const mom = moment.duration(parsed.items[0].contentDetails.duration);
       const seconds = mom.asSeconds() % 60;
       const minutes = Math.floor(mom.asSeconds() / 60);
-      searches[id][(((videos.length - 5) % 5) * -1)].duration = minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds);
+      const temp = searches[id][(((videos.length - 5) % 5) * -1)];
+      searches[id][(((videos.length - 5) % 5) * -1)] = new Youtube(temp.url, temp.title, temp.id, minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds), null, null, temp.thumbnail, temp.channel);
       videos.shift();
       if (videos.length === 0) {
         callback();
