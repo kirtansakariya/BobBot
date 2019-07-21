@@ -216,7 +216,7 @@ function displaySongs(songs, link) {
  * @return {Object} XMLHttpRequest
  */
 function makeRequest(uri) {
-  const url = 'http://localhost:5000' + uri;
+  const url = 'https://the-bobbot.herokuapp.com' + uri;
   const request = new XMLHttpRequest();
   request.open('POST', url, true);
   return request;
