@@ -6,6 +6,12 @@ img {
     max-width: 80%;
 }
 
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
 .song {
     margin-top: 10px;
 }

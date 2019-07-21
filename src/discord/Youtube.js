@@ -270,31 +270,36 @@ function ytSearch(str, id, searches, callback) {
  */
 function parseVideos(videos, id, searches, callback) {
   console.log('parseVideos');
-  https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
-    let data = '';
+  if (videos[0] === undefined) {
+    console.log('undef');
+    callback();
+  } else {
+    https.get('https://content.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + videos[0].id.videoId + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
+      let data = '';
 
-    resp.on('data', (chunk) => {
-      data += chunk;
-    });
+      resp.on('data', (chunk) => {
+        data += chunk;
+      });
 
-    resp.on('end', () => {
-      const parsed = JSON.parse(data);
-      // console.log('len: ' + videos.length + ' index: ' + (((videos.length - 1) % 5) * -1));
-      searches[id][((videos.length - 1) % 5)].info = parsed;
-      // console.log((videos.length - 1) + '     ' + ((videos.length - 5) % 5));
-      const mom = moment.duration(parsed.items[0].contentDetails.duration);
-      const seconds = mom.asSeconds() % 60;
-      const minutes = Math.floor(mom.asSeconds() / 60);
-      const temp = searches[id][(((videos.length - 5) % 5) * -1)];
-      searches[id][(((videos.length - 5) % 5) * -1)] = new Youtube(temp.url, temp.title, temp.id, minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds), null, null, temp.thumbnail, temp.channel);
-      videos.shift();
-      if (videos.length === 0) {
-        callback();
-      } else {
-        parseVideos(videos, id, searches, callback);
-      }
+      resp.on('end', () => {
+        const parsed = JSON.parse(data);
+        // console.log('len: ' + videos.length + ' index: ' + (((videos.length - 1) % 5) * -1));
+        searches[id][((videos.length - 1) % 5)].info = parsed;
+        // console.log((videos.length - 1) + '     ' + ((videos.length - 5) % 5));
+        const mom = moment.duration(parsed.items[0].contentDetails.duration);
+        const seconds = mom.asSeconds() % 60;
+        const minutes = Math.floor(mom.asSeconds() / 60);
+        const temp = searches[id][(((videos.length - 5) % 5) * -1)];
+        searches[id][(((videos.length - 5) % 5) * -1)] = new Youtube(temp.url, temp.title, temp.id, minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds), null, null, temp.thumbnail, temp.channel);
+        videos.shift();
+        if (videos.length === 0) {
+          callback();
+        } else {
+          parseVideos(videos, id, searches, callback);
+        }
+      });
     });
-  });
+  }
 }
 
 module.exports = {

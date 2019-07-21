@@ -4,6 +4,25 @@ $('#search-form').on('submit', (e) => {
   e.preventDefault();
 });
 
+$(document).ready(() => {
+  console.log('on load');
+  const results = document.getElementById('results');
+  console.log(window.innerHeight);
+  console.log(document.body.clientHeight);
+  const footer = document.getElementsByTagName('footer')[0];
+  const resultsHeight = window.innerHeight - document.body.clientHeight - footer.clientHeight - 10;
+  results.style.height = resultsHeight + 'px';
+});
+
+$(window).on('resize', () => {
+  console.log('resize');
+  const results = document.getElementById('results');
+  results.style.height = '0px';
+  const footer = document.getElementsByTagName('footer')[0];
+  const resultsHeight = window.innerHeight - document.body.clientHeight - footer.clientHeight - 10;
+  results.style.height = resultsHeight + 'px';
+});
+
 /**
  * Handles the search according to the dropdown value selected
  * @param {Object} e Information about the event fired by the input field
@@ -12,6 +31,7 @@ function search(e) {
   if (e.keyCode === 13) {
     // document.getElementById('results').innerHTML = '<div class="text-center">Loading...</div>';
     document.getElementById('loading').classList.remove('d-none');
+    document.getElementById('invalid').classList.add('d-none');
     const type = document.getElementById('type').value;
     const query = document.getElementById('search-form').value;
     if (type === '1') {
@@ -40,6 +60,12 @@ function link(query) {
   request.send();
   request.onload = () => {
     const data = JSON.parse(request.responseText);
+    // console.log(data.songs);
+    if (data.songs.length === 0) {
+      document.getElementById('loading').classList.add('d-none');
+      document.getElementById('invalid').classList.remove('d-none');
+      return;
+    }
     const songs = JSON.parse(data.songs);
     document.getElementById('loading').classList.add('d-none');
     if (songs.length === 0) {
@@ -47,16 +73,16 @@ function link(query) {
       document.getElementById('invalid').classList.remove('d-none');
       return;
     }
-    const results = document.getElementById('results');
+    // const results = document.getElementById('results');
     // console.log(document.body.clientHeight);
     // console.log('window: ' + window.innerHeight);
     document.getElementById('select').classList.remove('d-none');
     // console.log(document.body.clientHeight);
-    const resultsHeight = window.innerHeight - document.body.clientHeight + results.style.height;
-    results.style.height = resultsHeight + 'px';
+    // const resultsHeight = window.innerHeight - document.body.clientHeight + results.style.height;
+    // results.style.height = resultsHeight + 'px';
     console.log(resultsHeight);
     console.log(songs);
-    displaySongs(songs);
+    displaySongs(songs, true);
   };
   request.onerror = () => {
     console.log(request.error);
@@ -75,6 +101,14 @@ function sc(query) {
   request.send();
   request.onload = () => {
     const data = JSON.parse(request.responseText);
+    console.log(data.songs);
+    if (data.songs.length === 0) {
+      document.getElementById('loading').classList.add('d-none');
+      const invalid = document.getElementById('invalid');
+      invalid.textContent = 'Query returned 0 results';
+      invalid.classList.remove('d-none');
+      return;
+    }
     const songs = JSON.parse(data.songs);
     document.getElementById('loading').classList.add('d-none');
     if (songs.length === 0) {
@@ -82,11 +116,11 @@ function sc(query) {
       return;
     }
     // const results = document.getElementById('results');
-    const results = document.getElementById('results');
+    // const results = document.getElementById('results');
     document.getElementById('select').classList.add('d-none');
-    const resultsHeight = window.innerHeight - document.body.clientHeight + results.style.height;
-    results.style.height = resultsHeight + 'px';
-    displaySongs(songs);
+    // const resultsHeight = window.innerHeight - document.body.clientHeight + results.style.height;
+    // results.style.height = resultsHeight + 'px';
+    displaySongs(songs, false);
   };
 }
 
@@ -102,25 +136,33 @@ function yt(query) {
   request.onload = () => {
     console.log(request.responseText);
     const data = JSON.parse(request.responseText);
+    if (data.songs.length === 0) {
+      document.getElementById('loading').classList.add('d-none');
+      const invalid = document.getElementById('invalid');
+      invalid.textContent = 'Query returned 0 results';
+      invalid.classList.remove('d-none');
+      return;
+    }
     const songs = JSON.parse(data.songs);
     document.getElementById('loading').classList.add('d-none');
     if (songs.length === 0) {
       document.getElementById('invalid').classList.remove('d-none');
       return;
     }
-    const results = document.getElementById('results');
+    // const results = document.getElementById('results');
     document.getElementById('select').classList.add('d-none');
-    const resultsHeight = window.innerHeight - document.body.clientHeight + results.style.height;
-    results.style.height = resultsHeight + 'px';
-    displaySongs(songs);
+    // const resultsHeight = window.innerHeight - document.body.clientHeight + results.style.height;
+    // results.style.height = resultsHeight + 'px';
+    displaySongs(songs, false);
   };
 }
 
 /**
  * Displays the songs on the page
- * @param {*} songs Songs to be added
+ * @param {Object} songs Songs to be added
+ * @param {Boolean} link Determines if the results were from a link or not
  */
-function displaySongs(songs) {
+function displaySongs(songs, link) {
   for (let i = 0; i < songs.length; i++) {
     const divSong = document.createElement('div');
     divSong.classList = ['song row'];
@@ -132,6 +174,7 @@ function displaySongs(songs) {
     select.classList = ['checkbox'];
     const img = document.createElement('img');
     img.src = songs[i].thumbnail;
+    if (!link) select.style.visibility = 'hidden';
     divSelImg.appendChild(select);
     divSelImg.appendChild(img);
 
@@ -163,7 +206,7 @@ function displaySongs(songs) {
  * @return {Object} XMLHttpRequest
  */
 function makeRequest(uri) {
-  const url = 'https://the-bobbot.herokuapp.com' + uri;
+  const url = 'http://localhost:5000' + uri;
   const request = new XMLHttpRequest();
   request.open('POST', url, true);
   return request;
@@ -179,8 +222,3 @@ function makeRequest(uri) {
 // }
 
 console.log('loaded in script.js');
-
-window.onload = function() {
-  console.log(document.body.clientHeight);
-  console.log(window.innerHeight);
-};
