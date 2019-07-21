@@ -122,9 +122,9 @@ bot.on('message', (message) => {
       const dj = getDJ(message.member.displayName, message.member.user.id);
       if (song.type === 'yt') {
         if (front[iden] === true) {
-          dj.songs.unshift(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
+          dj.songs.unshift(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.length, message.member.id, message.member.displayName));
         } else {
-          dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.duration, message.member.id, message.member.displayName));
+          dj.songs.push(new Youtube.Youtube('https://www.youtube.com/watch?v=' + song.id, song.title, song.id, song.length, message.member.id, message.member.displayName));
         }
       } else {
         // console.log('add sc song');

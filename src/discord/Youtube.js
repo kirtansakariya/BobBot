@@ -17,7 +17,6 @@ function Youtube(u, t, i, l, p, pl, th, c) {
   this.url = u;
   this.stream = null;
   this.title = t;
-  this.length = null;
   this.id = i;
   this.pid = p;
   this.player = pl;
@@ -75,7 +74,10 @@ function addYoutube(u, arr, page, callback) {
 
       resp.on('end', () => {
         const parsed = JSON.parse(data);
-        if (parsed.items.length === 0) {
+        console.log(parsed);
+        if (parsed.error !== undefined) {
+          callback();
+        } else if (parsed.items.length === 0) {
           callback();
         } else {
           // const mom = moment.duration(parsed.items[0].contentDetails.duration);
@@ -111,6 +113,10 @@ function addYoutube(u, arr, page, callback) {
           callback();
         }
       });
+
+      resp.on('error', () => {
+        console.log('error');
+      });
     });
   } else {
     console.log('playlist');
@@ -133,7 +139,8 @@ function addYoutube(u, arr, page, callback) {
 
         resp.on('end', () => {
           const parsed = JSON.parse(data);
-          // console.log(parsed);
+          console.log(parsed);
+          if (parsed.error !== undefined) callback();
           for (let i = 0; i < parsed.items.length; i++) {
             // const mom = moment.duration(parsed.items[i].contentDetails.duration);
             // console.log(parsed.items[i].contentDetails);
@@ -171,6 +178,10 @@ function addYoutube(u, arr, page, callback) {
           }
           addYoutube(u, arr, parsed.nextPageToken, callback);
         });
+
+        resp.on('error', () => {
+          console.log('error');
+        });
       });
     }
   }
@@ -189,41 +200,45 @@ function parseList(arr, store, discordId, username, callback) {
   const temp = arr.shift();
   // console.log(temp);
   // console.log(temp.id);
-  https.get('https://content.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=' + temp.id + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
-    let data = '';
+  if (temp === undefined) {
+    callback();
+  } else {
+    https.get('https://content.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=' + temp.id + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
+      let data = '';
 
-    resp.on('data', (chunk) => {
-      data += chunk;
-    });
+      resp.on('data', (chunk) => {
+        data += chunk;
+      });
 
-    resp.on('end', () => {
-      const parsed = JSON.parse(data);
-      // console.log(parsed);
-      const mom = moment.duration(parsed.items[0].contentDetails.duration);
-      const seconds = mom.asSeconds() % 60;
-      const minutes = Math.floor(mom.asSeconds() / 60);
-      const channel = parsed.items[0].snippet.channelTitle;
-      const tempYoutube = new Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds), discordId, username, temp.thumbnail, channel);
-      let allowed = undefined;
-      let blocked = undefined;
-      if (parsed.items[0].contentDetails.regionRestriction !== undefined) {
-        allowed = parsed.items[0].contentDetails.regionRestriction.allowed;
-        blocked = parsed.items[0].contentDetails.regionRestriction.blocked;
-      }
-      if (allowed !== undefined && !allowed.includes('US')) {
-        // console.log(temp.title + ' not allowed');
-      } else if (blocked !== undefined && blocked.includes('US')) {
-        // console.log(temp.title + ' not allowed');
-      } else {
-        store.push(tempYoutube);
-      }
-      if (arr.length === 0) {
-        callback();
-      } else {
-        parseList(arr, store, discordId, username, callback);
-      }
+      resp.on('end', () => {
+        const parsed = JSON.parse(data);
+        // console.log(parsed);
+        const mom = moment.duration(parsed.items[0].contentDetails.duration);
+        const seconds = mom.asSeconds() % 60;
+        const minutes = Math.floor(mom.asSeconds() / 60);
+        const channel = parsed.items[0].snippet.channelTitle;
+        const tempYoutube = new Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds), discordId, username, temp.thumbnail, channel);
+        let allowed = undefined;
+        let blocked = undefined;
+        if (parsed.items[0].contentDetails.regionRestriction !== undefined) {
+          allowed = parsed.items[0].contentDetails.regionRestriction.allowed;
+          blocked = parsed.items[0].contentDetails.regionRestriction.blocked;
+        }
+        if (allowed !== undefined && !allowed.includes('US')) {
+          // console.log(temp.title + ' not allowed');
+        } else if (blocked !== undefined && blocked.includes('US')) {
+          // console.log(temp.title + ' not allowed');
+        } else {
+          store.push(tempYoutube);
+        }
+        if (arr.length === 0) {
+          callback();
+        } else {
+          parseList(arr, store, discordId, username, callback);
+        }
+      });
     });
-  });
+  }
 }
 
 /**
@@ -245,18 +260,21 @@ function ytSearch(str, id, searches, callback) {
 
     resp.on('end', () => {
       const parsed = JSON.parse(data);
-      // console.log(parsed);
       searches[id] = [];
-      for (let i = 0; i < parsed.items.length; i++) {
-        searches[id][i] = {};
-        searches[id][i].title = parsed.items[i].snippet.title;
-        searches[id][i].id = parsed.items[i].id.videoId;
-        searches[id][i].type = 'yt';
-        searches[id][i].url = 'https://www.youtube.com/watch?v=' + parsed.items[i].id.videoId;
-        searches[id][i].thumbnail = parsed.items[i].snippet.thumbnails.medium.url;
-        searches[id][i].channel = parsed.items[i].snippet.channelTitle;
+      if (parsed.items === undefined) {
+        callback();
+      } else {
+        for (let i = 0; i < parsed.items.length; i++) {
+          searches[id][i] = {};
+          searches[id][i].title = parsed.items[i].snippet.title;
+          searches[id][i].id = parsed.items[i].id.videoId;
+          searches[id][i].type = 'yt';
+          searches[id][i].url = 'https://www.youtube.com/watch?v=' + parsed.items[i].id.videoId;
+          searches[id][i].thumbnail = parsed.items[i].snippet.thumbnails.medium.url;
+          searches[id][i].channel = parsed.items[i].snippet.channelTitle;
+        }
+        parseVideos(parsed.items, id, searches, callback);
       }
-      parseVideos(parsed.items, id, searches, callback);
     });
   });
 }

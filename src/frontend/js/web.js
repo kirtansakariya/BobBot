@@ -437,7 +437,10 @@ app.get('/playlist', (req, res) => {
     const user = results.rows[0];
     for (let i = 0; i < user.playlists.length; i++) {
       if (user.playlists[i].name === req.query.name) {
-        return res.render('playlist', {layout: 'default', subtitle: 'BobBot - Playlist: ' + req.query.name, name: user.playlists[i].name});
+        let empty = false;
+        if (user.playlists[i].songs.length === 0) empty = true;
+        return res.render('playlist', {layout: 'default', subtitle: 'BobBot - Playlist: ' + req.query.name, name: user.playlists[i].name,
+          playlist: user.playlists[i].songs, empty: empty});
       }
     }
     return res.redirect('/home');
