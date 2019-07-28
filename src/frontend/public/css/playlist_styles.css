@@ -44,6 +44,11 @@ footer {
     overflow-y: auto;
 }
 
+#songs {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
 #wrapper {
     max-width: unset;
 }

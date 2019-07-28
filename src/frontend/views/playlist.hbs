@@ -1,7 +1,9 @@
 <script src="../js/script.js"></script>
 <link rel="stylesheet" href="../css/playlist_styles.css">
 <div id="wrapper" class="container text-center">
-  <h3>Playlist - {{name}}</h3>
+  <div class="container">
+    <h3>Playlist - {{name}}</h3>
+  </div>
   <hr>
   <div class="row">
     <div class="col-lg-6">
@@ -14,11 +16,11 @@
           <div id="select-songs" class="text-left row">
           {{/if}}
             <div class="form-check col-lg-4">
-              <input id="select-all" class="form-check-input" type="checkbox" onchange="selectAll(event)">
+              <input id="select-all" class="form-check-input" type="checkbox" onchange="selectAllSongs(event)">
               <label class="form-check-label">Select all</label>
             </div>
             <div class="col-lg-8 text-right">
-              <button class="btn btn-primary" onclick="addSelected()">Delete Selected</button>
+              <button class="btn btn-primary" onclick="deleteSelected()">Delete Selected</button>
             </div>
           </div>
         </div>
@@ -27,6 +29,23 @@
           <div id="empty" class="text-center">Playlist is empty</div>
           {{else}}
           <div id="empty" class="text-center d-none">Playlist is empty</div>
+            {{#each playlist}}
+              <div class="song row">
+                <div class="col-lg-4 div-sel-img">
+                  <input type="checkbox" class="checkbox delete-check" data-url="{{this.url}}" data-title="{{this.title}}" data-length="{{this.length}}" data-id="{{this.id}}" data-type="{{this.type}}" data-thumbnail="{{this.thumbnail}}" data-channel="{{this.channel}}"><img src={{this.img}}>
+                </div>
+                <div class="col-lg-6 song-info-div">
+                  <p class="song-info-p">
+                    {{this.title}}<br />
+                    Length: {{this.length}}<br />
+                    Channel: {{this.channel}}
+                  </p>
+                </div>
+                <div class="col-lg-2 song-info-button">
+                  <button class="btn btn-danger" onclick="deleteSong(event)">Delete</button>
+                </div>
+              </div>
+            {{/each}}
           {{/if}}
         </div>
       </div>
@@ -52,7 +71,7 @@
         <div class="container">
           <div id="select-results" class="text-left d-none row">
             <div class="form-check col-lg-4">
-              <input id="select-all" class="form-check-input" type="checkbox" onchange="selectAll(event)">
+              <input id="select-all" class="form-check-input" type="checkbox" onchange="selectAllResults(event)">
               <label class="form-check-label">Select all</label>
             </div>
             <div class="col-lg-8 text-right">

@@ -17,6 +17,7 @@ const removeHelp = {};
 let dispatcher = null;
 let current = null;
 const searches = {};
+let interval = null;
 
 // bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
 
@@ -196,12 +197,14 @@ bot.on('message', (message) => {
       case 'start':
         console.log('in start case');
         if (dispatcher == null) nextSong(message);
+        interval = setInterval(ping, 1500000);
         break;
       case 'leave':
         console.log('in leave case');
         bot.voice.connections.get(bot.voice.connections.keys().next().value).disconnect();
         current = null;
         dispatcher = null;
+        clearInterval(interval);
         break;
       case 'queue':
       case 'q':

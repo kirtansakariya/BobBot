@@ -439,6 +439,7 @@ app.get('/playlist', (req, res) => {
       if (user.playlists[i].name === req.query.name) {
         let empty = false;
         if (user.playlists[i].songs.length === 0) empty = true;
+        console.log(user.playlists[i].songs);
         return res.render('playlist', {layout: 'default', subtitle: 'BobBot - Playlist: ' + req.query.name, name: user.playlists[i].name,
           playlist: user.playlists[i].songs, empty: empty});
       }
@@ -496,7 +497,7 @@ app.get('/error', (req, res) => {
   res.render('error', {layout: 'default', data: req.query['data'], template: 'error-template', subtitle: 'Error'});
 });
 
-app.post('/api/urlsongs', (req, res) => {
+app.get('/api/urlsongs', (req, res) => {
   console.log('query in urlsongs is: ' + req.query['query']);
   DJ.getSongsFromUrl(req.query['query'], null, null, (arr) => {
     const obj = {};
@@ -510,7 +511,7 @@ app.post('/api/urlsongs', (req, res) => {
   });
 });
 
-app.post('/api/scsongs', (req, res) => {
+app.get('/api/scsongs', (req, res) => {
   console.log('query in scsongs is: ' + req.query['query']);
   const searches = {};
   SC.scSearch(req.query['query'], req.session.discord_id, searches, () => {
@@ -524,7 +525,7 @@ app.post('/api/scsongs', (req, res) => {
   });
 });
 
-app.post('/api/ytsongs', (req, res) => {
+app.get('/api/ytsongs', (req, res) => {
   console.log('query in ytsongs is: ' + req.query['query']);
   const searches = {};
   YT.ytSearch(req.query['query'], req.session.discord_id, searches, () => {
@@ -535,6 +536,35 @@ app.post('/api/ytsongs', (req, res) => {
       obj['songs'] = JSON.stringify(searches[req.session.discord_id]);
     }
     res.send(obj);
+  });
+});
+
+app.post('/api/save', (req, res) => {
+  console.log('playlist to save is: ' + req.query['playlist']);
+  console.log(req.body);
+  const playlist = req.query['playlist'];
+  const songs = req.body;
+  db.getUserById(req.session.discord_id, (results) => {
+    if (results === null) {
+      console.log('failed to locate user');
+      res.send(null);
+    } else {
+      const user = results.rows[0];
+      console.log(user);
+      for (let i = 0; i < user.playlists.length; i++) {
+        if (user.playlists[i].name === playlist) user.playlists[i].songs = songs;
+      }
+      console.log(user.playlists[1].songs);
+      db.updateUser(user.username, user.discord_id, user.status, user.auth, user.discord_user, user.pass_hash, user.playlists, user.id, (boo) => {
+        if (!boo) {
+          console.log('failed to update playlist');
+          res.send(null);
+        } else {
+          console.log('sending now');
+          res.send(true);
+        }
+      });
+    }
   });
 });
 

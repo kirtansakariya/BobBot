@@ -5,21 +5,61 @@ $('#search-form').on('submit', (e) => {
 });
 
 $(document).ready(() => {
-  const results = document.getElementById('results');
-  const footer = document.getElementsByTagName('footer')[0];
-  const resultsHeight = window.innerHeight - document.body.clientHeight - footer.clientHeight - 10;
-  results.style.height = resultsHeight + 'px';
-  document.getElementById('songs').style.height = document.getElementById('search-bar').clientHeight + resultsHeight + 'px';
+  // const results = document.getElementById('results');
+  // const footer = document.getElementsByTagName('footer')[0];
+  // results.style.height = '0px';
+  // console.log('ready: ' + results.style.height);
+  // console.log(window.innerHeight);
+  // console.log(document.body.clientHeight);
+  // console.log(footer.clientHeight);
+  // // const resultsHeight = window.innerHeight - document.body.clientHeight - footer.clientHeight - 10;
+  // const resultsHeight = window.innerHeight - document.getElementById('wrapper').clientHeight - footer.clientHeight - 10;
+  // console.log(resultsHeight);
+  // results.style.height = resultsHeight + 'px';
+  // document.getElementById('songs').style.height = document.getElementById('search-bar').clientHeight + resultsHeight;
+  setResultsHeight();
 });
 
 $(window).on('resize', () => {
-  const results = document.getElementById('results');
-  results.style.height = '0px';
-  const footer = document.getElementsByTagName('footer')[0];
-  const resultsHeight = window.innerHeight - document.body.clientHeight - footer.clientHeight - 10;
-  results.style.height = resultsHeight + 'px';
-  document.getElementById('songs').style.height = document.getElementById('search-bar').clientHeight + resultsHeight + 'px';
+  // const results = document.getElementById('results');
+  // const footer = document.getElementsByTagName('footer')[0];
+  // results.style.height = '0px';
+  // // console.log('resize: ' + results.style.height);
+  // console.log(window.innerHeight);
+  // console.log(document.body.clientHeight);
+  // console.log(footer.clientHeight);
+  // const resultsHeight = window.innerHeight - document.body.clientHeight - footer.clientHeight - 10;
+  // console.log(resultsHeight);
+  // results.style.height = resultsHeight + 'px';
+  // document.getElementById('songs').style.height = document.getElementById('search-bar').clientHeight + resultsHeight + 'px';
+  setResultsHeight();
 });
+
+/**
+ * Sets the height of the results div
+ */
+function setResultsHeight() {
+  console.log('in setResultsHeight');
+  const songs = document.getElementById('songs');
+  const results = document.getElementById('results');
+  const footer = document.getElementsByTagName('footer')[0];
+  const select = document.getElementById('select-results');
+  const wrapper = document.getElementById('wrapper');
+  let higher = 0;
+  if (results.clientHeight >= songs.clientHeight) {
+    higher = results.clientHeight;
+  } else {
+    higher = songs.clientHeight;
+  }
+  console.log(select.clientHeight);
+  console.log('window: ' + window.innerHeight);
+  console.log('wrapper: ' + wrapper.clientHeight);
+  console.log('footer: ' + footer.clientHeight);
+  const resultsHeight = window.innerHeight - wrapper.clientHeight + higher - footer.clientHeight - 10;
+  console.log('results: ' + resultsHeight);
+  results.style.height = resultsHeight + 'px';
+  document.getElementById('songs').style.height = resultsHeight + 'px';
+}
 
 /**
  * Handles the search according to the dropdown value selected
@@ -55,7 +95,7 @@ function link(query) {
   document.getElementById('select-results').classList.add('d-none');
   document.getElementById('select-all').checked = false;
   document.getElementById('results').innerHTML = '';
-  const request = makeRequest('/api/urlsongs?query=' + encodeURIComponent(query));
+  const request = makeRequest('GET', '/api/urlsongs?query=' + encodeURIComponent(query));
   request.send();
   request.onload = () => {
     const data = JSON.parse(request.responseText);
@@ -82,6 +122,7 @@ function link(query) {
     // console.log(resultsHeight);
     console.log(songs);
     displaySongs(songs, true);
+    setResultsHeight();
   };
   request.onerror = () => {
     console.log(request.error);
@@ -96,7 +137,7 @@ function sc(query) {
   // console.log('sc query: ' + query);
   document.getElementById('select-results').classList.add('d-none');
   document.getElementById('results').innerHTML = '';
-  const request = makeRequest('/api/scsongs?query=' + encodeURIComponent(query));
+  const request = makeRequest('GET', '/api/scsongs?query=' + encodeURIComponent(query));
   request.send();
   request.onload = () => {
     const data = JSON.parse(request.responseText);
@@ -130,7 +171,7 @@ function sc(query) {
 function yt(query) {
   document.getElementById('select-results').classList.add('d-none');
   document.getElementById('results').innerHTML = '';
-  const request = makeRequest('/api/ytsongs?query=' + encodeURIComponent(query));
+  const request = makeRequest('GET', '/api/ytsongs?query=' + encodeURIComponent(query));
   request.send();
   request.onload = () => {
     console.log(request.responseText);
@@ -163,6 +204,11 @@ function yt(query) {
  */
 function displaySongs(songs, link) {
   const results = document.getElementById('results');
+  const playlist = document.getElementsByClassName('delete-check');
+  const map = new Map();
+  for (let i = 0; i < playlist.length; i++) {
+    map.set(playlist[i].dataset.title, true);
+  }
   for (let i = 0; i < songs.length; i++) {
     const divSong = document.createElement('div');
     divSong.classList = ['song row'];
@@ -172,6 +218,7 @@ function displaySongs(songs, link) {
     const select = document.createElement('input');
     select.type = 'checkbox';
     select.classList = ['checkbox search-check'];
+    if (map.get(songs[i].title)) select.disabled = true;
     select.dataset.index = i;
     select.dataset.url = songs[i].url;
     select.dataset.title = songs[i].title;
@@ -197,8 +244,13 @@ function displaySongs(songs, link) {
     divButton.classList = ['col-lg-2 song-info-button'];
     const button = document.createElement('button');
     button.textContent = 'Add';
-    button.classList = ['btn btn-danger'];
-    button.onclick = addSingle;
+    if (map.get(songs[i].title)) {
+      button.classList = ['btn btn-success'];
+      button.disabled = true;
+    } else {
+      button.classList = ['btn btn-danger'];
+    }
+    button.onclick = addSong;
     button.dataset.index = i;
     divButton.appendChild(button);
 
@@ -212,24 +264,35 @@ function displaySongs(songs, link) {
 
 /**
  * Makes a XMLHttpRequest before sending it
+ * @param {String} type Type of request
  * @param {String} uri Endpoint to make the request to
  * @return {Object} XMLHttpRequest
  */
-function makeRequest(uri) {
-  const url = 'https://the-bobbot.herokuapp.com' + uri;
+function makeRequest(type, uri) {
+  const url = window.location.origin + uri;
   const request = new XMLHttpRequest();
-  request.open('POST', url, true);
+  request.open(type, url, true);
+  if (type === 'POST') request.setRequestHeader('Content-Type', 'application/json');
   return request;
 }
 
 /**
- * Checks all the checkboxes if the Select all checkbox is selected
+ * Checks all the results checkboxes if the Select all checkbox is selected
  * @param {Object} e Information about the event fired by the input field
  */
-function selectAll(e) {
+function selectAllResults(e) {
   const checked = e.target.checked;
   const arr = document.getElementsByClassName('search-check');
-  for (let i = 0; i < arr.length; i++) arr[i].checked = checked;
+  for (let i = 0; i < arr.length; i++) if (!arr[i].disabled) arr[i].checked = checked;
+}
+
+/**
+ * Adds a single song to the playlist
+ * @param {Object} e Information about the event fired by the button
+ */
+function addSong(e) {
+  addSingle(e);
+  updatePlaylist();
 }
 
 /**
@@ -240,13 +303,14 @@ function addSelected() {
   const checks = document.getElementsByClassName('search-check');
   for (let i = 0; i < checks.length; i++) {
     if (checks[i].checked) {
-      console.log(checks[i]);
+      addSingle({'target': checks[i].parentNode.parentNode.children[2].children[0]});
     }
   }
+  updatePlaylist();
 }
 
 /**
- * Adds a single song to the playlist
+ * Adds a single song to the playlist and displays it
  * @param {Object} e Information about the event fired by the button
  */
 function addSingle(e) {
@@ -255,11 +319,13 @@ function addSingle(e) {
   console.log('adding single');
   e.target.classList = ['btn btn-success'];
   e.target.disabled = true;
-  const song = document.querySelector('.search-check[data-index="' + e.target.dataset.index + '"]');
+  const song = e.target.parentNode.parentNode.children[0].children[0];
+  song.disabled = true;
+  song.checked = false;
   console.log(song.dataset);
 
   const divSong = document.createElement('div');
-  divSong.id = 'song-' + document.getElementsByClassName('delete-check').length;
+  // divSong.id = 'song-' + document.getElementsByClassName('delete-check').length;
   divSong.classList = ['song row'];
 
   const divSelImg = document.createElement('div');
@@ -267,7 +333,7 @@ function addSingle(e) {
   const select = document.createElement('input');
   select.type = 'checkbox';
   select.classList = ['checkbox delete-check'];
-  select.dataset.index = document.getElementsByClassName('delete-check').length;
+  // select.dataset.index = document.getElementsByClassName('delete-check').length;
   select.dataset.url = song.dataset.url;
   select.dataset.title = song.dataset.title;
   select.dataset.length = song.dataset.length;
@@ -292,8 +358,8 @@ function addSingle(e) {
   const button = document.createElement('button');
   button.textContent = 'Delete';
   button.classList = ['btn btn-danger'];
-  button.onclick = deleteSingle;
-  button.dataset.index = document.getElementsByClassName('delete-check').length;
+  button.onclick = deleteSong;
+  // button.dataset.index = document.getElementsByClassName('delete-check').length;
   divButton.appendChild(button);
 
   divSong.appendChild(divSelImg);
@@ -304,28 +370,103 @@ function addSingle(e) {
 }
 
 /**
+ * Checks all the songs checkboxes if the Select all checkbox is selected
+ * @param {Object} e Information about the event fired by the input field
+ */
+function selectAllSongs(e) {
+  console.log('in new');
+  const checked = e.target.checked;
+  const arr = document.getElementsByClassName('delete-check');
+  for (let i = 0; i < arr.length; i++) if (!arr[i].disabled) arr[i].checked = checked;
+}
+
+/**
  * Deletes a single song to the playlist
+ * @param {Object} e Information about the event fired by the button
+ */
+function deleteSong(e) {
+  deleteSingle(e);
+  updatePlaylist();
+}
+
+/**
+ * Deletes the songs that are selected
+ */
+function deleteSelected() {
+  console.log('delete selected');
+  const checks = document.getElementsByClassName('delete-check');
+  console.log(checks);
+  for (let i = 0; i < checks.length; i++) {
+    if (checks[i].checked) {
+      console.log(i);
+      deleteSingle({'target': checks[i].parentNode.parentNode.children[2].children[0]});
+      i--;
+    }
+  }
+  updatePlaylist();
+}
+
+/**
+ * Deletes a single song from the playlist and removes it from the display
  * @param {Object} e Information about the event fired by the button
  */
 function deleteSingle(e) {
   console.log('deleteSingle');
   console.log(e);
-  const song = document.getElementById('song-' + e.target.dataset.index);
-  const title = song.children[0].children[0].dataset.title;
+  // const song = document.getElementById('song-' + e.target.dataset.index);
+  const song = e.target.parentNode.parentNode.children[0].children[0];
+  console.log(song.parentNode.parentNode);
+  const title = song.dataset.title;
   console.log('orig title: ' + title);
-  song.parentNode.removeChild(song);
+  song.parentNode.parentNode.parentNode.removeChild(song.parentNode.parentNode);
   const results = document.getElementById('results').children;
   for (let i = 0; i < results.length; i++) {
     // console.log(results[i].children[0].children[0].dataset.title);
     if (results[i].children[0].children[0].dataset.title === title) {
       results[i].children[2].children[0].classList = 'btn btn-danger';
       results[i].children[2].children[0].disabled = false;
+      results[i].children[0].children[0].disabled = false;
     }
   }
   if (document.getElementById('songs').children.length === 1) {
     document.getElementById('select-songs').classList.add('d-none');
     document.getElementById('empty').classList.remove('d-none');
   }
+}
+
+/**
+ * Saves the playlist to the database
+ */
+function updatePlaylist() {
+  const songs = document.getElementsByClassName('delete-check');
+  console.log(songs);
+  const obj = [];
+  for (let i = 0; i < songs.length; i++) {
+    obj[i] = {};
+    obj[i].url = songs[i].dataset.url;
+    obj[i].title = songs[i].dataset.title;
+    obj[i].length = songs[i].dataset.length;
+    obj[i].id = songs[i].dataset.id;
+    obj[i].type = songs[i].dataset.type;
+    obj[i].thumbnail = songs[i].dataset.thumbnail;
+    obj[i].channel = songs[i].dataset.channel;
+    console.log(songs[i].parentElement);
+    obj[i].img = songs[i].parentElement.children[1].src;
+  }
+  console.log(obj);
+
+  const playlistName = new URLSearchParams(window.location.search.substring(1)).get('name');
+  console.log(playlistName);
+  const request = makeRequest('POST', '/api/save?playlist=' + encodeURIComponent(playlistName));
+  request.send(JSON.stringify(obj));
+  request.onload = () => {
+    const boo = JSON.parse(request.responseText);
+    if (!boo) {
+      console.log('update failed');
+    } else {
+      console.log('update success');
+    }
+  };
 }
 
 // function sleep(milliseconds) {
