@@ -753,6 +753,10 @@ function cleanUp() {
   }
 }
 
+function ping() {
+  https.get('https://the-bobbot.herokuapp.com/');
+}
+
 module.exports = {
   bot: bot,
 };
