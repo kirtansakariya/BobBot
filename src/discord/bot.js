@@ -29,7 +29,7 @@ bot.on('ready', function(evt) {
   console.log('loading queue');
   db.getQueue((results) => {
     console.log(results.rows[0]);
-    initQueue(results);
+    // initQueue(results);
   });
 });
 
@@ -372,6 +372,15 @@ bot.on('message', (message) => {
           // console.log(str);
         }
         break;
+      case 'playlist':
+      case 'plist':
+        if (args.length === 0) {
+          message.channel.send('Please provide a playlist name.');
+        } else {
+          const name = args.join(' ');
+          readPlaylist(message.member, name);
+        }
+        break;
       case 'remove':
       case 'rm':
         console.log('in remove case');
@@ -468,7 +477,7 @@ bot.on('message', (message) => {
         break;
     }
   }
-  updateQueue(getQueue());
+  // updateQueue(getQueue());
 });
 
 /**
@@ -753,8 +762,40 @@ function cleanUp() {
   }
 }
 
+/**
+ * Pings the bot to keep it up.
+ */
 function ping() {
   https.get('https://the-bobbot.herokuapp.com/');
+}
+
+/**
+ * Adds the player's playlist
+ * @param {Object} member Player request to queue the playlist
+ * @param {String} name Name of the playlist
+ * @param {Object} callback Returns the playlist to be added
+ */
+function readPlaylist(member, name, callback) {
+  console.log(member.user);
+  console.log(name);
+  db.getUserById(member.user.id, (results) => {
+    const playlists = results.rows[0].playlists;
+    for (let i = 0; i < playlists.length; i++) {
+      console.log(i);
+      if (playlists[i].name === name) {
+        console.log('yay');
+        const arr = [];
+        for (let j = 0; j < playlists[i].songs.length; j++) {
+          const song = playlists[i].songs[j];
+          if (song.type === 'sc') {
+            console.log(song);
+            // arr.push(new Soundcloud.Soundcloud(song.url, song.stream, song.title, song.length, song.member.user.id, song.member.user.))
+          }
+        }
+      }
+      break;
+    }
+  });
 }
 
 module.exports = {
