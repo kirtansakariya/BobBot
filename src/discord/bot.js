@@ -378,7 +378,20 @@ bot.on('message', (message) => {
           message.channel.send('Please provide a playlist name.');
         } else {
           const name = args.join(' ');
-          readPlaylist(message.member, name);
+          const iden = message.member.user.id;
+          readPlaylist(message.member, name, (arr) => {
+            const dj = getDJ(message.member.displayName, message.member.user.id);
+            if (front[iden] === true) {
+              dj.songs.unshift(...arr);
+            } else {
+              dj.songs.push(...arr);
+            }
+            if (arr.length === 0) {
+              message.channel.send('Playlist was empty.');
+            } else {
+              message.channel.send('Added ' + arr.length + ' songs from the ' + name + ' playlist.');
+            }
+          });
         }
         break;
       case 'remove':
@@ -789,12 +802,16 @@ function readPlaylist(member, name, callback) {
           const song = playlists[i].songs[j];
           if (song.type === 'sc') {
             console.log(song);
-            // arr.push(new Soundcloud.Soundcloud(song.url, song.stream, song.title, song.length, song.member.user.id, song.member.user.))
+            console.log(member.displayName);
+            arr.push(new Soundcloud.Soundcloud(song.url, song.stream, song.title, song.length, member.user.id, member.displayName, song.thumbnail, song.channel));
+          } else {
+            arr.push(new Youtube.Youtube(song.url, song.title, song.id, song.length, member.user.id, member.displayName, song.thumbnail, song.channel));
           }
         }
+        callback(arr);
       }
-      break;
     }
+    callback([]);
   });
 }
 

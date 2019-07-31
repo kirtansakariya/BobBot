@@ -221,6 +221,9 @@ function displaySongs(songs, link) {
     if (map.get(songs[i].title)) select.disabled = true;
     select.dataset.index = i;
     select.dataset.url = songs[i].url;
+    // console.log(songs[i]);
+    // console.log(songs[i].stream);
+    if (songs[i].stream !== undefined) select.dataset.stream = songs[i].stream;
     select.dataset.title = songs[i].title;
     select.dataset.length = songs[i].length;
     if (songs[i].id !== undefined) select.dataset.id = songs[i].id;
@@ -335,6 +338,7 @@ function addSingle(e) {
   select.classList = ['checkbox delete-check'];
   // select.dataset.index = document.getElementsByClassName('delete-check').length;
   select.dataset.url = song.dataset.url;
+  if (song.dataset.stream !== undefined) select.dataset.stream = song.dataset.stream;
   select.dataset.title = song.dataset.title;
   select.dataset.length = song.dataset.length;
   if (song.dataset.id !== undefined) select.dataset.id = song.dataset.id;
@@ -444,14 +448,13 @@ function updatePlaylist() {
   for (let i = 0; i < songs.length; i++) {
     obj[i] = {};
     obj[i].url = songs[i].dataset.url;
+    obj[i].stream = songs[i].dataset.stream;
     obj[i].title = songs[i].dataset.title;
     obj[i].length = songs[i].dataset.length;
     obj[i].id = songs[i].dataset.id;
     obj[i].type = songs[i].dataset.type;
     obj[i].thumbnail = songs[i].dataset.thumbnail;
     obj[i].channel = songs[i].dataset.channel;
-    console.log(songs[i].parentElement);
-    obj[i].img = songs[i].parentElement.children[1].src;
   }
   console.log(obj);
 
