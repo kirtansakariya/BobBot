@@ -554,7 +554,6 @@ app.post('/api/save', (req, res) => {
       for (let i = 0; i < user.playlists.length; i++) {
         if (user.playlists[i].name === playlist) user.playlists[i].songs = songs;
       }
-      console.log(user.playlists[1].songs);
       db.updateUser(user.username, user.discord_id, user.status, user.auth, user.discord_user, user.pass_hash, user.playlists, user.id, (boo) => {
         if (!boo) {
           console.log('failed to update playlist');
