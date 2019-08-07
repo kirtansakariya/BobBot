@@ -8,8 +8,6 @@ const Soundcloud = require('./Soundcloud');
 const Youtube = require('./Youtube');
 const db = require('../database/db');
 const https = require('https');
-const http = require('http');
-const moment = require('moment');
 const decode = require('unescape');
 const djs = [];
 const front = {};
@@ -34,8 +32,6 @@ bot.on('ready', function(evt) {
 });
 
 bot.on('message', (message) => {
-  // console.log(message.member);
-  // console.log(djs);
   console.log('\n' + message.content + ' message: ' + message + ' member: ' + message.member + ' type: ' + typeof(message));
   if (message.channel.type === 'dm') {
     if (message.content === 'signup') {
@@ -155,6 +151,7 @@ bot.on('message', (message) => {
     switch (cmd) {
       case 'play':
         let start = -1;
+        let toShuff = false;
         if (front[message.member.user.id] === true) {
           const name = message.member.displayName;
           for (let i = 0; i < djs.length; i++) {
@@ -162,6 +159,10 @@ bot.on('message', (message) => {
               start = djs[i].songs.length;
             }
           }
+        }
+        if (args[0] === 'shuffle') {
+          toShuff = true;
+          args = args.splice(1);
         }
         if (args[0] === undefined) {
           message.channel.send('Please specify a url');
@@ -181,13 +182,16 @@ bot.on('message', (message) => {
           DJ.getSongsFromUrl(args[0], message.member.user.id, message.member.displayName, (arr) => {
             const dj = getDJ(message.member.displayName, message.member.user.id);
             console.log(dj);
+            if (toShuff) {
+              arr = shuffle(arr);
+            }
             if (start !== -1) {
               dj.songs.unshift(...arr);
             } else {
               dj.songs.push(...arr);
             }
             if (arr.length === 0) {
-              message.channel.send('Invalid url.');
+              message.channel.send('Invalid url');
             } else {
               message.channel.send('Added ' + arr.length + ' songs.');
             }
@@ -345,11 +349,20 @@ bot.on('message', (message) => {
         break;
       case 'shuffle':
         console.log('in shuffle case');
-        const boo = shuffle(message);
-        if (boo) {
-          message.channel.send(message.member.displayName + '\'s songs have been shuffled');
-        } else {
+        let djToShuffle = null;
+        for (let i = 0; i < djs.length; i++) {
+          if (djs[i].id == message.member.id) {
+            djToShuffle = djs[i];
+          }
+        }
+        if (djToShuffle == null) {
           message.channel.send(message.member.displayName + ' has no songs in the queue to shuffle');
+        } else if (djToShuffle.songs.length == 0) {
+          message.channel.send(message.member.displayName + ' has no songs in the queue to shuffle');
+        } else {
+          const shuffled = shuffle(djToShuffle.songs);
+          djToShuffle.songs = shuffled;
+          message.channel.send(message.member.displayName + '\'s songs have been shuffled');
         }
         break;
       case 'soundcloud':
@@ -374,6 +387,11 @@ bot.on('message', (message) => {
         break;
       case 'playlist':
       case 'plist':
+        let shuffPlaylist = false;
+        if (args[0] === 'shuffle') {
+          shuffPlaylist = true;
+          args = args.splice(1);
+        }
         if (args.length === 0) {
           message.channel.send('Please provide a playlist name.');
         } else {
@@ -381,14 +399,17 @@ bot.on('message', (message) => {
           const iden = message.member.user.id;
           readPlaylist(message.member, name, (arr) => {
             const dj = getDJ(message.member.displayName, message.member.user.id);
-            if (front[iden] === true) {
-              dj.songs.unshift(...arr);
-            } else {
-              dj.songs.push(...arr);
-            }
             if (arr.length === 0) {
+              console.log('empty');
               message.channel.send('Playlist was empty.');
             } else {
+              console.log('not empty');
+              if (shuffPlaylist) arr = shuffle(arr);
+              if (front[iden] === true) {
+                dj.songs.unshift(...arr);
+              } else {
+                dj.songs.push(...arr);
+              }
               message.channel.send('Added ' + arr.length + ' songs from the ' + name + ' playlist.');
             }
           });
@@ -692,20 +713,12 @@ function updateQueue(q) {
 
 /**
  * Shuffle the songs of a specific DJ.
- * @param {Object} mes Information about request from Discord
+ * @param {Object} songs Songs to be shuffled
  * @return {Boolean} If the operation was sucessful or not
  */
-function shuffle(mes) {
+function shuffle(songs) {
   console.log('shuffle');
-  let dj = null;
-  for (let i = 0; i < djs.length; i++) {
-    if (djs[i].id == mes.member.id) {
-      dj = djs[i];
-    }
-  }
-  if (dj == null) return false;
-  if (dj.songs.length == 0) return false;
-  const arr = dj.songs;
+  const arr = songs;
   let j;
   let temp;
   for (let i = arr.length - 1; i > 0; i--) {
@@ -714,8 +727,7 @@ function shuffle(mes) {
     arr[j] = arr[i];
     arr[i] = temp;
   }
-  dj.songs = arr;
-  return true;
+  return arr;
 }
 
 /**
@@ -809,6 +821,7 @@ function readPlaylist(member, name, callback) {
           }
         }
         callback(arr);
+        return;
       }
     }
     callback([]);
