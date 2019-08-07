@@ -90,10 +90,10 @@ DJ.prototype.getSong = function() {
         console.log(err);
         song = null;
       });
-      // stream = youtubedl(song.url);
-      // stream.on('error', (err) => {
-      //   console.log(err);
-      // });
+//       stream = youtubedl(song.url);
+//       stream.on('error', (err) => {
+//         console.log(err);
+//       });
     }
   }
   if (song == null) return null;
