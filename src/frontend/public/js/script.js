@@ -239,7 +239,7 @@ function displaySongs(songs, link) {
     const divP = document.createElement('div');
     divP.classList = ['col-lg-6 song-info-div'];
     const p = document.createElement('p');
-    p.innerHTML = songs[i].title + '<br />Length: ' + songs[i].length + '<br />Channel: ' + songs[i].channel;
+    p.innerHTML = '<b>' + songs[i].title + '</b> - ' + songs[i].length + '<br />Channel: ' + songs[i].channel;
     p.classList = ['song-info-p'];
     divP.appendChild(p);
 
@@ -353,7 +353,7 @@ function addSingle(e) {
   const divP = document.createElement('div');
   divP.classList = ['col-lg-6 song-info-div'];
   const p = document.createElement('p');
-  p.innerHTML = song.dataset.title + '<br />Length: ' + song.dataset.length + '<br />Channel: ' + song.dataset.channel;
+  p.innerHTML = '<b>' + song.dataset.title + '</b> - ' + song.dataset.length + '<br />Channel: ' + song.dataset.channel;
   p.classList = ['song-info-p'];
   divP.appendChild(p);
 
