@@ -11,12 +11,12 @@
           <th>Number of Songs</th>
         </tr>
         {{#each playlists}}
-          <tr>
-            <td>
-              <a href="/playlist?name={{this.name}}">{{this.name}}</a>
-            </td>
-            <td>{{this.songs.length}}</td>
-          </tr>
+        <tr>
+          <td>
+            <a href="/playlist?name={{this.name}}">{{this.name}}</a>
+          </td>
+          <td>{{this.songs.length}}</td>
+        </tr>
         {{/each}}
       </table>
     </div>

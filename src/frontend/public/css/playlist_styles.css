@@ -39,6 +39,10 @@ footer {
     margin-bottom: 0px;
 }
 
+.title {
+    margin-top: 10px;
+}
+
 #results {
     overflow-x: hidden;
     overflow-y: auto;

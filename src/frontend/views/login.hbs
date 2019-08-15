@@ -1,12 +1,12 @@
 <div class="container text-center">
   <h3>Welcome to the BobBot Portal</h3>
   <hr>
-  <form action="/login", method="POST">
+  <form action="/login" , method="POST">
     <div class="container col-lg-4">
       <div class="form-group">
         <input class="form-control text-center" id="username" type="text" name="username_field" placeholder="Username" value={{username}}>
         {{#if username_error}}
-          <p class="text-danger">{{username_error}}</p>
+        <p class="text-danger">{{username_error}}</p>
         {{/if}}
       </div>
     </div>
@@ -15,15 +15,15 @@
       <div class="form-group">
         <input class="form-control text-center" id="password" type="password" name="password_field" placeholder="Password">
         {{#if password_error}}
-          <p class="text-danger">{{password_error}}</p>
+        <p class="text-danger">{{password_error}}</p>
         {{/if}}
       </div>
     </div>
 
     {{#if credentials_error}}
-      <div class="container alert alert-danger col-lg-4" role="alert">
-        {{credentials_error}}
-      </div>
+    <div class="container alert alert-danger col-lg-4" role="alert">
+      {{credentials_error}}
+    </div>
     {{/if}}
 
     <div class="container">

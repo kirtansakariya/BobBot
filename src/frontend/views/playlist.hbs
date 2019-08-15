@@ -2,7 +2,14 @@
 <link rel="stylesheet" href="../css/playlist_styles.css">
 <div id="wrapper" class="container text-center">
   <div class="container">
-    <h3>Playlist - {{name}}</h3>
+    <h3 id="name" class="title">{{name}}
+      <a onclick="changeName()">
+        <i class="fa fa-edit"></i>
+      </a>
+    </h3>
+    <div id="edit" class="d-none">
+      <input type="text" class="form-control text-center title" onkeypress="checkName(event)">
+    </div>
   </div>
   <hr>
   <div class="row">
@@ -12,71 +19,74 @@
         <div class="container">
           {{#if empty}}
           <div id="select-songs" class="text-left row d-none">
-          {{else}}
-          <div id="select-songs" class="text-left row">
-          {{/if}}
-            <div class="form-check col-lg-4">
-              <input id="select-all" class="form-check-input" type="checkbox" onchange="selectAllSongs(event)">
-              <label class="form-check-label">Select all</label>
-            </div>
-            <div class="col-lg-8 text-right">
-              <button class="btn btn-primary" onclick="deleteSelected()">Delete Selected</button>
-            </div>
-          </div>
-        </div>
-        <div id="songs" class="text-left">
-          {{#if empty}}
-          <div id="empty" class="text-center">Playlist is empty</div>
-          {{else}}
-          <div id="empty" class="text-center d-none">Playlist is empty</div>
-            {{#each playlist}}
-              <div class="song row">
-                <div class="col-lg-4 div-sel-img">
-                  <input type="checkbox" class="checkbox delete-check" data-url="{{this.url}}" data-title="{{this.title}}" data-length="{{this.length}}" data-id="{{this.id}}" data-type="{{this.type}}" data-thumbnail="{{this.thumbnail}}" data-channel="{{this.channel}}"><img src={{this.thumbnail}}>
-                </div>
-                <div class="col-lg-6 song-info-div">
-                  <p class="song-info-p">
-                    <b>{{this.title}}</b> - {{this.length}}<br />
-                    Channel: {{this.channel}}
-                  </p>
-                </div>
-                <div class="col-lg-2 song-info-button">
-                  <button class="btn btn-danger" onclick="deleteSong(event)">Delete</button>
-                </div>
+            {{else}}
+            <div id="select-songs" class="text-left row">
+              {{/if}}
+              <div class="form-check col-lg-4">
+                <input id="select-all" class="form-check-input" type="checkbox" onchange="selectAllSongs(event)">
+                <label class="form-check-label">Select all</label>
               </div>
-            {{/each}}
-          {{/if}}
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6">
-      <h4>Search</h4>
-      <div id="search-bar" class="row">
-        <select id="type" class="custom-select col-lg-2" required>
-          <option value="1">Link</option>
-          <option value="2">SC</option>
-          <option value="3">YT</option>
-        </select>
-        <div class="form-group col-lg-10">
-          <input id="search-form" class="form-control" type="text" onkeypress="search(event)"
-            placeholder="Enter to search">
-        </div>
-      </div>
-      <div class="container">
-        <div id="loading" class="d-none">Loading...</div>
-        <div id="invalid" class="d-none">Invalid URL</div>
-        <div class="container">
-          <div id="select-results" class="text-left d-none row">
-            <div class="form-check col-lg-4">
-              <input id="select-all" class="form-check-input" type="checkbox" onchange="selectAllResults(event)">
-              <label class="form-check-label">Select all</label>
-            </div>
-            <div class="col-lg-8 text-right">
-              <button class="btn btn-primary" onclick="addSelected()">Add Selected</button>
+              <div class="col-lg-8 text-right">
+                <button class="btn btn-primary" onclick="deleteSelected()">Delete Selected</button>
+              </div>
             </div>
           </div>
+          <div id="songs" class="text-left">
+            {{#if empty}}
+            <div id="empty" class="text-center">Playlist is empty</div>
+            {{else}}
+            <div id="empty" class="text-center d-none">Playlist is empty</div>
+            {{#each playlist}}
+            <div class="song row">
+              <div class="col-lg-4 div-sel-img">
+                <input type="checkbox" class="checkbox delete-check" data-url="{{this.url}}" data-title="{{this.title}}"
+                  data-length="{{this.length}}" data-id="{{this.id}}" data-type="{{this.type}}"
+                  data-thumbnail="{{this.thumbnail}}" data-channel="{{this.channel}}"><img src={{this.thumbnail}}>
+              </div>
+              <div class="col-lg-6 song-info-div">
+                <p class="song-info-p">
+                  <b>{{this.title}}</b> - {{this.length}}<br />
+                  Channel: {{this.channel}}
+                </p>
+              </div>
+              <div class="col-lg-2 song-info-button">
+                <button class="btn btn-danger" onclick="deleteSong(event)">Delete</button>
+              </div>
+            </div>
+            {{/each}}
+            {{/if}}
+          </div>
         </div>
-        <div id="results" class="text-left"></div>
+      </div>
+      <div class="col-lg-6">
+        <h4>Search</h4>
+        <div id="search-bar" class="row">
+          <select id="type" class="custom-select col-lg-2" required>
+            <option value="1">Link</option>
+            <option value="2">SC</option>
+            <option value="3">YT</option>
+          </select>
+          <div class="form-group col-lg-10">
+            <input id="search-form" class="form-control" type="text" onkeypress="search(event)"
+              placeholder="Enter to search">
+          </div>
+        </div>
+        <div class="container">
+          <div id="loading" class="d-none">Loading...</div>
+          <div id="invalid" class="d-none">Invalid URL</div>
+          <div class="container">
+            <div id="select-results" class="text-left d-none row">
+              <div class="form-check col-lg-4">
+                <input id="select-all" class="form-check-input" type="checkbox" onchange="selectAllResults(event)">
+                <label class="form-check-label">Select all</label>
+              </div>
+              <div class="col-lg-8 text-right">
+                <button class="btn btn-primary" onclick="addSelected()">Add Selected</button>
+              </div>
+            </div>
+          </div>
+          <div id="results" class="text-left"></div>
+        </div>
       </div>
     </div>
   </div>

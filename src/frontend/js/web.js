@@ -497,6 +497,35 @@ app.get('/error', (req, res) => {
   res.render('error', {layout: 'default', data: req.query['data'], template: 'error-template', subtitle: 'Error'});
 });
 
+app.post('/api/changename', (req, res) => {
+  const oldName = req.query['oldName'];
+  const newName = req.query['newName'];
+  db.getUserById(req.session.discord_id, (results) => {
+    const user = results.rows[0];
+    const obj = {};
+    for (let i = 0; i < results.rows[0].playlists.length; i++) {
+      if (results.rows[0].playlists[i].name === newName) obj['resp'] = 'same';
+    }
+    if (obj['resp'] !== undefined) {
+      res.send(obj);
+    } else {
+      for (let i = 0; i < results.rows[0].playlists.length; i++) {
+        if (results.rows[0].playlists[i].name === oldName) {
+          results.rows[0].playlists[i].name = newName;
+        }
+      }
+      db.updateUser(user.username, user.discord_id, user.status, user.auth, user.discord_username, user.pass_hash, user.playlists, user.id, (boo) => {
+        if (!boo) {
+          obj['resp'] = 'fail';
+        } else {
+          obj['resp'] = 'pass';
+        }
+        res.send(obj);
+      });
+    }
+  });
+});
+
 app.get('/api/urlsongs', (req, res) => {
   console.log('query in urlsongs is: ' + req.query['query']);
   DJ.getSongsFromUrl(req.query['query'], null, null, (arr) => {

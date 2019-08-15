@@ -62,6 +62,46 @@ function setResultsHeight() {
 }
 
 /**
+ * Gives the user the option to change their playlist name
+ */
+function changeName() {
+  const name = document.getElementById('name');
+  name.classList.add('d-none');
+  const edit = document.getElementById('edit');
+  edit.classList.remove('d-none');
+  const playlistName = new URLSearchParams(window.location.search.substring(1)).get('name');
+  edit.children[0].value = playlistName;
+}
+
+/**
+ * Checks to see if the name is a valid name
+ * @param {Object} e Information about the event that was fired
+ */
+function checkName(e) {
+  if (e.keyCode === 13) {
+    const edit = document.getElementById('edit').children[0];
+    const playlistName = new URLSearchParams(window.location.search.substring(1)).get('name');
+    if (edit.value === playlistName) {
+      const name = document.getElementById('name');
+      name.classList.remove('d-none');
+      const edit = document.getElementById('edit');
+      edit.classList.add('d-none');
+    } else if (edit.value.trim() !== '') {
+      const request = makeRequest('POST', '/api/changename?oldName=' + encodeURIComponent(playlistName) + '&newName=' + encodeURIComponent(edit.value.trim()));
+      request.send();
+      request.onload = () => {
+        const data = JSON.parse(request.responseText);
+        if (data['resp'] === 'fail') {
+          window.location.reload();
+        } else {
+          window.location.href = '/playlist?name=' + edit.value.trim();
+        }
+      };
+    }
+  }
+}
+
+/**
  * Handles the search according to the dropdown value selected
  * @param {Object} e Information about the event fired by the input field
  */

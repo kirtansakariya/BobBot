@@ -1,20 +1,20 @@
 <div class="container text-center">
   <h3>New Playlist</h3>
   <hr>
-  <form action="/playlist/new", method="POST">
+  <form action="/playlist/new" , method="POST">
     <div class="container col-lg-4">
       <div class="form-group">
         <input class="form-control text-center" id="playlist" type="text" name="playlist_field" placeholder="Playlist Name">
         {{#if playlist_error}}
-          <p class="text-danger">{{playlist_error}}</p>
+        <p class="text-danger">{{playlist_error}}</p>
         {{/if}}
       </div>
     </div>
 
     {{#if credentials_error}}
-      <div class="container alert alert-danger col-lg-4" role="alert">
-        {{credentials_error}}
-      </div>
+    <div class="container alert alert-danger col-lg-4" role="alert">
+      {{credentials_error}}
+    </div>
     {{/if}}
 
     <div class="container">
