@@ -598,11 +598,16 @@ function nextSong(message) {
     current = song;
     dispatcher = connection.play(song.getStream());
     dispatcher.on('end', () => nextSong(message));
-    dispatcher.on('error', () => nextSong(message));
+    dispatcher.on('error', () => {
+      message.channel.send(decode('Problem with song: ' + current.title + ' url: ' + current.url));
+      nextSong(message);
+    });
     connection.on('error', () => {
       message.channel.send(decode('Problem with song: ' + current.title + ' url: ' + current.url));
       nextSong(message);
     });
+    message.channel.send(decode('Playing song: `' + current.title + '` [' + current.length
+      + '] req by ' + current.player));
   }).catch(console.log);
 }
 
