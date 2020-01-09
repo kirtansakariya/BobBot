@@ -85,15 +85,17 @@ DJ.prototype.getSong = function() {
   while (song == null && this.songs.length > 0) {
     song = this.songs.shift();
     if (song.url.includes('youtube')) {
-      stream = ytdl(song.url, {filter: 'audioonly'}).on('error', (err) => {
-        console.log('error in ytdl');
-        console.log(err);
-        song = null;
+      stream = ytdl(song.id, {filter: 'audioonly'}).on('error', (err) => {
+       console.log('error in ytdl');
+       console.log(song.id);
+       console.log(song.url);
+       console.log(err);
+       song = null;
       });
-//       stream = youtubedl(song.url);
-//       stream.on('error', (err) => {
-//         console.log(err);
-//       });
+//        stream = youtubedl(song.url);
+//        stream.on('error', (err) => {
+//          console.log(err);
+//        });
     }
   }
   if (song == null) return null;
