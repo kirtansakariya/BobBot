@@ -478,7 +478,7 @@ bot.on('message', (message) => {
             for (let i = 0; i < searches[message.member.user.id].length; i++) {
               // console.log(searches[message.member.user.id][i]);
               const info = searches[message.member.user.id][i];
-              send += (i + 1) + '. **' + info.title + '** - ' + info.duration + '\n';
+              send += (i + 1) + '. **' + info.title + '** - ' + info.length + '\n';
             }
             send += '**Songs fetched from YouTube**';
             message.channel.send(decode(send));
