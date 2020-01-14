@@ -55,7 +55,7 @@ function setResultsHeight() {
   console.log('window: ' + window.innerHeight);
   console.log('wrapper: ' + wrapper.clientHeight);
   console.log('footer: ' + footer.clientHeight);
-  const resultsHeight = window.innerHeight - wrapper.clientHeight + higher - footer.clientHeight - 10;
+  const resultsHeight = window.innerHeight - wrapper.clientHeight + higher - footer.clientHeight - 15;
   console.log('results: ' + resultsHeight);
   results.style.height = resultsHeight + 'px';
   document.getElementById('songs').style.height = resultsHeight + 'px';
@@ -434,6 +434,75 @@ function deleteSong(e) {
 }
 
 /**
+ * Cleans up songs that are no longer valid
+ */
+function cleanup() {
+  document.getElementById('cleanup').disabled = true;
+  const songs = document.getElementsByClassName('delete-check');
+  obj = {};
+  obj['songs'] = [];
+  for (let i = 0; i < songs.length; i++) {
+    obj['songs'][i] = {};
+    obj['songs'][i].url = songs[i].dataset.url;
+    obj['songs'][i].stream = songs[i].dataset.stream;
+    obj['songs'][i].title = songs[i].dataset.title;
+    obj['songs'][i].length = songs[i].dataset.length;
+    obj['songs'][i].id = songs[i].dataset.id;
+    obj['songs'][i].type = songs[i].dataset.type;
+    obj['songs'][i].thumbnail = songs[i].dataset.thumbnail;
+    obj['songs'][i].channel = songs[i].dataset.channel;
+  }
+  // obj['songs'] = obj['songs'][0];
+  obj['inds'] = [];
+
+  console.log(obj);
+
+  const request = makeRequest('POST', '/api/cleanupyt');
+  request.send(JSON.stringify(obj));
+  request.onload = () => {
+    const data = JSON.parse(request.responseText);
+    console.log(data);
+    const result = window.confirm('Delete all Invalid songs? (deleted songs will be displayed in a new tab)');
+    if (result) {
+      const objTwo = {};
+      objTwo['name'] = (new URLSearchParams(window.location.search)).get('name');
+      objTwo['songs'] = [];
+      for (let i = 0; i < data.length; i++) {
+        const d = new Date();
+        console.log(data[i]);
+        console.log([].length.length);
+        const song = songs[data[i]];
+        objTwo['songs'][i] = {};
+        objTwo['songs'][i]['url'] = song.dataset.url;
+        objTwo['songs'][i]['title'] = song.dataset.title;
+        objTwo['songs'][i]['length'] = song.dataset.length;
+        objTwo['songs'][i]['id'] = song.dataset.id;
+        objTwo['songs'][i]['type'] = song.dataset.type;
+        objTwo['songs'][i]['thumbnail'] = song.dataset.thumbnail;
+        objTwo['songs'][i]['channel'] = song.dataset.channel;
+        objTwo['songs'][i]['delTime'] = d.getTime();
+      }
+      const requestTwo = makeRequest('POST', '/api/adddelete');
+      requestTwo.send(JSON.stringify(objTwo));
+
+      requestTwo.onload = () => {
+        const boo = JSON.parse(requestTwo.responseText);
+        if (!boo) {
+          console.log('update failed');
+        } else {
+          console.log('update success');
+          for (let i = 0; i < data.length; i++) {
+            songs[data[i]].checked = true;
+          }
+          document.getElementById('delete').click();
+        }
+      };
+    }
+    document.getElementById('cleanup').disabled = false;
+  };
+}
+
+/**
  * Deletes the songs that are selected
  */
 function deleteSelected() {
@@ -511,14 +580,3 @@ function updatePlaylist() {
     }
   };
 }
-
-// function sleep(milliseconds) {
-//   var start = new Date().getTime();
-//   for (var i = 0; i < 1e7; i++) {
-//     if ((new Date().getTime() - start) > milliseconds){
-//       break;
-//     }
-//   }
-// }
-
-console.log('loaded in script.js');

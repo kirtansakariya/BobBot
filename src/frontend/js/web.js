@@ -13,6 +13,7 @@ const app = express();
 const DJ = require('../../discord/DJ');
 const SC = require('../../discord/Soundcloud');
 const YT = require('../../discord/Youtube');
+const https = require('https');
 // const port = process.env.PORT || 5000;s
 // const pg = require('pg');
 // let counter = 0;
@@ -492,6 +493,45 @@ app.post('/playlist/new', (req, res) => {
   });
 });
 
+app.get('/playlist/deletes', (req, res) => {
+  if (req.session.discord_id === undefined) {
+    console.log('not logged in');
+    return res.redirect('/login');
+  }
+  if (req.query.name === undefined || req.query.name === '') {
+    console.log('no name');
+    return res.redirect('/home');
+  }
+  db.getUserById(req.session.discord_id, (results) => {
+    if (results === null) {
+      console.log('error w/results in GET /playlist/deletes');
+      return res.redirect('/home');
+    }
+    if (results.rows.length === 0) {
+      console.log('no results in GET /playlist/deletes');
+    }
+    const user = results.rows[0];
+    if (user.deletes !== null) {
+      for (let i = 0; i < user.deletes.length; i++) {
+        // if (user.playlists[i].name === req.query.name) {
+        //   let empty = false;
+        //   if (user.user.playlists[i].deletes.length === 0) empty = true;
+        //   return res.render('deletes', {layout: 'default', subtitle: 'BobBot - Playlist Deletes: ' + req.query.name, name: user.playlists[i].name,
+        //     deletes: user.playlists[i].deletes, empty: empty});
+        // }
+        if (user.deletes[i].name === req.query.name) {
+          let empty = false;
+          if (user.deletes[i].songs.length === 0) empty = true;
+          return res.render('deletes', {layout: 'default', subtitle: 'BobBot - Playlist Deletes: ' + req.query.name, name: user.deletes[i].name,
+            deletes: user.deletes[i].songs, empty: empty});
+        }
+      }
+    }
+    return res.render('deletes', {layout: 'default', subtitle: 'BobBot - Playlist Deletes: ' + req.query.name, name: req.query.name,
+      deletes: [], empty: true});
+  });
+});
+
 app.get('/error', (req, res) => {
   console.log('error nooo');
   res.render('error', {layout: 'default', data: req.query['data'], template: 'error-template', subtitle: 'Error'});
@@ -521,6 +561,96 @@ app.post('/api/changename', (req, res) => {
           obj['resp'] = 'pass';
         }
         res.send(obj);
+      });
+    }
+  });
+});
+
+app.post('/api/cleanupyt', (req, res) => {
+  if (req.session.discord_id === undefined) {
+    res.send(null);
+    return;
+  }
+  console.log(req.body);
+  console.log(req.body['songs']);
+  cleanupYt(req.body['songs'], req.body['inds'], 0, 0, () => {
+    res.send(JSON.stringify(req.body['inds']));
+  });
+});
+
+/**
+ * Checks to see if video exists
+ * @param {Object} songs Songs to be potentially removed
+ * @param {Object} inds Count of indexes to be removed
+ * @param {Object} i Counter
+ * @param {Integer} j Counter
+ * @param {Object} callback Callback to leave async function
+ */
+function cleanupYt(songs, inds, i, j, callback) {
+  if (songs.length == i) {
+    callback();
+    return;
+  }
+  if (songs[i].type == 'yt') {
+    https.get('https://www.youtube.com/oembed?format=json&url=http://www.youtube.com/watch?v=' + songs[i].id, (resp) => {
+      let data = '';
+
+      resp.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      resp.on('end', () => {
+        if (data === 'Not Found' || data === 'Unauthorized') {
+          console.log('rip');
+          inds[j] = i;
+          j++;
+        }
+        cleanupYt(songs, inds, i + 1, j, callback);
+      });
+    });
+  } else {
+    cleanupYt(songs, inds, i + 1, j, callback);
+  }
+}
+
+app.post('/api/adddelete', (req, res) => {
+  console.log(req.body);
+  console.log(req.body['name']);
+  if (req.session.discord_id === undefined) {
+    res.send(null);
+    return;
+  }
+  const deleted = req.body;
+  db.getUserById(req.session.discord_id, (results) => {
+    if (results === null) {
+      console.log('failed to locate user');
+      res.send(null);
+    } else {
+      const user = results.rows[0];
+      if (user.deletes === null) user.deletes = [];
+      let found = -1;
+      for (let i = 0; i < user.deletes.length; i++) {
+        if (user.deletes[i].name === req.body['name']) {
+          found = i;
+        }
+      }
+      if (found === -1) {
+        const add = {};
+        add['name'] = req.body['name'];
+        add['songs'] = req.body['songs'];
+        user.deletes = user.deletes.concat(add);
+      } else {
+        user.deletes[found].songs = user.deletes[found].songs.concat(req.body['songs']);
+      }
+      console.log(user.deletes);
+      db.updateUserDeleted(user.discord_id, user.deletes, (boo) => {
+        if (!boo) {
+          console.log('failed to update user deleted');
+          res.send(null);
+        } else {
+          console.log('succeeded in updating user deleted');
+          res.send(true);
+        }
       });
     }
   });

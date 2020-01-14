@@ -110,6 +110,29 @@ function updateUser(username, discordId, status, auth, discordUsername, passHash
 }
 
 /**
+ * Updates list of songs that were cleaned up
+ * @param {String} discordId Discord ID of the user
+ * @param {Object} deletes The value to be updated
+ * @param {Object} callback Callback to leave the function
+ */
+function updateUserDeleted(discordId, deletes, callback) {
+  const queryConfig = {
+    text: 'UPDATE users SET deletes = ($1) WHERE discord_id = ($2)',
+    values: [deletes, discordId],
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in updateUserDeleted');
+      callback(false);
+    } else {
+      console.log('SUCCESS in updateUserDeleted');
+      callback(true);
+    }
+  });
+}
+
+/**
  * Add a new session to the database.
  * @param {String} sid Session id
  * @param {String} username Username for the frontend portal
@@ -263,6 +286,7 @@ module.exports = {
   getUserById: getUserById,
   getUserByUsername: getUserByUsername,
   updateUser: updateUser,
+  updateUserDeleted: updateUserDeleted,
   addSession: addSession,
   getSession: getSession,
   updateSession: updateSession,

@@ -1,0 +1,46 @@
+<script src="../js/delete_script.js"></script>
+<link rel="stylesheet" href="../css/playlist_styles.css">
+<div id="wrapper" class="container text-center">
+	<div id="header">
+		<div class="container">
+			<h3 id="name" class="title">{{name}}</h3>
+		</div>
+		<hr>
+	</div>
+	<div id="delete-header"class="container">
+		<h4>Deleted Songs</h4>
+	</div>
+	<div id="songs" class="container">
+		<div class="container">
+			<div class="container">
+				{{#if empty}}
+				<div id="empty" class="text-center">Playlist is empty</div>
+				{{else}}
+				{{#each deletes}}
+				<div class="song row">
+					<div class="col-lg-4 div-sel-img">
+						<img data-url="{{this.url}}" data-title="{{this.title}}"
+							data-length="{{this.length}}" data-id="{{this.id}}" data-type="{{this.type}}"
+							data-thumbnail="{{this.thumbnail}}" data-channel="{{this.channel}}" src={{this.thumbnail}}>
+					</div>
+					<div class="col-lg-8 song-info-div">
+						<p class="song-info-p">
+							<b>{{this.title}}</b> - {{this.length}}<br />
+							Channel: {{this.channel}}
+						</p>
+					</div>
+				</div>
+				{{/each}}
+				{{/if}}
+			</div>
+		</div>
+	</div>
+</div>
+<footer>
+  <div class="container text-center">
+    <div class="container">
+      <a class="btn btn-primary mb-2" href="/home">Home</a>
+      <a class="btn btn-primary mb-2" href="/playlist?name={{name}}">Back to Playlist</a>
+    </div>
+  </div>
+</footer>

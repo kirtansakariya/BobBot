@@ -27,7 +27,8 @@
                 <label class="form-check-label">Select all</label>
               </div>
               <div class="col-lg-8 text-right">
-                <button class="btn btn-primary" onclick="deleteSelected()">Delete Selected</button>
+                <button id="cleanup" class="btn btn-primary" onclick="cleanup()">Cleanup</button>
+                <button id="delete" class="btn btn-primary" onclick="deleteSelected()">Delete Selected</button>
               </div>
             </div>
           </div>
@@ -95,6 +96,7 @@
   <div class="container text-center">
     <div class="container">
       <a class="btn btn-primary mb-2" href="/home">Home</a>
+      <a class="btn btn-primary mb-2" href="/playlist/deletes?name={{name}}">Deletes</a>
     </div>
   </div>
 </footer>
