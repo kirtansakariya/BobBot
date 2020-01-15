@@ -606,8 +606,29 @@ function nextSong(message) {
       message.channel.send(decode('Problem with song: ' + current.title + ' url: ' + current.url));
       nextSong(message);
     });
-    message.channel.send(decode('Playing song: `' + current.title + '` [' + current.length
-      + '] req by ' + current.player));
+    // message.channel.send(decode('Playing song: `' + current.title + '` [' + current.length
+    //   + '] req by ' + current.player));
+    db.getMessage(message.channel.guild.id, (results) => {
+      if (results === null) {
+      } else if (results.rows.length === 0) {
+        const mes = decode('Playing song: `' + current.title + '` [' + current.length + '] req by ' + current.player);
+        message.channel.send(mes).then((m) => {
+          m.pin();
+          db.addMessage(m.id, message.channel.guild.id, (boo) => {
+            if (boo) {
+              console.log('successful return from addMessage call');
+            } else {
+              console.log('unsuccessful return from addMessage call');
+            }
+          });
+        });
+      } else {
+        const mes = decode('Playing song: `' + current.title + '` [' + current.length + '] req by ' + current.player);
+        message.channel.messages.fetch(results.rows[0].message_id).then((msg) => {
+          msg.edit(mes);
+        });
+      }
+    });
   }).catch(console.log);
 }
 

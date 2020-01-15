@@ -281,6 +281,51 @@ function updateQueue(id, queue, callback) {
   });
 }
 
+/**
+ * Adds a pinned message
+ * @param {String} messageId ID of the message
+ * @param {String} serverId Server ID to associate the message with
+ * @param {Object} callback Callback to leave the function
+ */
+function addMessage(messageId, serverId, callback) {
+  const queryConfig = {
+    text: 'INSERT INTO messages(message_id, server_id) VALUES($1, $2)',
+    values: [messageId, serverId],
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in addMessage');
+      callback(false);
+    } else {
+      console.log('SUCCESS in addMessage');
+      callback(true);
+    }
+  });
+}
+
+/**
+ * Gets the message id for a pinned message if it exists
+ * @param {String} serverId ID for the server where the pinned message is
+ * @param {Object} callback Callback to leave the function
+ */
+function getMessage(serverId, callback) {
+  const queryConfig = {
+    text: 'SELECT * FROM messages WHERE server_id = ($1)',
+    values: [serverId],
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in getMessage');
+      callback(null);
+    } else {
+      console.log('SUCCESS in getMessage');
+      callback(results);
+    }
+  });
+}
+
 module.exports = {
   addUser: addUser,
   getUserById: getUserById,
@@ -293,4 +338,6 @@ module.exports = {
   getQueue: getQueue,
   addQueue: addQueue,
   updateQueue: updateQueue,
+  addMessage: addMessage,
+  getMessage: getMessage,
 };
