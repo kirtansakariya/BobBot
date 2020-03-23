@@ -197,13 +197,12 @@ function addYoutube(u, arr, page, callback) {
  */
 function parseList(arr, store, discordId, username, callback) {
   console.log('parseList');
-  const temp = arr.shift();
-  // console.log(temp);
-  // console.log(temp.id);
-  if (temp === undefined) {
+  ids = arr.splice(0, 50).map((song) => song.id);
+  idsJoined = ids.join();
+  if (ids === undefined || ids.length === 0) {
     callback();
   } else {
-    https.get('https://content.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=' + temp.id + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
+    https.get('https://content.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=' + idsJoined + '&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
       let data = '';
 
       resp.on('data', (chunk) => {
@@ -212,24 +211,30 @@ function parseList(arr, store, discordId, username, callback) {
 
       resp.on('end', () => {
         const parsed = JSON.parse(data);
-        // console.log(parsed);
-        const mom = moment.duration(parsed.items[0].contentDetails.duration);
-        const seconds = mom.asSeconds() % 60;
-        const minutes = Math.floor(mom.asSeconds() / 60);
-        const channel = parsed.items[0].snippet.channelTitle;
-        const tempYoutube = new Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds), discordId, username, temp.thumbnail, channel);
-        let allowed = undefined;
-        let blocked = undefined;
-        if (parsed.items[0].contentDetails.regionRestriction !== undefined) {
-          allowed = parsed.items[0].contentDetails.regionRestriction.allowed;
-          blocked = parsed.items[0].contentDetails.regionRestriction.blocked;
-        }
-        if (allowed !== undefined && !allowed.includes('US')) {
-          // console.log(temp.title + ' not allowed');
-        } else if (blocked !== undefined && blocked.includes('US')) {
-          // console.log(temp.title + ' not allowed');
-        } else {
-          store.push(tempYoutube);
+        for (let i = 0; i < parsed.items.length; i++) {
+          const temp = {
+            'id': parsed.items[i].id,
+            'title': parsed.items[i].snippet.title,
+            'thumbnail': parsed.items[i].snippet.thumbnails.medium.url,
+          };
+          const mom = moment.duration(parsed.items[i].contentDetails.duration);
+          const seconds = mom.asSeconds() % 60;
+          const minutes = Math.floor(mom.asSeconds() / 60);
+          const channel = parsed.items[i].snippet.channelTitle;
+          const tempYoutube = new Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds), discordId, username, temp.thumbnail, channel);
+          let allowed = undefined;
+          let blocked = undefined;
+          if (parsed.items[0].contentDetails.regionRestriction !== undefined) {
+            allowed = parsed.items[0].contentDetails.regionRestriction.allowed;
+            blocked = parsed.items[0].contentDetails.regionRestriction.blocked;
+          }
+          if (allowed !== undefined && !allowed.includes('US')) {
+            // console.log(temp.title + ' not allowed');
+          } else if (blocked !== undefined && blocked.includes('US')) {
+            // console.log(temp.title + ' not allowed');
+          } else {
+            store.push(tempYoutube);
+          }
         }
         if (arr.length === 0) {
           callback();
