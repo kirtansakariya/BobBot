@@ -138,7 +138,7 @@ function link(query) {
   const request = makeRequest('GET', '/api/urlsongs?query=' + encodeURIComponent(query));
   request.send();
   request.onload = () => {
-    console.log(responseText);
+    console.log(request.responseText);
     const data = JSON.parse(request.responseText);
     // console.log(data.songs);
     if (data.songs.length === 0) {
