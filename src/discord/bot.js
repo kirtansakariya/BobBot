@@ -597,12 +597,16 @@ function nextSong(message) {
     // console.log('post stream log');
     current = song;
     dispatcher = connection.play(song.getStream());
-    dispatcher.on('end', () => nextSong(message));
-    dispatcher.on('error', () => {
+    dispatcher.on('finished', () => nextSong(message));
+    dispatcher.on('error', (err) => {
+      console.log('printing dispatcher error');
+      console.log(err);
       message.channel.send(decode('Problem with song: ' + current.title + ' url: ' + current.url));
       nextSong(message);
     });
-    connection.on('error', () => {
+    connection.on('error', (err) => {
+      console.log('printing connection error');
+      console.log(err);
       message.channel.send(decode('Problem with song: ' + current.title + ' url: ' + current.url));
       nextSong(message);
     });
