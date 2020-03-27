@@ -597,7 +597,7 @@ function nextSong(message) {
     // console.log('post stream log');
     current = song;
     dispatcher = connection.play(song.getStream());
-    dispatcher.on('finished', () => nextSong(message));
+    dispatcher.on('finish', () => nextSong(message));
     dispatcher.on('error', (err) => {
       console.log('printing dispatcher error');
       console.log(err);
