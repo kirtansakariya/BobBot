@@ -16,6 +16,7 @@ let dispatcher = null;
 let current = null;
 const searches = {};
 let interval = null;
+let decibel = 0;
 
 // bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
 
@@ -264,6 +265,27 @@ bot.on('message', (message) => {
         } else {
           // console.log(current);
           message.channel.send(decode('`' + current.title + '` [' + current.length + '] req by ' + current.player));
+        }
+        break;
+      case 'deci':
+        console.log('in deci case');
+        const deci = Number.parseInt(args[args.length - 1]);
+        if (dispatcher === null) {
+          message.channel.send("No songs currently playing so cannot set volume");
+        } else if (!isNaN(deci)) {
+          decibel = deci;
+          dispatcher.setVolumeDecibels(deci);
+          message.channel.send("Volume of " + deci + " decibels has been set");
+        } else {
+          message.channel.send("Please provide a number value");
+        }
+        break;
+      case 'currDeci':
+        if (dispatcher === null) {
+          message.channel.send("No songs currently playing so cannot get volume");
+        } else {
+          const deci = dispatcher.volumeDecibels;
+          message.channel.send("Current volume is " + deci + " decibels");
         }
         break;
       case 'front':
@@ -597,6 +619,7 @@ function nextSong(message) {
     // console.log('post stream log');
     current = song;
     dispatcher = connection.play(song.getStream());
+    dispatcher.setVolumeDecibels(decibel);
     dispatcher.on('finish', () => nextSong(message));
     dispatcher.on('error', (err) => {
       console.log('printing dispatcher error');
