@@ -24,6 +24,9 @@ bot.on('ready', function(evt) {
   bot.user.setActivity(';commands').then((presence) => {
     console.log('setting activity');
   }).catch(console.error);
+  bot.user.setAvatar('./src/img/bobbot-avatar.jpg').then((user) => {
+    console.log('New avatar set');
+  }).catch(console.error);
   console.log('BobBot is ready');
   console.log('loading queue');
   db.getQueue((results) => {
