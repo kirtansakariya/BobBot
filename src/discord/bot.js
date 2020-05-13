@@ -589,6 +589,7 @@ function getDJ(displayName, id) {
  */
 function nextSong(message) {
   console.log('nextSong');
+  updateQueue(getQueue());
   current = null;
   // console.log(message);
   // console.log(message.member.voice.channel);
@@ -757,6 +758,7 @@ function updateQueue(q) {
       db.updateQueue(results.rows[0].id, q, (boo) => {
         if (!boo) {
           console.log('updateQueue failed');
+          console.log(boo);
           return;
         } else {
           console.log('updateQueue succeeded');
