@@ -327,6 +327,25 @@ function getMessage(serverId, callback) {
   });
 }
 
+function updateMessage(messageId, serverId, callback) {
+  const queryConfig = {
+    text: 'UPDATE messages SET message_id = ($2) WHERE server_id = ($1)',
+    values: [serverId, messageId],
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in updateMessage');
+      // console.log(error);
+      callback(false);
+    } else {
+      console.log('SUCCESS in updateMessage');
+      // console.log(results);
+      callback(true);
+    }
+  });
+}
+
 module.exports = {
   addUser: addUser,
   getUserById: getUserById,
@@ -341,4 +360,5 @@ module.exports = {
   updateQueue: updateQueue,
   addMessage: addMessage,
   getMessage: getMessage,
+  updateMessage: updateMessage,
 };

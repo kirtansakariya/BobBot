@@ -17,6 +17,7 @@ let current = null;
 const searches = {};
 let interval = null;
 let decibel = 0;
+let tts = false;
 
 // bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
 
@@ -491,6 +492,14 @@ bot.on('message', (message) => {
         console.log('in tiny case');
         message.channel.send('Dong?');
         break;
+      case 'tts':
+        tts = !tts;
+        if (tts) {
+          message.channel.send("tts is on");
+        } else {
+          message.channel.send("tts is off");
+        }
+        break;
       case 'youtube':
       case 'yt':
         console.log('in youtube case');
@@ -536,7 +545,7 @@ bot.on('message', (message) => {
         break;
     }
   }
-  updateQueue(getQueue());
+  // updateQueue(getQueue());
 });
 
 /**
@@ -640,8 +649,12 @@ function nextSong(message) {
     // message.channel.send(decode('Playing song: `' + current.title + '` [' + current.length
     //   + '] req by ' + current.player));
     db.getMessage(message.channel.guild.id, (results) => {
+      console.log("results");
+      console.log(results);
       if (results === null) {
+        console.log("first");
       } else if (results.rows.length === 0) {
+        console.log("second");
         const mes = decode('Playing song: `' + current.title + '` [' + current.length + '] req by ' + current.player);
         message.channel.send(mes).then((m) => {
           m.pin();
@@ -652,12 +665,29 @@ function nextSong(message) {
               console.log('unsuccessful return from addMessage call');
             }
           });
-        });
+        }).catch(console.log);
+        message.channel.send(mes, {tts: tts});
       } else {
+        console.log("third");
         const mes = decode('Playing song: `' + current.title + '` [' + current.length + '] req by ' + current.player);
         message.channel.messages.fetch(results.rows[0].message_id).then((msg) => {
           msg.edit(mes);
+        }).catch((err) => {
+          console.log('err 1');
+          console.log(err);
+          message.channel.send(mes).then((m) => {
+            m.pin();
+            console.log('pinning1');
+            db.updateMessage(m.id, message.channel.guild.id, (boo) => {
+              if (boo) {
+                console.log('successful return from updateMessage call');
+              } else {
+                console.log('unsuccessful return from updateMessage call');
+              }
+            })
+          })
         });
+        message.channel.send(mes, {tts: tts});
       }
     });
   }).catch(console.log);
