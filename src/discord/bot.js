@@ -24,16 +24,20 @@ let tts = false;
 bot.on('ready', function(evt) {
   bot.user.setActivity(';commands').then((presence) => {
     console.log('setting activity');
+    // db.getQueue((results) => {
+    //   console.log(results.rows[0]);
+    //   initQueue(results);
+    // });
   }).catch(console.error);
-  bot.user.setAvatar('./src/img/bobbot-avatar.jpg').then((user) => {
-    console.log('New avatar set');
-  }).catch(console.error);
+  // bot.user.setAvatar('./src/img/bobbot-avatar.jpg').then((user) => {
+  //   console.log('New avatar set');
+  // }).catch(console.error);
   console.log('BobBot is ready');
   console.log('loading queue');
-  db.getQueue((results) => {
-    console.log(results.rows[0]);
-    initQueue(results);
-  });
+  // db.getQueue((results) => {
+  //   console.log(results.rows[0]);
+  //   initQueue(results);
+  // });
 });
 
 bot.on('message', (message) => {
@@ -598,7 +602,7 @@ function getDJ(displayName, id) {
  */
 function nextSong(message) {
   console.log('nextSong');
-  updateQueue(getQueue());
+  // updateQueue(getQueue(), message.channel.guild.id);
   current = null;
   // console.log(message);
   // console.log(message.member.voice.channel);
@@ -649,8 +653,8 @@ function nextSong(message) {
     // message.channel.send(decode('Playing song: `' + current.title + '` [' + current.length
     //   + '] req by ' + current.player));
     db.getMessage(message.channel.guild.id, (results) => {
-      console.log("results");
-      console.log(results);
+      // console.log("results");
+      // console.log(results);
       if (results === null) {
         console.log("first");
       } else if (results.rows.length === 0) {
@@ -666,7 +670,9 @@ function nextSong(message) {
             }
           });
         }).catch(console.log);
-        message.channel.send(mes, {tts: tts});
+        if (tts) {
+          message.channel.send(mes, {tts: true});
+        }
       } else {
         console.log("third");
         const mes = decode('Playing song: `' + current.title + '` [' + current.length + '] req by ' + current.player);
@@ -687,7 +693,9 @@ function nextSong(message) {
             })
           })
         });
-        message.channel.send(mes, {tts: tts});
+        if (tts) {
+          message.channel.send(mes, {tts: true});
+        }
       }
     });
   }).catch(console.log);
@@ -768,34 +776,37 @@ function initQueue(results) {
  * Adds the queue to the DB
  * @param {Object} q Queue to update
  */
-function updateQueue(q) {
-  db.getQueue((results) => {
-    if (results === null) {
-      console.log('could not add queue');
-      return;
-    } else if (results.rows.length === 0) {
-      console.log('no rows');
-      db.addQueue(q, (boo) => {
-        if (!boo) {
-          console.log('addQueue failed');
-          return;
-        } else {
-          console.log('addQueue succeeded');
-          return;
-        }
-      });
-    } else {
-      db.updateQueue(results.rows[0].id, q, (boo) => {
-        if (!boo) {
-          console.log('updateQueue failed');
-          console.log(boo);
-          return;
-        } else {
-          console.log('updateQueue succeeded');
-          return;
-        }
-      });
-    }
+function updateQueue(q, gid) {
+  // db.getQueue((results) => {
+  //   if (results === null) {
+  //     console.log('could not add queue');
+  //     return;
+  //   } else if (results.rows.length === 0) {
+  //     console.log('no rows');
+  //     db.addQueue(q, (boo) => {
+  //       if (!boo) {
+  //         console.log('addQueue failed');
+  //         return;
+  //       } else {
+  //         console.log('addQueue succeeded');
+  //         return;
+  //       }
+  //     });
+  //   } else {
+  //     db.updateQueue(results.rows[0].id, q, (boo) => {
+  //       if (!boo) {
+  //         console.log('updateQueue failed');
+  //         console.log(boo);
+  //         return;
+  //       } else {
+  //         console.log('updateQueue succeeded');
+  //         return;
+  //       }
+  //     });
+  //   }
+  // });
+  db.getQueue(gid, (results) => {
+    console.log(results);
   });
 }
 

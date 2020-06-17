@@ -1,9 +1,16 @@
 const pg = require('pg');
 
+// const client = new pg.Client({
+//   connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../auth.json').db_url),
+//   ssl: true,
+//   rejectUnauthorized: true,
+// });
+
 const client = new pg.Client({
   connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../auth.json').db_url),
-  ssl: true,
-  rejectUnauthorized: true,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 client.connect();
@@ -209,23 +216,25 @@ function updateSession(forgot, sid, callback) {
 
 /**
  * Gets the current queue
+ * @param {Number} gid Guild id
  * @param {Object} callback Callback to leave the function
  */
-function getQueue(callback) {
+function getQueue(gid, callback) {
   const queryConfig = {
-    text: 'SELECT * FROM queues',
+    text: 'SELECT data FROM queues where id = $1',
+    values: [gid],
   };
 
-  // console.log('getting queue');
+  console.log('getting queue');
 
   client.query(queryConfig, (error, results) => {
     if (error) {
       console.log('ERROR in getQueue');
-      // console.log(error);
+      console.log(error);
       callback(null);
     } else {
       console.log('SUCCESS in getQueue');
-      // console.log(results);
+      console.log(results);
       callback(results);
     }
   });
