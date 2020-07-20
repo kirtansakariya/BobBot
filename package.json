@@ -23,7 +23,7 @@
     "moment": "^2.24.0",
     "node-opus": "^0.3.3",
     "opusscript": "0.0.6",
-    "pg": "^8.1.0",
+    "pg": "^7.14.0",
     "sodium": "^3.0.2",
     "unescape": "^1.0.1",
     "utf-8-validate": "^5.0.2",

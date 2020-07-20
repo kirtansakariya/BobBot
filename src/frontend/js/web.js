@@ -601,6 +601,7 @@ function cleanupYt(songs, inds, i, j, callback) {
 
       resp.on('end', () => {
         if (data === 'Not Found' || data === 'Unauthorized') {
+          console.log(data);
           console.log('rip');
           inds[j] = i;
           j++;

@@ -9,7 +9,7 @@ const pg = require('pg');
 const client = new pg.Client({
   connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../auth.json').db_url),
   ssl: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   }
 });
 
