@@ -9,6 +9,7 @@ const Youtube = require('./Youtube');
 const db = require('../database/db');
 const https = require('https');
 const decode = require('unescape');
+const e = require('express');
 const djs = [];
 const front = {};
 const removeHelp = {};
