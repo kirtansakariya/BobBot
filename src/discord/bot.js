@@ -34,10 +34,6 @@ bot.on('ready', function(evt) {
   // }).catch(console.error);
   console.log('BobBot is ready');
   console.log('loading queue');
-  // db.getQueue((results) => {
-  //   console.log(results.rows[0]);
-  //   initQueue(results);
-  // });
 });
 
 bot.on('message', (message) => {
@@ -306,6 +302,14 @@ bot.on('message', (message) => {
         // console.log('\n\n\n');
         message.channel.send(message.member.displayName + '\'s songs will now be added to the ' + ((front[iden]) ? 'front' : 'end') + ' of their queue');
         break;
+      case 'load':
+        console.log('in load case');
+        db.getQueue(message.channel.guild.id, (results) => {
+          console.log("---------------------------------------------------------");
+          console.log(results.rows[0]);
+          initQueue(results);
+        });
+        break;
       case 'pause':
       case 'p':
         console.log('in pause case');
@@ -549,7 +553,7 @@ bot.on('message', (message) => {
         break;
     }
   }
-  // updateQueue(getQueue());
+  updateQueue(getQueue(), message.channel.guild.id);
 });
 
 /**
@@ -805,8 +809,21 @@ function updateQueue(q, gid) {
   //     });
   //   }
   // });
+  console.log(gid);
   db.getQueue(gid, (results) => {
-    console.log(results);
+    console.log("results from getQueue");
+    console.log(results.rows);
+    if (results.rows.length === 0) {
+      db.addQueue(gid, q, (boo) => {
+        console.log('adding queue');
+        console.log(boo);
+      });
+    } else {
+      db.updateQueue(gid, q, (boo) => {
+        console.log('updating queue');
+        console.log(boo);
+      });
+    }
   });
 }
 

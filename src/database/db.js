@@ -221,7 +221,7 @@ function updateSession(forgot, sid, callback) {
  */
 function getQueue(gid, callback) {
   const queryConfig = {
-    text: 'SELECT data FROM queues where id = $1',
+    text: 'SELECT data FROM queues where gid = $1',
     values: [gid],
   };
 
@@ -242,13 +242,14 @@ function getQueue(gid, callback) {
 
 /**
  * Adds the queue to the table
+ * @param {Number} gid Guild id
  * @param {Object} queue Queue to add
  * @param {Object} callback Callback to leave the function
  */
-function addQueue(queue, callback) {
+function addQueue(gid, queue, callback) {
   const queryConfig = {
-    text: 'INSERT INTO queues(data) VALUES($1);',
-    values: [queue],
+    text: 'INSERT INTO queues(gid, data) VALUES($1, $2);',
+    values: [gid, queue],
   };
 
   client.query(queryConfig, (error, results) => {
@@ -266,14 +267,14 @@ function addQueue(queue, callback) {
 
 /**
  * Updates the queue in the table
- * @param {Number} id ID to update the queue at
+ * @param {Number} gid Guild id
  * @param {Object} queue Queue to be updated
  * @param {*} callback Callback to leave the function
  */
-function updateQueue(id, queue, callback) {
+function updateQueue(gid, queue, callback) {
   const queryConfig = {
-    text: 'UPDATE queues SET data = ($2) WHERE id = ($1)',
-    values: [id, queue],
+    text: 'UPDATE queues SET data = ($2) WHERE gid = ($1)',
+    values: [gid, queue],
   };
 
   // console.log(queue);
