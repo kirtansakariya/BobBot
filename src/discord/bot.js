@@ -553,7 +553,7 @@ bot.on('message', (message) => {
         break;
     }
   }
-  updateQueue(getQueue(), message.channel.guild.id);
+  // updateQueue(getQueue(), message.channel.guild.id);
 });
 
 /**
@@ -606,7 +606,7 @@ function getDJ(displayName, id) {
  */
 function nextSong(message) {
   console.log('nextSong');
-  // updateQueue(getQueue(), message.channel.guild.id);
+  updateQueue(getQueue(), message.channel.guild.id);
   current = null;
   // console.log(message);
   // console.log(message.member.voice.channel);
