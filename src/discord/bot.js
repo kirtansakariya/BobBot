@@ -109,12 +109,13 @@ bot.on('message', (message) => {
     }
     return;
   }
-  if (message.channel.name !== 'mute_this' && message.content[0] === ';') {
-    message.channel.send('Please type messages for the bot in `mute_this`');
-    return;
-  // } else if (message.channel.name === 'anime-pings') {
-  //   message.channel.send("hello");
-  } else if (message.channel.name === 'mute_this' && !message.author.bot) {
+  // if (message.channel.name !== 'mute_this' && message.content[0] === ';' && message.channel.name !== 'anime-changes') {
+  //   message.channel.send('Please type messages for the bot in `mute_this`');
+  //   return;
+  // // } else if (message.channel.name === 'anime-pings') {
+  // //   message.channel.send("hello");
+  // } else if (message.channel.name === 'mute_this' && !message.author.bot) {
+  if (message.channel.name === 'mute_this' && !message.author.bot) {
     if (searches[message.member.user.id] !== undefined) {
       const selection = Number.parseInt(message.content);
       // const name = ((message.member.nickname === null) ? message.member.user.username : message.member.nickname);
@@ -558,9 +559,91 @@ bot.on('message', (message) => {
     }
   } else if (message.channel.name === 'anime-pings' && !message.author.bot) {
     getUsersToNotify(message);
+  } else if (message.channel.name === 'anime-changes' && !message.author.bot) {
+    if (message.content.substring(0, 1) == ';') {
+      const mes = message.content.substring(1);
+      let splitted = mes.split('\n');
+      const command = splitted.shift();
+      // console.log(splitted);
+      // console.log(splitted.join('\n'));
+      switch(command) {
+        case 'add':
+          console.log('in add');
+          addItem(message, splitted.join('\n'));
+          break;
+        case 'update':
+          console.log('in update');
+          updateItem(message, splitted.join('\n'));
+          break;
+      }
+    }
+  } else if (message.content[0] === ';') {
+    message.channel.send('Please type messages for the bot in `mute_this`');
   }
   // updateQueue(getQueue(), message.channel.guild.id);
 });
+
+function updateItem(origMessage, mes) {
+  const channels = origMessage.member.guild.channels.cache.array();
+  let channel = null;
+  const firstLine = mes.split('\n')[0];
+  for (let i = 0; i < channels.length; i++) {
+    if (channels[i].type === 'text' && channels[i].name === 'anime') {
+      channel = channels[i];
+    }
+  }
+  channel.messages.fetch().then((messages) => {
+    // console.log(messages);
+    const arr = messages.array();
+    console.log('firstline: ' + firstLine);
+    console.log(mes);
+    let toUpdate = null;
+    for (let i = 0; i < arr.length; i++) {
+      console.log(arr[i].content);
+      if (arr[i].content.split('\n')[0] === '**' + firstLine + '**') toUpdate = arr[i];
+    }
+    if (toUpdate === null) {
+      origMessage.channel.send('Message with that heading does not exist, cannot update');
+    } else {
+      let formatted = mes.split('\n');
+      formatted[0] = '**' + formatted[0] + '**';
+      formatted = formatted.join('\n');
+      toUpdate.edit(formatted);
+    }
+  });
+}
+
+function addItem(origMessage, mes) {
+  console.log("in");
+  const channels = origMessage.member.guild.channels.cache.array();
+  let channel = null;
+  const firstLine = mes.split('\n')[0];
+  for (let i = 0; i < channels.length; i++) {
+    if (channels[i].type === 'text' && channels[i].name === 'anime') {
+      channel = channels[i];
+    }
+  }
+  channel.messages.fetch().then((messages) => {
+    // console.log(messages);
+    const arr = messages.array();
+    console.log('firstline: ' + firstLine);
+    console.log(mes);
+    let toAdd = true;
+    for (let i = 0; i < arr.length; i++) {
+      console.log(arr[i].content);
+      if (arr[i].content.split('\n')[0] === '**' + firstLine + '**') toAdd = false;
+    }
+    if (!toAdd) {
+      origMessage.channel.send('Message with that heading already exists, cannot add');
+    } else {
+      let formatted = mes.split('\n');
+      formatted[0] = '**' + formatted[0] + '**';
+      formatted = formatted.join('\n');
+      console.log(formatted);
+      channel.send(formatted);
+    }
+  });
+}
 
 function getUsersToNotify(mes) {
   const channels = mes.guild.channels.cache.array();
