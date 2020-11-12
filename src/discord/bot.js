@@ -231,13 +231,15 @@ bot.on('message', (message) => {
             message.channel.send('The queue is currently empty');
           } else if (pg === undefined) {
             const mes = parseQueue(q, 0, q.length);
-            message.channel.send(decode(mes));
+            // message.channel.send(decode(mes));
+            message.channel.send(mes);
           } else if (pg > 0 && ((pg - 1) * 10) < q.length) {
             // console.log(pg);
             const mes = parseQueue(q, ((pg - 1) * 10), q.length);
             // console.log(typeof(mes));
             // console.log(mes);
-            message.channel.send(decode(mes));
+            // message.channel.send(decode(mes));
+            message.channel.send(mes);
           } else {
             message.channel.send('Please enter a valid page number');
           }
@@ -555,6 +557,12 @@ bot.on('message', (message) => {
                     + '\n' + sc + '\n' + remove + '\n' + rmpl + '\n' + tiny + '\n' + yt;
           message.channel.send(mes);
           break;
+        case 'test':
+          const embed = new Discord.MessageEmbed();
+          embed.setTitle("Queue");
+          embed.addField('Page', "hi");
+          message.channel.send(embed).catch((err) => {console.log(err);});
+          break;
       }
     }
   } else if (message.channel.name === 'anime-pings' && !message.author.bot) {
@@ -871,6 +879,10 @@ function getQueue() {
 function parseQueue(q, p, l) {
   console.log('parseQueue');
   let message = '';
+  const embed = new Discord.MessageEmbed();
+  embed.setTitle("Queue");
+  // embed.addField('Page', "hi");
+  // message.channel.send(embed).catch((err) => {console.log(err);});
   // console.log('parse');
   // console.log(q);
   for (let i = 0; i < 10 && (p + i) < q.length; i++) {
@@ -880,9 +892,12 @@ function parseQueue(q, p, l) {
     }
     message += (p + i + 1) + '. `' + q[p + i].title + '` [' + q[p + i].length + '] req by ' + q[p + i].player + '\n';
   }
-  message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
-  console.log(message);
-  return message;
+  // message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
+  embed.addField('Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l, message);
+  // console.log(message);
+  // return message;
+  console.log(embed);
+  return embed;
 }
 
 /**
@@ -1050,7 +1065,9 @@ function ping() {
 function readPlaylist(member, name, callback) {
   console.log(member.user);
   console.log(name);
+  // console.log(0);
   db.getUserById(member.user.id, (results) => {
+    // console.log(1);
     const playlists = results.rows[0].playlists;
     for (let i = 0; i < playlists.length; i++) {
       console.log(i);

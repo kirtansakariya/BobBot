@@ -52,8 +52,10 @@ function getUserById(discordId, callback) {
     text: 'SELECT * FROM users WHERE discord_id = $1',
     values: [discordId],
   };
+  // console.log('in getUserById');
 
   client.query(queryConfig, (error, results) => {
+    // console.log('post query');
     if (error) {
       console.log('ERROR in getUserById');
       // console.log(error);
