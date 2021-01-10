@@ -6,11 +6,19 @@ const pg = require('pg');
 //   rejectUnauthorized: true,
 // });
 
+// const client = new pg.Client({
+//   connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../auth.json').db_url),
+//   ssl: {
+//     rejectUnauthorized: false,
+//   }
+// });
+
 const client = new pg.Client({
-  connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../auth.json').db_url),
-  ssl: {
-    rejectUnauthorized: false,
-  }
+  user: process.env.RDS_USERNAME,
+  host: process.env.RDS_HOSTNAME,
+  database: process.env.RDS_DATABASE,
+  password: process.env.RDS_PASSWORD,
+  port: process.env.RDS_PORT
 });
 
 client.connect();
