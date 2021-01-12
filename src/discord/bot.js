@@ -158,6 +158,90 @@ bot.on('message', (message) => {
       const cmd = args[0];
       args = args.splice(1);
       switch (cmd) {
+        case 'check':
+          console.log('in check case');
+          // console.log(message.member);
+          const id = message.member.user.id;
+          const stat = front[id];
+          if (stat === undefined || stat === false) {
+            message.channel.send(name + '\'s songs will be added to the end of their queue');
+          } else if (stat === true) {
+            message.channel.send(name + '\'s songs will be added to the front of their queue');
+          }
+          break;
+        case 'clean':
+          console.log('in clean case');
+          clean(function() {
+            // console.log('done cleaning, updating now');
+            // console.log(djs[0].songs);
+          });
+          break;
+        case 'current':
+        case 'curr':
+        case 'c':
+          console.log('in current case');
+          if (current == null) {
+            message.channel.send('No songs playing currently');
+          } else {
+            // console.log(current);
+            message.channel.send(decode('`' + current.title + '` [' + current.length + '] req by ' + current.player));
+          }
+          break;
+        case 'deci':
+          console.log('in deci case');
+          const deci = Number.parseInt(args[args.length - 1]);
+          if (dispatcher === null) {
+            message.channel.send("No songs currently playing so cannot set volume");
+          } else if (!isNaN(deci)) {
+            decibel = deci;
+            dispatcher.setVolumeDecibels(deci);
+            message.channel.send("Volume of " + deci + " decibels has been set");
+          } else {
+            message.channel.send("Please provide a number value");
+          }
+          break;
+        case 'currDeci':
+          if (dispatcher === null) {
+            message.channel.send("No songs currently playing so cannot get volume");
+          } else {
+            const deci = dispatcher.volumeDecibels;
+            message.channel.send("Current volume is " + deci + " decibels");
+          }
+          break;
+        case 'front':
+          console.log('in front case');
+          const iden = message.member.user.id;
+          front[iden] = !front[iden];
+          // console.log('\n\n\n');
+          // console.log(message.member);
+          // console.log(message.member.constructor.name);
+          // console.log('\n\n\n');
+          message.channel.send(message.member.displayName + '\'s songs will now be added to the ' + ((front[iden]) ? 'front' : 'end') + ' of their queue');
+          break;
+        case 'leave':
+          console.log('in leave case');
+          bot.voice.connections.get(bot.voice.connections.keys().next().value).disconnect();
+          current = null;
+          dispatcher = null;
+          clearInterval(interval);
+          break;
+        case 'load':
+          console.log('in load case');
+          db.getQueue(message.channel.guild.id, (results) => {
+            console.log("---------------------------------------------------------");
+            console.log(results.rows[0]);
+            initQueue(results);
+          });
+          break;
+        case 'pause':
+        case 'p':
+          console.log('in pause case');
+          if (dispatcher == null) {
+            message.channel.send('No songs playing currently');
+          } else {
+            dispatcher.pause();
+          }
+          break;
         case 'play':
           let start = -1;
           let toShuff = false;
@@ -207,18 +291,6 @@ bot.on('message', (message) => {
             });
           }
           break;
-        case 'start':
-          console.log('in start case');
-          if (dispatcher == null) nextSong(message);
-          interval = setInterval(ping, 1500000);
-          break;
-        case 'leave':
-          console.log('in leave case');
-          bot.voice.connections.get(bot.voice.connections.keys().next().value).disconnect();
-          current = null;
-          dispatcher = null;
-          clearInterval(interval);
-          break;
         case 'queue':
         case 'q':
           console.log('in queue case');
@@ -242,87 +314,6 @@ bot.on('message', (message) => {
             message.channel.send(mes);
           } else {
             message.channel.send('Please enter a valid page number');
-          }
-          break;
-        case 'check':
-          console.log('in check case');
-          // console.log(message.member);
-          const id = message.member.user.id;
-          const stat = front[id];
-          if (stat === undefined || stat === false) {
-            message.channel.send(name + '\'s songs will be added to the end of their queue');
-          } else if (stat === true) {
-            message.channel.send(name + '\'s songs will be added to the front of their queue');
-          }
-          break;
-        case 'clean':
-          console.log('in clean case');
-          clean(function() {
-            // console.log('done cleaning, updating now');
-            // console.log(djs[0].songs);
-          });
-          break;
-        case 'skip':
-          console.log('in skip case');
-          nextSong(message);
-          break;
-        case 'current':
-        case 'curr':
-        case 'c':
-          console.log('in current case');
-          if (current == null) {
-            message.channel.send('No songs playing currently');
-          } else {
-            // console.log(current);
-            message.channel.send(decode('`' + current.title + '` [' + current.length + '] req by ' + current.player));
-          }
-          break;
-        case 'deci':
-          console.log('in deci case');
-          const deci = Number.parseInt(args[args.length - 1]);
-          if (dispatcher === null) {
-            message.channel.send("No songs currently playing so cannot set volume");
-          } else if (!isNaN(deci)) {
-            decibel = deci;
-            dispatcher.setVolumeDecibels(deci);
-            message.channel.send("Volume of " + deci + " decibels has been set");
-          } else {
-            message.channel.send("Please provide a number value");
-          }
-          break;
-        case 'currDeci':
-          if (dispatcher === null) {
-            message.channel.send("No songs currently playing so cannot get volume");
-          } else {
-            const deci = dispatcher.volumeDecibels;
-            message.channel.send("Current volume is " + deci + " decibels");
-          }
-          break;
-        case 'front':
-          console.log('in front case');
-          const iden = message.member.user.id;
-          front[iden] = !front[iden];
-          // console.log('\n\n\n');
-          // console.log(message.member);
-          // console.log(message.member.constructor.name);
-          // console.log('\n\n\n');
-          message.channel.send(message.member.displayName + '\'s songs will now be added to the ' + ((front[iden]) ? 'front' : 'end') + ' of their queue');
-          break;
-        case 'load':
-          console.log('in load case');
-          db.getQueue(message.channel.guild.id, (results) => {
-            console.log("---------------------------------------------------------");
-            console.log(results.rows[0]);
-            initQueue(results);
-          });
-          break;
-        case 'pause':
-        case 'p':
-          console.log('in pause case');
-          if (dispatcher == null) {
-            message.channel.send('No songs playing currently');
-          } else {
-            dispatcher.pause();
           }
           break;
         case 'queuePlayer':
@@ -405,6 +396,10 @@ bot.on('message', (message) => {
             message.channel.send(message.member.displayName + '\'s songs have been shuffled');
           }
           break;
+        case 'skip':
+          console.log('in skip case');
+          nextSong(message);
+          break;
         case 'soundcloud':
         case 'sc':
           console.log('in soundcloud case');
@@ -424,6 +419,11 @@ bot.on('message', (message) => {
             });
             // console.log(str);
           }
+          break;
+        case 'start':
+          console.log('in start case');
+          if (dispatcher == null) nextSong(message);
+          interval = setInterval(ping, 1500000);
           break;
         case 'playlist':
         case 'plist':
