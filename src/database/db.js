@@ -366,6 +366,12 @@ function updateMessage(messageId, serverId, callback) {
   });
 }
 
+function getManga() {
+  const queryConfig ={
+    text: 'SELECT * FROM manga'
+  };
+}
+
 module.exports = {
   addUser: addUser,
   getUserById: getUserById,
