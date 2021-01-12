@@ -10,6 +10,7 @@ const db = require('../database/db');
 const https = require('https');
 const decode = require('unescape');
 const e = require('express');
+const CronJob = require('cron').CronJob;
 const Parser = require('rss-parser');
 const parser = new Parser();
 const djs = [];
@@ -21,6 +22,7 @@ const searches = {};
 let interval = null;
 let decibel = 0;
 let tts = false;
+let cronJob = null;
 let lastManga = null;
 
 // bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
@@ -218,6 +220,14 @@ bot.on('message', (message) => {
             message.channel.send(decode('`' + current.title + '` [' + current.length + '] req by ' + current.player));
           }
           break;
+        case 'currDeci':
+          if (dispatcher === null) {
+            message.channel.send("No songs currently playing so cannot get volume");
+          } else {
+            const deci = dispatcher.volumeDecibels;
+            message.channel.send("Current volume is " + deci + " decibels");
+          }
+          break;
         case 'deci':
           console.log('in deci case');
           const deci = Number.parseInt(args[args.length - 1]);
@@ -229,14 +239,6 @@ bot.on('message', (message) => {
             message.channel.send("Volume of " + deci + " decibels has been set");
           } else {
             message.channel.send("Please provide a number value");
-          }
-          break;
-        case 'currDeci':
-          if (dispatcher === null) {
-            message.channel.send("No songs currently playing so cannot get volume");
-          } else {
-            const deci = dispatcher.volumeDecibels;
-            message.channel.send("Current volume is " + deci + " decibels");
           }
           break;
         case 'front':
@@ -322,6 +324,36 @@ bot.on('message', (message) => {
             });
           }
           break;
+        case 'playlist':
+        case 'plist':
+          let shuffPlaylist = false;
+          if (args[0] === 'shuffle') {
+            shuffPlaylist = true;
+            args = args.splice(1);
+          }
+          if (args.length === 0) {
+            message.channel.send('Please provide a playlist name.');
+          } else {
+            const name = args.join(' ');
+            const iden = message.member.user.id;
+            readPlaylist(message.member, name, (arr) => {
+              const dj = getDJ(message.member.displayName, message.member.user.id);
+              if (arr.length === 0) {
+                console.log('empty');
+                message.channel.send('Playlist was empty.');
+              } else {
+                console.log('not empty');
+                if (shuffPlaylist) arr = shuffle(arr);
+                if (front[iden] === true) {
+                  dj.songs.unshift(...arr);
+                } else {
+                  dj.songs.push(...arr);
+                }
+                message.channel.send('Added ' + arr.length + ' songs from the ' + name + ' playlist.');
+              }
+            });
+          }
+          break;
         case 'queue':
         case 'q':
           console.log('in queue case');
@@ -399,6 +431,53 @@ bot.on('message', (message) => {
             }
           }
           break;
+        case 'remove':
+        case 'rm':
+          console.log('in remove case');
+          if (args.length == 0) {
+            message.channel.send('Please provide the queue number(s) of the song(s) to remove');
+          } else {
+            const queue = getQueue();
+            const removed = removeElements(args, queue);
+            cleanUp();
+            let remMes = '';
+            for (let i = 0; i < removed.length; i++) {
+              remMes += removed[i][2] + '. ' + removed[i][1] + '\n';
+            }
+            for (let i = 0; i < djs.length; i++) {
+              if (djs[i].songs.length === 0) {
+                djs.splice(i, 1);
+                i--;
+              }
+            }
+            message.channel.send(decode('Removed the following songs:\n' + remMes));
+          }
+          break;
+        case 'removeplayer':
+        case 'removePlayer':
+        case 'removepl':
+        case 'removePl':
+        case 'rmplayer':
+        case 'remPlayer':
+        case 'rmpl':
+        case 'rmPl':
+          console.log('in removePlayer case');
+          // console.log(args);
+          if (args.length === 0) {
+            message.channel.send('Please provide the player\'s name');
+          } else {
+            const name = args.join(' ');
+            for (let i = 0; i < djs.length; i++) {
+              // console.log(djs[i].user);
+              // console.log((djs[i].user === name));
+              // console.log('name: ' + name);
+              if (djs[i].user === name) {
+                djs.splice(i, 1);
+                message.channel.send('Removing all songs that were added by ' + name);
+              }
+            }
+          }
+          break;
         case 'resume':
         case 're':
         case 'r':
@@ -456,82 +535,17 @@ bot.on('message', (message) => {
           if (dispatcher == null) nextSong(message);
           interval = setInterval(ping, 1500000);
           break;
-        case 'playlist':
-        case 'plist':
-          let shuffPlaylist = false;
-          if (args[0] === 'shuffle') {
-            shuffPlaylist = true;
-            args = args.splice(1);
-          }
-          if (args.length === 0) {
-            message.channel.send('Please provide a playlist name.');
-          } else {
-            const name = args.join(' ');
-            const iden = message.member.user.id;
-            readPlaylist(message.member, name, (arr) => {
-              const dj = getDJ(message.member.displayName, message.member.user.id);
-              if (arr.length === 0) {
-                console.log('empty');
-                message.channel.send('Playlist was empty.');
-              } else {
-                console.log('not empty');
-                if (shuffPlaylist) arr = shuffle(arr);
-                if (front[iden] === true) {
-                  dj.songs.unshift(...arr);
-                } else {
-                  dj.songs.push(...arr);
-                }
-                message.channel.send('Added ' + arr.length + ' songs from the ' + name + ' playlist.');
-              }
-            });
-          }
+        case 'startJob':
+        case 'startjob':
+        case 'startJ':
+        case 'startj':
+          cronJob.start();
           break;
-        case 'remove':
-        case 'rm':
-          console.log('in remove case');
-          if (args.length == 0) {
-            message.channel.send('Please provide the queue number(s) of the song(s) to remove');
-          } else {
-            const queue = getQueue();
-            const removed = removeElements(args, queue);
-            cleanUp();
-            let remMes = '';
-            for (let i = 0; i < removed.length; i++) {
-              remMes += removed[i][2] + '. ' + removed[i][1] + '\n';
-            }
-            for (let i = 0; i < djs.length; i++) {
-              if (djs[i].songs.length === 0) {
-                djs.splice(i, 1);
-                i--;
-              }
-            }
-            message.channel.send(decode('Removed the following songs:\n' + remMes));
-          }
-          break;
-        case 'removeplayer':
-        case 'removePlayer':
-        case 'removepl':
-        case 'removePl':
-        case 'rmplayer':
-        case 'remPlayer':
-        case 'rmpl':
-        case 'rmPl':
-          console.log('in removePlayer case');
-          // console.log(args);
-          if (args.length === 0) {
-            message.channel.send('Please provide the player\'s name');
-          } else {
-            const name = args.join(' ');
-            for (let i = 0; i < djs.length; i++) {
-              // console.log(djs[i].user);
-              // console.log((djs[i].user === name));
-              // console.log('name: ' + name);
-              if (djs[i].user === name) {
-                djs.splice(i, 1);
-                message.channel.send('Removing all songs that were added by ' + name);
-              }
-            }
-          }
+        case 'stopJob':
+        case 'stopjob':
+        case 'stopJ':
+        case 'stopj':
+          cronJob.stop();
           break;
         case 'tiny':
           console.log('in tiny case');
@@ -1124,6 +1138,7 @@ function readPlaylist(member, name, callback) {
 }
 
 function parseRssFeed() {
+  console.log('in parseRssFeed');
   const guild = getGuild('The Shower');
   // console.log(guild);
   if (guild === null) return;
@@ -1132,9 +1147,7 @@ function parseRssFeed() {
   parser.parseURL('https://www.mangaupdates.com/rss.php').then((feed) => {
     console.log(feed);
     db.getManga((results) => {
-      if (results === null) {
-        channel.send('No results at the moment, please try again later');
-      } else {
+      if (results !== null) {
         let msg = '';
         let mangaArr = [];
         let links = [];
@@ -1166,13 +1179,13 @@ function parseRssFeed() {
           msg += mangaArr[i] + '\n';
         }
 
-        if (msg.length === 0) {
-          channel.send('No new updates, please try again later');
-        } else {
+        if (msg.length !== 0) {
           channel.send(msg);
+        } else {
+          channel.send('No new updates, please try again later');
         }
       }
-    })
+    });
   });
 }
 
@@ -1187,10 +1200,16 @@ function getGuild(name) {
 function getChannel(guild) {
   const channels = guild.channels.cache.array();
   for (let i = 0; i < channels.length; i++) {
-    if (channels[i].name === 'manga-discussion') return channels[i];
+    if (channels[i].name === 'mute_this') return channels[i];
   }
   return null;
 }
+
+setTimeout(() => {
+  cronJob = new CronJob('*/15 * * * *', () => {
+    parseRssFeed();
+  }, console.log('job done'), true, null, null, true);
+}, 5000);
 
 module.exports = {
   bot: bot,

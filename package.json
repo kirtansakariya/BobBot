@@ -13,6 +13,7 @@
     "bufferutil": "^4.0.1",
     "connect-flash": "^0.1.1",
     "connect-pg-simple": "^6.1.0",
+    "cron": "^1.8.2",
     "discord.js": "^12.0.2",
     "erlpack": "github:discordapp/erlpack",
     "express": "^4.17.1",
