@@ -10,6 +10,8 @@ const db = require('../database/db');
 const https = require('https');
 const decode = require('unescape');
 const e = require('express');
+const Parser = require('rss-parser');
+const parser = new Parser();
 const djs = [];
 const front = {};
 const removeHelp = {};
@@ -19,6 +21,7 @@ const searches = {};
 let interval = null;
 let decibel = 0;
 let tts = false;
+let lastManga = null;
 
 // bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
 
@@ -158,6 +161,21 @@ bot.on('message', (message) => {
       const cmd = args[0];
       args = args.splice(1);
       switch (cmd) {
+        case 'add':
+          console.log('in add case');
+          if (args.length === 0) {
+            message.channel.send('Please provide a link');
+          } else {
+            db.addManga(args[0], (boo) => {
+              console.log(boo);
+              if (boo) {
+                message.channel.send('Successfully added manga');
+              } else {
+                message.channel.send('Something went wrong, please try again');
+              }
+            });
+          }
+          break;
         case 'check':
           console.log('in check case');
           // console.log(message.member);
@@ -169,12 +187,25 @@ bot.on('message', (message) => {
             message.channel.send(name + '\'s songs will be added to the front of their queue');
           }
           break;
+        case 'checkFeed':
+        case 'checkfeed':
+        case 'cF':
+        case 'cf':
+          parseRssFeed();
+          break;
         case 'clean':
           console.log('in clean case');
           clean(function() {
             // console.log('done cleaning, updating now');
             // console.log(djs[0].songs);
           });
+          break;
+        case 'clearFeed':
+        case 'clearfeed':
+        case 'clF':
+        case 'clf':
+          lastManga = null;
+          message.channel.send('Feed cleared');
           break;
         case 'current':
         case 'curr':
@@ -1090,6 +1121,75 @@ function readPlaylist(member, name, callback) {
     }
     callback([]);
   });
+}
+
+function parseRssFeed() {
+  const guild = getGuild('The Shower');
+  // console.log(guild);
+  if (guild === null) return;
+  const channel = getChannel(guild);
+  // console.log(channel);
+  parser.parseURL('https://www.mangaupdates.com/rss.php').then((feed) => {
+    console.log(feed);
+    db.getManga((results) => {
+      if (results === null) {
+        channel.send('No results at the moment, please try again later');
+      } else {
+        let msg = '';
+        let mangaArr = [];
+        let links = [];
+        let titles = [];
+
+        if (lastManga === null) {
+          links = feed.items.map((item) => item.link);
+          titles = feed.items.map((item) => item.title);
+          lastManga = titles[0];
+        } else {
+          const arrFeed = [];
+          for (let i = 0; i < feed.items.length; i++) {
+            if (feed.items[i].title === lastManga) break;
+            arrFeed.push(feed.items[i]);
+          }
+          links = arrFeed.map((item) => item.link);
+          titles = arrFeed.map((item) => item.title);
+          if (titles.length > 0) lastManga = titles[0];
+        }
+        console.log(links);
+        console.log(titles);
+
+        for (let i = 0; i < results.rows.length; i++) {
+          const idx = links.indexOf(results.rows[i].link);
+          if (idx !== -1) mangaArr.push(titles[idx]);
+        }
+
+        for (let i = 0; i < mangaArr.length; i++) {
+          msg += mangaArr[i] + '\n';
+        }
+
+        if (msg.length === 0) {
+          channel.send('No new updates, please try again later');
+        } else {
+          channel.send(msg);
+        }
+      }
+    })
+  });
+}
+
+function getGuild(name) {
+  const guilds = bot.guilds.cache.array();
+  for (let i = 0; i < guilds.length; i++) {
+    if (guilds[i].name === name) return guilds[i];
+  }
+  return null;
+}
+
+function getChannel(guild) {
+  const channels = guild.channels.cache.array();
+  for (let i = 0; i < channels.length; i++) {
+    if (channels[i].name === 'manga-discussion') return channels[i];
+  }
+  return null;
 }
 
 module.exports = {

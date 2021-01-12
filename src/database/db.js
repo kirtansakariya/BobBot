@@ -366,10 +366,39 @@ function updateMessage(messageId, serverId, callback) {
   });
 }
 
-function getManga() {
-  const queryConfig ={
+function getManga(callback) {
+  console.log('in getManga');
+  const queryConfig = {
     text: 'SELECT * FROM manga'
   };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in getManga');
+      callback(null);
+    } else {
+      console.log('SUCCESS in getManga');
+      callback(results);
+    }
+  })
+}
+
+function addManga(link, callback) {
+  console.log('in addManga');
+  const queryConfig = {
+    text: 'INSERT INTO manga(link) VALUES($1)',
+    values: [link],
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in addManga');
+      callback(false);
+    } else {
+      console.log('SUCCESS in addManga');
+      callback(true);
+    }
+  });
 }
 
 module.exports = {
@@ -387,4 +416,6 @@ module.exports = {
   addMessage: addMessage,
   getMessage: getMessage,
   updateMessage: updateMessage,
+  getManga: getManga,
+  addManga: addManga
 };
