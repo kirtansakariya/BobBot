@@ -18,9 +18,16 @@ const https = require('https');
 // const pg = require('pg');
 // let counter = 0;
 
+// const pgPool = new pg.Pool({
+//   connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../../auth.json').db_url),
+//   ssl: false,
+// });
+
 const pgPool = new pg.Pool({
-  connectionString: ((process.env.DATABASE_URL !== undefined) ? process.env.DATABASE_URL : require('../../../auth.json').db_url),
-  ssl: true,
+  host: process.env.RDS_HOSTNAME,
+  user: process.env.RDS_USERNAME,
+  password: process.env.RDS_PASSWORD,
+  database: process.env.RDS_DATABASE
 });
 
 // app.use(cookieSession({
