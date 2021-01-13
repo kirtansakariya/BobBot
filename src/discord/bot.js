@@ -1177,8 +1177,6 @@ function parseRssFeed() {
 
         if (msg.length !== 0) {
           channel.send(msg);
-        } else {
-          channel.send("Nothing atm");
         }
       }
     });
