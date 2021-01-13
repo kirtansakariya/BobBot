@@ -1181,8 +1181,6 @@ function parseRssFeed() {
 
         if (msg.length !== 0) {
           channel.send(msg);
-        } else {
-          channel.send('No new updates, please try again later');
         }
       }
     });
@@ -1200,7 +1198,7 @@ function getGuild(name) {
 function getChannel(guild) {
   const channels = guild.channels.cache.array();
   for (let i = 0; i < channels.length; i++) {
-    if (channels[i].name === 'mute_this') return channels[i];
+    if (channels[i].name === 'manga-discussion') return channels[i];
   }
   return null;
 }
