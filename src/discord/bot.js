@@ -163,19 +163,15 @@ bot.on('message', (message) => {
       const cmd = args[0];
       args = args.splice(1);
       switch (cmd) {
-        case 'add':
+        case 'addManga':
+        case 'addmanga':
+        case 'aM':
+        case 'am':
           console.log('in add case');
           if (args.length === 0) {
             message.channel.send('Please provide a link');
           } else {
-            db.addManga(args[0], (boo) => {
-              console.log(boo);
-              if (boo) {
-                message.channel.send('Successfully added manga');
-              } else {
-                message.channel.send('Something went wrong, please try again');
-              }
-            });
+            addManga(message, args[0]);
           }
           break;
         case 'check':
@@ -1203,11 +1199,36 @@ function getChannel(guild) {
   return null;
 }
 
-setTimeout(() => {
-  cronJob = new CronJob('*/15 * * * *', () => {
-    parseRssFeed();
-  }, console.log('job done'), true, null, null, true);
-}, 5000);
+// setTimeout(() => {
+//   cronJob = new CronJob('*/15 * * * *', () => {
+//     parseRssFeed();
+//   }, console.log('job done'), true, null, null, true);
+// }, 5000);
+
+function addManga(message, link) {
+  console.log('in addManga');
+  db.getManga((results) => {
+    if (results.rows === null) {
+      message.channel.send('Something went wrong, please try again');
+    } else {
+      console.log(results.rows);
+      const links = results.rows.map((item) => item.link);
+      console.log(links);
+      if (links.includes(link)) {
+        message.channel.send('Manga already in database');
+      } else {
+        db.addManga(link, (boo) => {
+          console.log(boo);
+          if (boo) {
+            message.channel.send('Successfully added manga');
+          } else {
+            message.channel.send('Something went wrong, please try again');
+          }
+        });
+      }
+    }
+  });
+}
 
 module.exports = {
   bot: bot,
