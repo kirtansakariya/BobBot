@@ -1177,6 +1177,8 @@ function parseRssFeed() {
 
         if (msg.length !== 0) {
           channel.send(msg);
+        } else {
+          channel.send("Nothing atm");
         }
       }
     });
@@ -1199,11 +1201,11 @@ function getChannel(guild) {
   return null;
 }
 
-// setTimeout(() => {
-//   cronJob = new CronJob('*/15 * * * *', () => {
-//     parseRssFeed();
-//   }, console.log('job done'), true, null, null, true);
-// }, 5000);
+setTimeout(() => {
+  cronJob = new CronJob('*/15 * * * *', () => {
+    parseRssFeed();
+  }, console.log('job done'), true, null, null, true);
+}, 5000);
 
 function addManga(message, link) {
   console.log('in addManga');
