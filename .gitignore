@@ -3,3 +3,4 @@
 /.vscode/*
 /nohup.out
 /test.js
+/queue.json

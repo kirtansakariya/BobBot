@@ -13,6 +13,7 @@ const e = require('express');
 const CronJob = require('cron').CronJob;
 const Parser = require('rss-parser');
 const parser = new Parser();
+const fs = require('fs');
 const djs = [];
 const front = {};
 const removeHelp = {};
@@ -34,6 +35,9 @@ bot.on('ready', function(evt) {
     //   console.log(results.rows[0]);
     //   initQueue(results);
     // });
+    const file = JSON.parse(fs.readFileSync(__dirname + '/../../queue.json', 'utf8'));
+    console.log(file);
+    initQueue(file);
   }).catch(console.error);
   // bot.user.setAvatar('./src/img/bobbot-avatar.jpg').then((user) => {
   //   console.log('New avatar set');
@@ -355,21 +359,15 @@ bot.on('message', (message) => {
           console.log('in queue case');
           const pg = args.shift();
           const q = getQueue();
-          // console.log(pg);
-          // console.log('final');
           console.log(q);
+          fs.writeFileSync(__dirname + '/../../queue.json', JSON.stringify(q));
           if (q.length === 0) {
             message.channel.send('The queue is currently empty');
           } else if (pg === undefined) {
             const mes = parseQueue(q, 0, q.length);
-            // message.channel.send(decode(mes));
             message.channel.send(mes);
           } else if (pg > 0 && ((pg - 1) * 10) < q.length) {
-            // console.log(pg);
             const mes = parseQueue(q, ((pg - 1) * 10), q.length);
-            // console.log(typeof(mes));
-            // console.log(mes);
-            // message.channel.send(decode(mes));
             message.channel.send(mes);
           } else {
             message.channel.send('Please enter a valid page number');
@@ -946,8 +944,10 @@ function parseQueue(q, p, l) {
  * @param {Object} results Results to parse through from getQueue query
  */
 function initQueue(results) {
-  if (results.rows.length === 0) return;
-  const q = results.rows[0].data;
+  // if (results.rows.length === 0) return;
+  // const q = results.rows[0].data;
+  if (JSON.stringify(results).length === 4) return;
+  const q = results;
   let dj = null;
   let song = null;
   for (let i = 0; i < q.length; i++) {
@@ -1199,11 +1199,11 @@ function getChannel(guild) {
   return null;
 }
 
-setTimeout(() => {
-  cronJob = new CronJob('*/15 * * * *', () => {
-    parseRssFeed();
-  }, console.log('job done'), true, null, null, true);
-}, 5000);
+// setTimeout(() => {
+//   cronJob = new CronJob('*/15 * * * *', () => {
+//     parseRssFeed();
+//   }, console.log('job done'), true, null, null, true);
+// }, 5000);
 
 function addManga(message, link) {
   console.log('in addManga');
