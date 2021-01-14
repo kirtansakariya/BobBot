@@ -357,21 +357,63 @@ bot.on('message', (message) => {
         case 'queue':
         case 'q':
           console.log('in queue case');
-          const pg = args.shift();
           const q = getQueue();
-          console.log(q);
-          fs.writeFileSync(__dirname + '/../../queue.json', JSON.stringify(q));
-          if (q.length === 0) {
-            message.channel.send('The queue is currently empty');
-          } else if (pg === undefined) {
-            const mes = parseQueue(q, 0, q.length);
-            message.channel.send(mes);
-          } else if (pg > 0 && ((pg - 1) * 10) < q.length) {
-            const mes = parseQueue(q, ((pg - 1) * 10), q.length);
-            message.channel.send(mes);
-          } else {
-            message.channel.send('Please enter a valid page number');
+          const parsed = parseQueue(q);
+          console.log(parsed);
+          let startingPage = 0;
+          if (args.length > 0 && isFinite(args[0])) {
+            if (args[0] > 0 && args[0] <= Math.ceil(parsed.length / 8)) startingPage = args[0] - 1;
           }
+          console.log(startingPage);
+          message.channel.send(generateEmbed(startingPage, parsed)).then(async (message) => {
+            if (parsed.length <= 8) return;
+            await message.react('◀️');
+            message.react('▶️');
+            const collector = message.createReactionCollector(
+              function(reaction, user) {
+                return ['◀️', '▶️'].includes(reaction.emoji.name) && user.id !== message.author.id;
+              },
+              {time: 60000}
+            );
+            
+            let currentPage = 0;
+            collector.on('collect', (reaction) => {
+              console.log('in collector');
+              message.reactions.removeAll().then(async () => {
+                if (reaction.emoji.name === '◀️') {
+                  if (currentPage > 0) {
+                    currentPage -= 1;
+                  } else {
+                    currentPage = Math.floor(parsed.length / 8);
+                  }
+                } else {
+                  if (currentPage === Math.floor(parsed.length / 8)) {
+                    currentPage = 0;
+                  } else {
+                    currentPage += 1;
+                  }
+                }
+                message.edit(generateEmbed(currentPage, parsed)).catch((error) => console.log(error));
+                await message.react('◀️');
+                message.react('▶️');
+              })
+            })
+          });
+          // const pg = args.shift();
+          // const q = getQueue();
+          // console.log(q);
+          // fs.writeFileSync(__dirname + '/../../queue.json', JSON.stringify(q));
+          // if (q.length === 0) {
+          //   message.channel.send('The queue is currently empty');
+          // } else if (pg === undefined) {
+          //   const mes = parseQueue(q, 0, q.length);
+          //   message.channel.send(mes);
+          // } else if (pg > 0 && ((pg - 1) * 10) < q.length) {
+          //   const mes = parseQueue(q, ((pg - 1) * 10), q.length);
+          //   message.channel.send(mes);
+          // } else {
+          //   message.channel.send('Please enter a valid page number');
+          // }
           break;
         case 'queuePlayer':
         case 'queueplayer':
@@ -894,6 +936,7 @@ function getQueue() {
   let dj;
   let song;
   if (current != null) {
+    current.setStream(null);
     ret.push(current);
   }
   // console.log('temp original');
@@ -901,11 +944,29 @@ function getQueue() {
     dj = temp.shift();
     song = dj.songs.shift();
     if (song == null) continue;
+    song = new Youtube.Youtube(song.url, song.title, song.id, song.length, song.pid, song.player, null, null);
+    // song.setStream(null);
     ret.push(song);
     temp.push(dj);
   }
   // console.log(ret);
   return ret;
+}
+
+function generateEmbed(page, arr) {
+  console.log('generating');
+  const index = page * 8;
+  const curr = arr.slice(index, index + 8);
+  const embed = new Discord.MessageEmbed();
+  // embed.setTitle('Page ' + (page + 1));
+  let msg = '';
+  for (let i = 0; i < curr.length; i++) {
+    msg += curr[i];
+  }
+  embed.addField('Page ' + (page + 1) + '; Total: ' + Math.ceil(arr.length / 8), msg);
+  console.log(msg);
+  // embed.addField('test', 'hi');
+  return embed;
 }
 
 /**
@@ -918,25 +979,29 @@ function getQueue() {
 function parseQueue(q, p, l) {
   console.log('parseQueue');
   let message = '';
+  const songs = [];
   const embed = new Discord.MessageEmbed();
   embed.setTitle("Queue");
   // embed.addField('Page', "hi");
   // message.channel.send(embed).catch((err) => {console.log(err);});
   // console.log('parse');
   // console.log(q);
-  for (let i = 0; i < 10 && (p + i) < q.length; i++) {
-    if (p == 0 && i == 0 && current !== null) {
-      message += (p + i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
+  for (let i = 0; i < q.length; i++) {
+    console.log('yes');
+    if (i == 0 && current !== null) {
+      // message += (p + i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
+      songs.push((i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n');
       continue;
     }
-    message += (p + i + 1) + '. `' + q[p + i].title + '` [' + q[p + i].length + '] req by ' + q[p + i].player + '\n';
+    // message += (p + i + 1) + '. `' + q[p + i].title + '` [' + q[p + i].length + '] req by ' + q[p + i].player + '\n';
+    songs.push((i + 1) + '. `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n');
   }
   // message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
-  embed.addField('Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l, message);
+  // embed.addField('Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l, message);
   // console.log(message);
   // return message;
-  console.log(embed);
-  return embed;
+  // console.log(embed);
+  return songs;
 }
 
 /**
@@ -1199,11 +1264,11 @@ function getChannel(guild) {
   return null;
 }
 
-// setTimeout(() => {
-//   cronJob = new CronJob('*/15 * * * *', () => {
-//     parseRssFeed();
-//   }, console.log('job done'), true, null, null, true);
-// }, 5000);
+setTimeout(() => {
+  cronJob = new CronJob('*/15 * * * *', () => {
+    parseRssFeed();
+  }, console.log('job done'), true, null, null, true);
+}, 5000);
 
 function addManga(message, link) {
   console.log('in addManga');

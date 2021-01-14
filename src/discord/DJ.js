@@ -82,15 +82,15 @@ DJ.prototype.getSong = function() {
   console.log('getSong');
   let song = null;
   let stream = null;
-  while (song == null && this.songs.length > 0) {
+  while (song === null && this.songs.length > 0) {
     song = this.songs.shift();
     if (song.url.includes('youtube')) {
       stream = ytdl(song.id, {highWaterMark: 1<<25}).on('error', (err) => {
-       console.log('error in ytdl');
-       console.log(song.id);
-       console.log(song.url);
-       console.log(err);
-       song = null;
+        console.log('error in ytdl');
+        console.log(song.id);
+        console.log(song.url);
+        console.log(err);
+        song = null;
       });
 //        stream = youtubedl(song.url);
 //        stream.on('error', (err) => {
