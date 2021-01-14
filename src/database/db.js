@@ -400,11 +400,11 @@ function getMangaWithNullTitles(callback) {
   })
 }
 
-function addManga(link, callback) {
+function addManga(link, title, callback) {
   console.log('in addManga');
   const queryConfig = {
-    text: 'INSERT INTO manga(link) VALUES($1)',
-    values: [link],
+    text: 'INSERT INTO manga(link, title) VALUES($1, $2)',
+    values: [link, title],
   };
 
   client.query(queryConfig, (error, results) => {

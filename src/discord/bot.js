@@ -383,27 +383,44 @@ bot.on('message', (message) => {
             );
             
             let currentPage = 0;
-            collector.on('collect', (reaction) => {
+            // collector.on('collect', (reaction) => {
+            //   console.log('in collector');
+            //   message.reactions.removeAll().then(async () => {
+            //     if (reaction.emoji.name === '◀️') {
+            //       if (currentPage > 0) {
+            //         currentPage -= 1;
+            //       } else {
+            //         currentPage = Math.floor(parsed.length / 8);
+            //       }
+            //     } else {
+            //       if (currentPage === Math.floor(parsed.length / 8)) {
+            //         currentPage = 0;
+            //       } else {
+            //         currentPage += 1;
+            //       }
+            //     }
+            //     message.edit(generateEmbed(currentPage, parsed)).catch((error) => console.log(error));
+            //     await message.react('◀️');
+            //     message.react('▶️');
+            //   });
+            // });
+            collector.on('collect', async (reaction) => {
               console.log('in collector');
-              message.reactions.removeAll().then(async () => {
-                if (reaction.emoji.name === '◀️') {
-                  if (currentPage > 0) {
-                    currentPage -= 1;
-                  } else {
-                    currentPage = Math.floor(parsed.length / 8);
-                  }
+              if (reaction.emoji.name === '◀️') {
+                if (currentPage > 0) {
+                  currentPage -= 1;
                 } else {
-                  if (currentPage === Math.floor(parsed.length / 8)) {
-                    currentPage = 0;
-                  } else {
-                    currentPage += 1;
-                  }
+                  currentPage = Math.floor(parsed.length / 8);
                 }
-                message.edit(generateEmbed(currentPage, parsed)).catch((error) => console.log(error));
-                await message.react('◀️');
-                message.react('▶️');
-              })
-            })
+              } else {
+                if (currentPage === Math.floor(parsed.length / 8)) {
+                  currentPage = 0;
+                } else {
+                  currentPage += 1;
+                }
+              }
+              message.edit(generateEmbed(currentPage, parsed)).catch((error) => console.log(error));
+            });
           });
           // const pg = args.shift();
           // const q = getQueue();
@@ -1294,13 +1311,31 @@ function addManga(message, link) {
       if (links.includes(link)) {
         message.channel.send('Manga already in database');
       } else {
-        db.addManga(link, (boo) => {
-          console.log(boo);
-          if (boo) {
-            message.channel.send('Successfully added manga');
-          } else {
-            message.channel.send('Something went wrong, please try again');
-          }
+        https.get(link, (res) => {
+          let data = '';
+          res.on('data', (d) => {
+            data += d;
+          });
+          res.on('end', () => {
+            // console.log(data);
+            const parsedHTML = htmlParser.parse(data);
+            // for (let i = 0; i < parsedHTML.childNodes.length; i++) {
+            //   console.log(parsedHTML.childNodes[i]);
+            // }
+            const title = parsedHTML.childNodes[1].childNodes[1].childNodes[1].childNodes[0].rawText.split('Baka-Updates Manga - ')[1];
+            db.addManga(link, decode(title), (boo) => {
+              console.log(boo);
+              if (boo) {
+                message.channel.send(decode('Successfully added manga ' + title));
+              } else {
+                message.channel.send('Something went wrong, please try again');
+              }
+            });
+          });
+  
+          res.on('error', (err) => {
+            console.log(err);
+          });
         });
       }
     }
