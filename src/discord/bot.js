@@ -175,7 +175,12 @@ bot.on('message', (message) => {
           if (args.length === 0) {
             message.channel.send('Please provide a link');
           } else {
-            addManga(message, args[0]);
+            // https://www.mangaupdates.com/series.html?id=
+            if (!args[0].startsWith('https://www.mangaupdates.com/series.html?id=')) {
+              message.channel.send('Please provide a link with the following format: `https://www.mangaupdates.com/series.html?id=`');
+            } else {
+              addManga(message, args[0]);
+            }
           }
           break;
         case 'check':
