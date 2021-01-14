@@ -383,6 +383,23 @@ function getManga(callback) {
   })
 }
 
+function getMangaWithNullTitles(callback) {
+  console.log('in getMangaWithNullTitles');
+  const queryConfig = {
+    text: 'SELECT * FROM manga WHERE title IS NULL'
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in getMangaWithNullTitles');
+      callback(null);
+    } else {
+      console.log('SUCCESS in getMangaWithNullTitles');
+      callback(results);
+    }
+  })
+}
+
 function addManga(link, callback) {
   console.log('in addManga');
   const queryConfig = {
@@ -401,6 +418,24 @@ function addManga(link, callback) {
   });
 }
 
+function updateMangaTitle(id, title, callback) {
+  console.log('in updateMangaTitle');
+  const queryConfig = {
+    text: 'UPDATE manga SET title = ($1) WHERE id = ($2)',
+    values: [title, id]
+  };
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in updateMangaTitle');
+      callback(false);
+    } else {
+      console.log('SUCCESS in updateMangaTitle');
+      callback(true);
+    }
+  })
+}
+
 module.exports = {
   addUser: addUser,
   getUserById: getUserById,
@@ -417,5 +452,7 @@ module.exports = {
   getMessage: getMessage,
   updateMessage: updateMessage,
   getManga: getManga,
-  addManga: addManga
+  addManga: addManga,
+  getMangaWithNullTitles: getMangaWithNullTitles,
+  updateMangaTitle: updateMangaTitle
 };

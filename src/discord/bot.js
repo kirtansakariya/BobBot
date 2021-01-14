@@ -14,6 +14,7 @@ const CronJob = require('cron').CronJob;
 const Parser = require('rss-parser');
 const parser = new Parser();
 const fs = require('fs');
+const htmlParser = require('node-html-parser');
 const djs = [];
 const front = {};
 const removeHelp = {};
@@ -599,6 +600,12 @@ bot.on('message', (message) => {
           } else {
             message.channel.send("tts is off");
           }
+          break;
+        case 'updateMangaTitles':
+        case 'updatemangatitles':
+        case 'uMT':
+        case 'umt':
+          // updateMangaTitles();
           break;
         case 'youtube':
         case 'yt':
@@ -1269,11 +1276,11 @@ function getChannel(guild) {
   return null;
 }
 
-setTimeout(() => {
-  cronJob = new CronJob('*/15 * * * *', () => {
-    parseRssFeed();
-  }, console.log('job done'), true, null, null, true);
-}, 5000);
+// setTimeout(() => {
+//   cronJob = new CronJob('*/15 * * * *', () => {
+//     parseRssFeed();
+//   }, console.log('job done'), true, null, null, true);
+// }, 5000);
 
 function addManga(message, link) {
   console.log('in addManga');
@@ -1296,6 +1303,43 @@ function addManga(message, link) {
           }
         });
       }
+    }
+  });
+}
+
+function updateMangaTitles() {
+  db.getMangaWithNullTitles((results) => {
+    if (results === null) return;
+    console.log(results.rows);
+    for (let i = 0; i < results.rows.length && i < 5; i++) {
+      https.get(results.rows[i].link, (res) => {
+        let data = '';
+        res.on('data', (d) => {
+          data += d;
+        });
+        res.on('end', () => {
+          // console.log(data);
+          const parsedHTML = htmlParser.parse(data);
+          // for (let i = 0; i < parsedHTML.childNodes.length; i++) {
+          //   console.log(parsedHTML.childNodes[i]);
+          // }
+          const id = results.rows[i].id;
+          const link = results.rows[i].link;
+          const title = parsedHTML.childNodes[1].childNodes[1].childNodes[1].childNodes[0].rawText.split('Baka-Updates Manga - ')[1];
+          console.log(id + '. ' + title + ': ' + link);
+          db.updateMangaTitle(id, title, (boo) => {
+            if (boo) {
+              console.log('Title for ' + title + ' successfully updated');
+            } else {
+              console.log('Title for ' + title + ' failed to update');
+            }
+          });
+        });
+
+        res.on('error', (err) => {
+          console.log(err);
+        });
+      });
     }
   });
 }
