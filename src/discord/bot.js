@@ -278,6 +278,30 @@ bot.on('message', (message) => {
         case 'ml':
           displayMangaList(args, message);
           break;
+        case 'mangaSearch':
+        case 'mangasearch':
+        case 'mS':
+        case 'ms':
+          console.log('in manga search');
+          if (args.length === 0) {
+            message.channel.send('Please provide a search term');
+            break;
+          }
+          const query = args.join(' ');
+          // console.log(query);
+          db.getMangaBasedOnQuery(query, (results) => {
+            const titles = results.rows.map((item) => item.title);
+            const formattedTitles = [];
+            for (let i = 0; i < titles.length; i++) {
+              formattedTitles.push((i + 1) + '. ' + titles[i]);
+            }
+            // let startingPageManga = 0;
+            // if (passedInArgs.length > 0 && isFinite(passedInArgs[0])) {
+            //   if (passedInArgs[0] > 0 && passedInArgs[0] <= Math.ceil(titles.length / 10)) startingPageManga = passedInArgs[0] - 1;
+            // }
+            sendEmbedMessage(0, formattedTitles, 10, message);
+          });
+          break;
         case 'pause':
         case 'p':
           console.log('in pause case');

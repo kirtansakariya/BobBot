@@ -400,6 +400,25 @@ function getMangaWithNullTitles(callback) {
   })
 }
 
+function getMangaBasedOnQuery(query, callback) {
+  console.log('in getMangaBasedOnQuery');
+  const queryConfig = {
+    text: 'SELECT title FROM manga WHERE LOWER(title) LIKE $1',
+    values: ['%' + query.toLowerCase() + '%']
+  }
+
+  client.query(queryConfig, (error, results) => {
+    if (error) {
+      console.log('ERROR in getMangaBasedOnQuery');
+      console.log(error);
+      callback(null);
+    } else {
+      console.log('SUCCESS in getMangaBasedOnQuery');
+      callback(results);
+    }
+  })
+}
+
 function addManga(link, title, callback) {
   console.log('in addManga');
   const queryConfig = {
@@ -452,7 +471,8 @@ module.exports = {
   getMessage: getMessage,
   updateMessage: updateMessage,
   getManga: getManga,
-  addManga: addManga,
   getMangaWithNullTitles: getMangaWithNullTitles,
+  getMangaBasedOnQuery: getMangaBasedOnQuery,
+  addManga: addManga,
   updateMangaTitle: updateMangaTitle
 };
