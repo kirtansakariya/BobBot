@@ -272,6 +272,16 @@ bot.on('message', (message) => {
             initQueue(results);
           });
           break;
+        case 'mangaList':
+        case 'mangalist':
+        case 'mL':
+        case 'ml':
+          let startingPageManga = 0;
+          if (args.length > 0 && isFinite(args[0])) {
+            if (args[0] > 0 && args[0] <= Math.ceil(parsed.length / 8)) startingPage = args[0] - 1;
+          }
+          displayMangaList(startingPageManga, message);
+          break;
         case 'pause':
         case 'p':
           console.log('in pause case');
@@ -371,61 +381,10 @@ bot.on('message', (message) => {
             if (args[0] > 0 && args[0] <= Math.ceil(parsed.length / 8)) startingPage = args[0] - 1;
           }
           console.log(startingPage);
-          message.channel.send(generateEmbed(startingPage, parsed)).then(async (message) => {
-            if (parsed.length <= 8) return;
-            await message.react('◀️');
-            message.react('▶️');
-            const collector = message.createReactionCollector(
-              function(reaction, user) {
-                return ['◀️', '▶️'].includes(reaction.emoji.name) && user.id !== message.author.id;
-              },
-              {time: 60000}
-            );
-            
-            let currentPage = 0;
-            // collector.on('collect', (reaction) => {
-            //   console.log('in collector');
-            //   message.reactions.removeAll().then(async () => {
-            //     if (reaction.emoji.name === '◀️') {
-            //       if (currentPage > 0) {
-            //         currentPage -= 1;
-            //       } else {
-            //         currentPage = Math.floor(parsed.length / 8);
-            //       }
-            //     } else {
-            //       if (currentPage === Math.floor(parsed.length / 8)) {
-            //         currentPage = 0;
-            //       } else {
-            //         currentPage += 1;
-            //       }
-            //     }
-            //     message.edit(generateEmbed(currentPage, parsed)).catch((error) => console.log(error));
-            //     await message.react('◀️');
-            //     message.react('▶️');
-            //   });
-            // });
-            collector.on('collect', async (reaction) => {
-              console.log('in collector');
-              if (reaction.emoji.name === '◀️') {
-                if (currentPage > 0) {
-                  currentPage -= 1;
-                } else {
-                  currentPage = Math.floor(parsed.length / 8);
-                }
-              } else {
-                if (currentPage === Math.floor(parsed.length / 8)) {
-                  currentPage = 0;
-                } else {
-                  currentPage += 1;
-                }
-              }
-              message.edit(generateEmbed(currentPage, parsed)).catch((error) => console.log(error));
-            });
-          });
+          sendEmbedMessage(startingPage, parsed, 8, message);
           // const pg = args.shift();
           // const q = getQueue();
           // console.log(q);
-          // fs.writeFileSync(__dirname + '/../../queue.json', JSON.stringify(q));
           // if (q.length === 0) {
           //   message.channel.send('The queue is currently empty');
           // } else if (pg === undefined) {
@@ -888,6 +847,7 @@ function nextSong(message) {
     // console.log('post stream log');
     current = song;
     dispatcher = connection.play(song.getStream());
+    fs.writeFileSync(__dirname + '/../../queue.json', JSON.stringify(getQueue()));
     // For debug purposes, comment out or delete when done
     dispatcher.setVolumeDecibels(decibel);
     dispatcher.on('finish', () => nextSong(message));
@@ -982,17 +942,17 @@ function getQueue() {
   return ret;
 }
 
-function generateEmbed(page, arr) {
+function generateEmbed(page, arr, length) {
   console.log('generating');
   const index = page * 8;
-  const curr = arr.slice(index, index + 8);
+  const curr = arr.slice(index, index + length);
   const embed = new Discord.MessageEmbed();
   // embed.setTitle('Page ' + (page + 1));
   let msg = '';
   for (let i = 0; i < curr.length; i++) {
-    msg += curr[i];
+    msg += curr[i] + '\n';
   }
-  embed.addField('Page ' + (page + 1) + '; Total: ' + Math.ceil(arr.length / 8), msg);
+  embed.addField('Page ' + (page + 1) + '; Total: ' + Math.ceil(arr.length / length), msg);
   console.log(msg);
   // embed.addField('test', 'hi');
   return embed;
@@ -1019,11 +979,11 @@ function parseQueue(q, p, l) {
     console.log('yes');
     if (i == 0 && current !== null) {
       // message += (p + i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n';
-      songs.push((i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n');
+      songs.push((i + 1) + '. :play_pause: `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player);
       continue;
     }
     // message += (p + i + 1) + '. `' + q[p + i].title + '` [' + q[p + i].length + '] req by ' + q[p + i].player + '\n';
-    songs.push((i + 1) + '. `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player + '\n');
+    songs.push((i + 1) + '. `' + q[i].title + '` [' + q[i].length + '] req by ' + q[i].player);
   }
   // message += 'Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l;
   // embed.addField('Page: ' + ((p / 10) + 1) + ' Total number of songs: ' + l, message);
@@ -1227,6 +1187,38 @@ function readPlaylist(member, name, callback) {
   });
 }
 
+function sendEmbedMessage(startingPage, arr, length, mes) {
+  mes.channel.send(generateEmbed(startingPage, arr, length)).then(async (message) => {
+    if (arr.length <= length) return;
+    await message.react('◀️');
+    message.react('▶️');
+    const collector = message.createReactionCollector(
+      function(reaction, user) {
+        return ['◀️', '▶️'].includes(reaction.emoji.name) && user.id !== message.author.id;
+      },
+      {time: 60000}
+    );
+    let currentPage = 0;
+    collector.on('collect', async (reaction) => {
+      console.log('in collector');
+      if (reaction.emoji.name === '◀️') {
+        if (currentPage > 0) {
+          currentPage -= 1;
+        } else {
+          currentPage = Math.floor(arr.length / length);
+        }
+      } else {
+        if (currentPage === Math.floor(arr.length / length)) {
+          currentPage = 0;
+        } else {
+          currentPage += 1;
+        }
+      }
+      message.edit(generateEmbed(currentPage, arr, length)).catch((error) => console.log(error));
+    });
+  });
+}
+
 function parseRssFeed() {
   console.log('in parseRssFeed');
   const guild = getGuild('The Shower');
@@ -1270,7 +1262,8 @@ function parseRssFeed() {
         }
 
         if (msg.length !== 0) {
-          channel.send(msg);
+          const readerRole = getMangaReadersRole(guild);
+          channel.send('<@&' + readerRole.id + '>\n' + msg);
         }
       }
     });
@@ -1322,7 +1315,7 @@ function addManga(message, link) {
             // for (let i = 0; i < parsedHTML.childNodes.length; i++) {
             //   console.log(parsedHTML.childNodes[i]);
             // }
-            const title = parsedHTML.childNodes[1].childNodes[1].childNodes[1].childNodes[0].rawText.split('Baka-Updates Manga - ')[1];
+            const title = decode(parsedHTML.childNodes[1].childNodes[1].childNodes[1].childNodes[0].rawText.split('Baka-Updates Manga - ')[1].replace('&#0', '&#'));
             db.addManga(link, decode(title), (boo) => {
               console.log(boo);
               if (boo) {
@@ -1360,7 +1353,7 @@ function updateMangaTitles() {
           // }
           const id = results.rows[i].id;
           const link = results.rows[i].link;
-          const title = parsedHTML.childNodes[1].childNodes[1].childNodes[1].childNodes[0].rawText.split('Baka-Updates Manga - ')[1];
+          const title = decode(parsedHTML.childNodes[1].childNodes[1].childNodes[1].childNodes[0].rawText.split('Baka-Updates Manga - ')[1].replace('&#0', '&#'));
           console.log(id + '. ' + title + ': ' + link);
           db.updateMangaTitle(id, title, (boo) => {
             if (boo) {
@@ -1377,6 +1370,26 @@ function updateMangaTitles() {
       });
     }
   });
+}
+
+function displayMangaList(startingPage, mes) {
+  db.getManga((results) => {
+    const titles = results.rows.map((item) => item.title);
+    const formattedTitles = [];
+    for (let i = 0; i < titles.length; i++) {
+      formattedTitles.push((i + 1) + '. ' + titles[i]);
+    }
+    sendEmbedMessage(startingPage, formattedTitles, 10, mes);
+  });
+}
+
+function getMangaReadersRole(guild) {
+  const roles = guild.roles.cache.array();
+  let readerRole = null;
+  for (let i = 0; i < roles.length; i++) {
+    if (roles[i].name === 'readers') readerRole = roles[i];
+  }
+  return readerRole;
 }
 
 module.exports = {
