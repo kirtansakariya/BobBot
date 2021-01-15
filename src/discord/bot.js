@@ -276,11 +276,7 @@ bot.on('message', (message) => {
         case 'mangalist':
         case 'mL':
         case 'ml':
-          let startingPageManga = 0;
-          if (args.length > 0 && isFinite(args[0])) {
-            if (args[0] > 0 && args[0] <= Math.ceil(parsed.length / 8)) startingPage = args[0] - 1;
-          }
-          displayMangaList(startingPageManga, message);
+          displayMangaList(args, message);
           break;
         case 'pause':
         case 'p':
@@ -1196,10 +1192,31 @@ function sendEmbedMessage(startingPage, arr, length, mes) {
       function(reaction, user) {
         return ['◀️', '▶️'].includes(reaction.emoji.name) && user.id !== message.author.id;
       },
-      {time: 60000}
+      {
+        time: 60000,
+        dispose: true
+      }
     );
     let currentPage = 0;
+    console.log(collector);
     collector.on('collect', async (reaction) => {
+      console.log('in collector');
+      if (reaction.emoji.name === '◀️') {
+        if (currentPage > 0) {
+          currentPage -= 1;
+        } else {
+          currentPage = Math.floor(arr.length / length);
+        }
+      } else {
+        if (currentPage === Math.floor(arr.length / length)) {
+          currentPage = 0;
+        } else {
+          currentPage += 1;
+        }
+      }
+      message.edit(generateEmbed(currentPage, arr, length)).catch((error) => console.log(error));
+    });
+    collector.on('remove', async (reaction) => {
       console.log('in collector');
       if (reaction.emoji.name === '◀️') {
         if (currentPage > 0) {
@@ -1372,14 +1389,18 @@ function updateMangaTitles() {
   });
 }
 
-function displayMangaList(startingPage, mes) {
+function displayMangaList(passedInArgs, mes) {
   db.getManga((results) => {
     const titles = results.rows.map((item) => item.title);
     const formattedTitles = [];
     for (let i = 0; i < titles.length; i++) {
       formattedTitles.push((i + 1) + '. ' + titles[i]);
     }
-    sendEmbedMessage(startingPage, formattedTitles, 10, mes);
+    let startingPageManga = 0;
+    if (passedInArgs.length > 0 && isFinite(passedInArgs[0])) {
+      if (passedInArgs[0] > 0 && passedInArgs[0] <= Math.ceil(titles.length / 10)) startingPageManga = passedInArgs[0] - 1;
+    }
+    sendEmbedMessage(startingPageManga, formattedTitles, 10, mes);
   });
 }
 
