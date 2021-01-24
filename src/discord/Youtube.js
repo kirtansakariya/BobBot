@@ -74,7 +74,6 @@ function addYoutube(u, arr, page, callback) {
 
       resp.on('end', () => {
         const parsed = JSON.parse(data);
-        console.log(parsed);
         if (parsed.error !== undefined) {
           callback();
         } else if (parsed.items.length === 0) {
@@ -128,6 +127,7 @@ function addYoutube(u, arr, page, callback) {
       callback();
     } else {
       if (page !== null) {
+        console.log(page);
         append = '&pageToken=' + page;
       }
       https.get('https://content.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=' + urlParams.query.list + append + '&maxResults=50&key=' + ((process.env.YOUTUBE_API !== undefined) ? process.env.YOUTUBE_API : require('../../auth.json').youtubeApi), (resp) => {
@@ -139,7 +139,7 @@ function addYoutube(u, arr, page, callback) {
 
         resp.on('end', () => {
           const parsed = JSON.parse(data);
-          console.log(parsed);
+          console.log(parsed.items.length + ' songs this run');
           if (parsed.error !== undefined) callback();
           for (let i = 0; i < parsed.items.length; i++) {
             // const mom = moment.duration(parsed.items[i].contentDetails.duration);
@@ -149,7 +149,7 @@ function addYoutube(u, arr, page, callback) {
             // const id = parsed.items[i].id;
             // const title = parsed.items[i].snippet.title;
             // const tempYoutube = new Youtube.Youtube('https://www.youtube.com/watch?v=' + id, title, id, minutes + ':' + seconds, discordId, username);
-            console.log(parsed.items[i].snippet.thumbnails);
+            // console.log(parsed.items[i].snippet.thumbnails);
             const temp = {
               'id': parsed.items[i].snippet.resourceId.videoId,
               'title': parsed.items[i].snippet.title,
@@ -157,7 +157,7 @@ function addYoutube(u, arr, page, callback) {
             };
             // TODO: Private video check like below before pushing
             if (temp.title !== 'Private video') {
-              console.log('pushing');
+              // console.log('pushing');
               arr.push(temp);
             }
             // let allowed = undefined;
@@ -198,6 +198,7 @@ function addYoutube(u, arr, page, callback) {
 function parseList(arr, store, discordId, username, callback) {
   console.log('parseList');
   ids = arr.splice(0, 50).map((song) => song.id);
+  // console.log('adding ' + ids.length + ' ids');
   idsJoined = ids.join();
   if (ids === undefined || ids.length === 0) {
     callback();
@@ -211,7 +212,9 @@ function parseList(arr, store, discordId, username, callback) {
 
       resp.on('end', () => {
         const parsed = JSON.parse(data);
+        // console.log(parsed.items.length + ' parsed');
         for (let i = 0; i < parsed.items.length; i++) {
+          // console.log('in');
           const temp = {
             'id': parsed.items[i].id,
             'title': parsed.items[i].snippet.title,
@@ -224,18 +227,24 @@ function parseList(arr, store, discordId, username, callback) {
           const tempYoutube = new Youtube('https://www.youtube.com/watch?v=' + temp.id, temp.title, temp.id, minutes + ':' + ((seconds < 10) ? ('0' + seconds) : seconds), discordId, username, temp.thumbnail, channel);
           let allowed = undefined;
           let blocked = undefined;
-          if (parsed.items[0].contentDetails.regionRestriction !== undefined) {
-            allowed = parsed.items[0].contentDetails.regionRestriction.allowed;
-            blocked = parsed.items[0].contentDetails.regionRestriction.blocked;
+          if (parsed.items[i].contentDetails.regionRestriction !== undefined) {
+            allowed = parsed.items[i].contentDetails.regionRestriction.allowed;
+            blocked = parsed.items[i].contentDetails.regionRestriction.blocked;
           }
           if (allowed !== undefined && !allowed.includes('US')) {
+            console.log('bad');
             // console.log(temp.title + ' not allowed');
           } else if (blocked !== undefined && blocked.includes('US')) {
+            console.log('terrible');
+            console.log(parsed.items[i].snippet.title);
+            // console.log('https://www.youtube.com/watch?v=' + temp.id);
             // console.log(temp.title + ' not allowed');
           } else {
             store.push(tempYoutube);
           }
         }
+        // console.log(parsed.items);
+        // console.log('ending store length: ' + store.length);
         if (arr.length === 0) {
           callback();
         } else {

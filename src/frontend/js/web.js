@@ -671,8 +671,9 @@ app.get('/api/urlsongs', (req, res) => {
     if (arr.length === 0) {
       obj['songs'] = [];
     } else {
-      console.log(arr);
+      console.log('adding ' + arr.length + ' songs');
       obj['songs'] = JSON.stringify(arr);
+      // console.log('hahaha');
     }
     res.send(obj);
   });

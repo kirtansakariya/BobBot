@@ -49,14 +49,14 @@ function getSongsFromUrl(url, discordId, username, callback) {
     // const origLength = dj.songs.length;
     Youtube.addYoutube(url, songs, null, () => {
       console.log('done w/addYoutube');
-      console.log(songs);
+      console.log(songs.length);
       // console.log(dj.songs);
       const final = [];
       Youtube.parseList(songs, final, discordId, username, () => {
         // console.log(dj.songs);
         // console.log(dj.songs.length);
         console.log('done w/parseList');
-        console.log(final);
+        console.log(final.length);
         callback(final);
       });
     });
