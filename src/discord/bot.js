@@ -21,7 +21,6 @@ const removeHelp = {};
 let dispatcher = null;
 let current = null;
 const searches = {};
-let interval = null;
 let decibel = 0;
 let tts = false;
 let cronJob = null;
@@ -259,10 +258,10 @@ bot.on('message', (message) => {
           break;
         case 'leave':
           console.log('in leave case');
-          bot.voice.connections.get(bot.voice.connections.keys().next().value).disconnect();
+          const conn = bot.voice.connections.keys().next().value;
+          if (conn !== undefined && conn !== null) bot.voice.connections.get(conn).disconnect();
           current = null;
           dispatcher = null;
-          clearInterval(interval);
           break;
         case 'load':
           console.log('in load case');
@@ -571,7 +570,6 @@ bot.on('message', (message) => {
         case 'start':
           console.log('in start case');
           if (dispatcher == null) nextSong(message);
-          interval = setInterval(ping, 1500000);
           break;
         case 'startJob':
         case 'startjob':
@@ -1162,13 +1160,6 @@ function cleanUp() {
       }
     }
   }
-}
-
-/**
- * Pings the bot to keep it up.
- */
-function ping() {
-  https.get('https://the-bobbot.herokuapp.com/');
 }
 
 /**
