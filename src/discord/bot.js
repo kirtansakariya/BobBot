@@ -400,7 +400,11 @@ bot.on('message', (message) => {
             if (args[0] > 0 && args[0] <= Math.ceil(parsed.length / 8)) startingPage = args[0] - 1;
           }
           console.log(startingPage);
-          sendEmbedMessage(startingPage, parsed, 8, message);
+          if (parsed.length === 0) {
+            message.channel.send('Queue is empty');
+          } else {
+            sendEmbedMessage(startingPage, parsed, 8, message);
+          }
           // const pg = args.shift();
           // const q = getQueue();
           // console.log(q);
