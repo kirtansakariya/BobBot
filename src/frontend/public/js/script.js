@@ -452,6 +452,7 @@ function cleanup() {
     obj['songs'][i].type = songs[i].dataset.type;
     obj['songs'][i].thumbnail = songs[i].dataset.thumbnail;
     obj['songs'][i].channel = songs[i].dataset.channel;
+    songs[i].checked = false;
   }
   // obj['songs'] = obj['songs'][0];
   obj['inds'] = [];
