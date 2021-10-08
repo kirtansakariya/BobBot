@@ -86,7 +86,7 @@ DJ.prototype.getSong = function() {
     song = this.songs.shift();
     if (song.url.includes('youtube')) {
       stream = ytdl(song.id, {
-        filter: 'audionly',
+        filter: 'audioonly',
         highWaterMark: 1<<25}
       ).on('error', (err) => {
         console.log('error in ytdl');
