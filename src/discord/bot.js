@@ -10,7 +10,7 @@ const db = require('../database/db');
 const https = require('https');
 const decode = require('unescape');
 const e = require('express');
-const CronJob = require('cron').CronJob;
+// const CronJob = require('cron').CronJob;
 const Parser = require('rss-parser');
 const parser = new Parser();
 const fs = require('fs');
@@ -23,8 +23,8 @@ let current = null;
 const searches = {};
 let decibel = 0;
 let tts = false;
-let cronJob = null;
-let lastManga = null;
+// let cronJob = null;
+// let lastManga = null;
 
 // bot.login(((process.env.TOKEN !== undefined) ? process.env.TOKEN : require('../../auth.json').token));
 
@@ -48,76 +48,76 @@ bot.on('ready', function(evt) {
 
 bot.on('message', (message) => {
   console.log('\n' + message.content + ' message: ' + message + ' member: ' + message.member + ' type: ' + typeof(message));
-  if (message.channel.type === 'dm') {
-    if (message.content === 'signup') {
-      db.getUserById(message.author.id, function(results) {
-        if (results === null) {
-          console.log('error encountered');
-          message.channel.send('Apologies! Error encountered when fetching user.');
-        } else if (results.rows.length === 0) {
-          console.log('user does not exist');
-          const auth = Math.floor(Math.random() * 899999 + 100000).toString();
-          db.addUser(message.author.id, 'init', auth, message.author.username, (boo) => {
-            console.log(message.author.username);
-            if (boo) {
-              message.channel.send('Follow these steps to signup for an account:\n' +
-                                  '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
-                                  '2. Enter a username.\n' +
-                                  '3. Enter a password.\n' +
-                                  '4. Enter your discord username.\n' +
-                                  '5. Enter your discord id: ' + message.author.id + '\n' +
-                                  '6. Enter the auth code: ' + auth);
-            } else {
-              message.channel.send('Apologies! Error encountered when attempting to create user.');
-            }
-          });
-        } else if (results.rows[0].status === 'init') {
-          console.log('in init phase');
-          const auth = Math.floor(Math.random() * 899999 + 100000).toString();
-          db.updateUser(null, message.author.id, 'init', auth, message.author.username, null, results.rows[0].playlists, results.rows[0].id, (boo) => {
-            if (boo) {
-              message.channel.send('Follow these steps to signup for an account:\n' +
-                                   '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
-                                   '2. Enter a username.\n' +
-                                   '3. Enter a password.\n' +
-                                   '4. Enter your discord username.\n' +
-                                   '5. Enter your discord id: ' + message.author.id + '\n' +
-                                   '6. Enter the auth code: ' + auth);
-            } else {
-              message.channel.send('Apologies! Error encountered when attempting to generate new auth.');
-            }
-          });
-        } else {
-          console.log('user already exists');
-          message.channel.send('You already have an account.');
-        }
-      });
-    } else if (message.content === 'forgot') {
-      db.getUserById(message.author.id, (results) => {
-        if (results === null) {
-          message.channel.send('Apologies! Error encountered when fetching user.');
-        } else if (results.rows.length === 0) {
-          message.channel.send('No account under your name, message signup to make an account.');
-        } else {
-          const user = results.rows[0];
-          const auth = Math.floor(Math.random() * 899999 + 100000).toString();
-          db.updateUser(user.username, user.discord_id, 'forgot', auth, user.discord_username, user.pass_hash, user.playlists, user.id, (boo) => {
-            if (!boo) {
-              message.channel.send('Error updating user, please try again.');
-            } else {
-              message.channel.send('Follow these steps to signup for an account:\n' +
-                                   '1. Please visit https://the-bobbot.herokuapp.com/forgot.\n' +
-                                   '2. Enter your username.\n' +
-                                   '3. Enter a new password.\n' +
-                                   '4. Confirm the password.\n' +
-                                   '5. Enter the auth code: ' + auth);
-            }
-          });
-        }
-      });
-    }
-    return;
-  }
+  // if (message.channel.type === 'dm') {
+  //   if (message.content === 'signup') {
+  //     db.getUserById(message.author.id, function(results) {
+  //       if (results === null) {
+  //         console.log('error encountered');
+  //         message.channel.send('Apologies! Error encountered when fetching user.');
+  //       } else if (results.rows.length === 0) {
+  //         console.log('user does not exist');
+  //         const auth = Math.floor(Math.random() * 899999 + 100000).toString();
+  //         db.addUser(message.author.id, 'init', auth, message.author.username, (boo) => {
+  //           console.log(message.author.username);
+  //           if (boo) {
+  //             message.channel.send('Follow these steps to signup for an account:\n' +
+  //                                 '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
+  //                                 '2. Enter a username.\n' +
+  //                                 '3. Enter a password.\n' +
+  //                                 '4. Enter your discord username.\n' +
+  //                                 '5. Enter your discord id: ' + message.author.id + '\n' +
+  //                                 '6. Enter the auth code: ' + auth);
+  //           } else {
+  //             message.channel.send('Apologies! Error encountered when attempting to create user.');
+  //           }
+  //         });
+  //       } else if (results.rows[0].status === 'init') {
+  //         console.log('in init phase');
+  //         const auth = Math.floor(Math.random() * 899999 + 100000).toString();
+  //         db.updateUser(null, message.author.id, 'init', auth, message.author.username, null, results.rows[0].playlists, results.rows[0].id, (boo) => {
+  //           if (boo) {
+  //             message.channel.send('Follow these steps to signup for an account:\n' +
+  //                                  '1. Visit https://the-bobbot.herokuapp.com/signup.\n' +
+  //                                  '2. Enter a username.\n' +
+  //                                  '3. Enter a password.\n' +
+  //                                  '4. Enter your discord username.\n' +
+  //                                  '5. Enter your discord id: ' + message.author.id + '\n' +
+  //                                  '6. Enter the auth code: ' + auth);
+  //           } else {
+  //             message.channel.send('Apologies! Error encountered when attempting to generate new auth.');
+  //           }
+  //         });
+  //       } else {
+  //         console.log('user already exists');
+  //         message.channel.send('You already have an account.');
+  //       }
+  //     });
+  //   } else if (message.content === 'forgot') {
+  //     db.getUserById(message.author.id, (results) => {
+  //       if (results === null) {
+  //         message.channel.send('Apologies! Error encountered when fetching user.');
+  //       } else if (results.rows.length === 0) {
+  //         message.channel.send('No account under your name, message signup to make an account.');
+  //       } else {
+  //         const user = results.rows[0];
+  //         const auth = Math.floor(Math.random() * 899999 + 100000).toString();
+  //         db.updateUser(user.username, user.discord_id, 'forgot', auth, user.discord_username, user.pass_hash, user.playlists, user.id, (boo) => {
+  //           if (!boo) {
+  //             message.channel.send('Error updating user, please try again.');
+  //           } else {
+  //             message.channel.send('Follow these steps to signup for an account:\n' +
+  //                                  '1. Please visit https://the-bobbot.herokuapp.com/forgot.\n' +
+  //                                  '2. Enter your username.\n' +
+  //                                  '3. Enter a new password.\n' +
+  //                                  '4. Confirm the password.\n' +
+  //                                  '5. Enter the auth code: ' + auth);
+  //           }
+  //         });
+  //       }
+  //     });
+  //   }
+  //   return;
+  // }
   // if (message.channel.name !== 'mute_this' && message.content[0] === ';' && message.channel.name !== 'anime-changes') {
   //   message.channel.send('Please type messages for the bot in `mute_this`');
   //   return;
@@ -167,22 +167,21 @@ bot.on('message', (message) => {
       const cmd = args[0];
       args = args.splice(1);
       switch (cmd) {
-        case 'addManga':
-        case 'addmanga':
-        case 'aM':
-        case 'am':
-          console.log('in add case');
-          if (args.length === 0) {
-            message.channel.send('Please provide a link');
-          } else {
-            // https://www.mangaupdates.com/series.html?id=
-            if (!args[0].startsWith('https://www.mangaupdates.com/series.html?id=')) {
-              message.channel.send('Please provide a link with the following format: `https://www.mangaupdates.com/series.html?id=`');
-            } else {
-              addManga(message, args[0]);
-            }
-          }
-          break;
+        // case 'addManga':
+        // case 'addmanga':
+        // case 'aM':
+        // case 'am':
+        //   console.log('in add case');
+        //   if (args.length === 0) {
+        //     message.channel.send('Please provide a link');
+        //   } else {
+        //     if (!args[0].startsWith('https://www.mangaupdates.com/series.html?id=')) {
+        //       message.channel.send('Please provide a link with the following format: `https://www.mangaupdates.com/series.html?id=`');
+        //     } else {
+        //       addManga(message, args[0]);
+        //     }
+        //   }
+        //   break;
         case 'check':
           console.log('in check case');
           // console.log(message.member);
@@ -194,12 +193,12 @@ bot.on('message', (message) => {
             message.channel.send(name + '\'s songs will be added to the front of their queue');
           }
           break;
-        case 'checkFeed':
-        case 'checkfeed':
-        case 'cF':
-        case 'cf':
-          parseRssFeed();
-          break;
+        // case 'checkFeed':
+        // case 'checkfeed':
+        // case 'cF':
+        // case 'cf':
+        //   parseRssFeed();
+        //   break;
         case 'clean':
           console.log('in clean case');
           clean(function() {
@@ -207,13 +206,13 @@ bot.on('message', (message) => {
             // console.log(djs[0].songs);
           });
           break;
-        case 'clearFeed':
-        case 'clearfeed':
-        case 'clF':
-        case 'clf':
-          lastManga = null;
-          message.channel.send('Feed cleared');
-          break;
+        // case 'clearFeed':
+        // case 'clearfeed':
+        // case 'clF':
+        // case 'clf':
+        //   lastManga = null;
+        //   message.channel.send('Feed cleared');
+        //   break;
         case 'current':
         case 'curr':
         case 'c':
@@ -271,36 +270,31 @@ bot.on('message', (message) => {
             initQueue(results);
           });
           break;
-        case 'mangaList':
-        case 'mangalist':
-        case 'mL':
-        case 'ml':
-          displayMangaList(args, message);
-          break;
-        case 'mangaSearch':
-        case 'mangasearch':
-        case 'mS':
-        case 'ms':
-          console.log('in manga search');
-          if (args.length === 0) {
-            message.channel.send('Please provide a search term');
-            break;
-          }
-          const query = args.join(' ');
-          // console.log(query);
-          db.getMangaBasedOnQuery(query, (results) => {
-            const titles = results.rows.map((item) => item.title);
-            const formattedTitles = [];
-            for (let i = 0; i < titles.length; i++) {
-              formattedTitles.push((i + 1) + '. ' + titles[i]);
-            }
-            // let startingPageManga = 0;
-            // if (passedInArgs.length > 0 && isFinite(passedInArgs[0])) {
-            //   if (passedInArgs[0] > 0 && passedInArgs[0] <= Math.ceil(titles.length / 10)) startingPageManga = passedInArgs[0] - 1;
-            // }
-            sendEmbedMessage(0, formattedTitles, 10, message);
-          });
-          break;
+        // case 'mangaList':
+        // case 'mangalist':
+        // case 'mL':
+        // case 'ml':
+        //   displayMangaList(args, message);
+        //   break;
+        // case 'mangaSearch':
+        // case 'mangasearch':
+        // case 'mS':
+        // case 'ms':
+        //   console.log('in manga search');
+        //   if (args.length === 0) {
+        //     message.channel.send('Please provide a search term');
+        //     break;
+        //   }
+        //   const query = args.join(' ');
+        //   db.getMangaBasedOnQuery(query, (results) => {
+        //     const titles = results.rows.map((item) => item.title);
+        //     const formattedTitles = [];
+        //     for (let i = 0; i < titles.length; i++) {
+        //       formattedTitles.push((i + 1) + '. ' + titles[i]);
+        //     }
+        //     sendEmbedMessage(0, formattedTitles, 10, message);
+        //   });
+        //   break;
         case 'pause':
         case 'p':
           console.log('in pause case');
@@ -575,18 +569,18 @@ bot.on('message', (message) => {
           console.log('in start case');
           if (dispatcher == null) nextSong(message);
           break;
-        case 'startJob':
-        case 'startjob':
-        case 'startJ':
-        case 'startj':
-          cronJob.start();
-          break;
-        case 'stopJob':
-        case 'stopjob':
-        case 'stopJ':
-        case 'stopj':
-          cronJob.stop();
-          break;
+        // case 'startJob':
+        // case 'startjob':
+        // case 'startJ':
+        // case 'startj':
+        //   cronJob.start();
+        //   break;
+        // case 'stopJob':
+        // case 'stopjob':
+        // case 'stopJ':
+        // case 'stopj':
+        //   cronJob.stop();
+        //   break;
         case 'tiny':
           console.log('in tiny case');
           message.channel.send('Dong?');
@@ -599,12 +593,11 @@ bot.on('message', (message) => {
             message.channel.send("tts is off");
           }
           break;
-        case 'updateMangaTitles':
-        case 'updatemangatitles':
-        case 'uMT':
-        case 'umt':
-          // updateMangaTitles();
-          break;
+        // case 'updateMangaTitles':
+        // case 'updatemangatitles':
+        // case 'uMT':
+        // case 'umt':
+        //   break;
         case 'youtube':
         case 'yt':
           console.log('in youtube case');
@@ -1255,182 +1248,172 @@ function sendEmbedMessage(startingPage, arr, length, mes) {
   });
 }
 
-function parseRssFeed() {
-  console.log('in parseRssFeed');
-  const guild = getGuild('The Shower');
-  // console.log(guild);
-  if (guild === null) return;
-  const channel = getChannel(guild);
-  // console.log(channel);
-  parser.parseURL('https://www.mangaupdates.com/rss.php').then((feed) => {
-    console.log(feed);
-    db.getManga((results) => {
-      if (results !== null) {
-        let msg = '';
-        let mangaArr = [];
-        let links = [];
-        let titles = [];
+// function parseRssFeed() {
+//   console.log('in parseRssFeed');
+//   const guild = getGuild('The Shower');
+//   if (guild === null) return;
+//   const channel = getChannel(guild);
+//   parser.parseURL('https://www.mangaupdates.com/rss.php').then((feed) => {
+//     console.log(feed);
+//     db.getManga((results) => {
+//       if (results !== null) {
+//         let msg = '';
+//         let mangaArr = [];
+//         let links = [];
+//         let titles = [];
 
-        if (lastManga === null) {
-          links = feed.items.map((item) => item.link);
-          titles = feed.items.map((item) => item.title);
-          lastManga = titles[0];
-        } else {
-          const arrFeed = [];
-          for (let i = 0; i < feed.items.length; i++) {
-            if (feed.items[i].title === lastManga) break;
-            arrFeed.push(feed.items[i]);
-          }
-          links = arrFeed.map((item) => item.link);
-          titles = arrFeed.map((item) => item.title);
-          if (titles.length > 0) lastManga = titles[0];
-        }
-        console.log(links);
-        console.log(titles);
+//         if (lastManga === null) {
+//           links = feed.items.map((item) => item.link);
+//           titles = feed.items.map((item) => item.title);
+//           lastManga = titles[0];
+//         } else {
+//           const arrFeed = [];
+//           for (let i = 0; i < feed.items.length; i++) {
+//             if (feed.items[i].title === lastManga) break;
+//             arrFeed.push(feed.items[i]);
+//           }
+//           links = arrFeed.map((item) => item.link);
+//           titles = arrFeed.map((item) => item.title);
+//           if (titles.length > 0) lastManga = titles[0];
+//         }
+//         console.log(links);
+//         console.log(titles);
 
-        for (let i = 0; i < results.rows.length; i++) {
-          const idx = links.indexOf(results.rows[i].link);
-          if (idx !== -1) mangaArr.push(titles[idx]);
-        }
+//         for (let i = 0; i < results.rows.length; i++) {
+//           const idx = links.indexOf(results.rows[i].link);
+//           if (idx !== -1) mangaArr.push(titles[idx]);
+//         }
 
-        for (let i = 0; i < mangaArr.length; i++) {
-          msg += mangaArr[i] + '\n';
-        }
+//         for (let i = 0; i < mangaArr.length; i++) {
+//           msg += mangaArr[i] + '\n';
+//         }
 
-        if (msg.length !== 0) {
-          const readerRole = getMangaReadersRole(guild);
-          channel.send('<@&' + readerRole.id + '>\n' + msg);
-        }
-      }
-    });
-  });
-}
+//         if (msg.length !== 0) {
+//           const readerRole = getMangaReadersRole(guild);
+//           channel.send('<@&' + readerRole.id + '>\n' + msg);
+//         }
+//       }
+//     });
+//   });
+// }
 
-function getGuild(name) {
-  const guilds = bot.guilds.cache.array();
-  for (let i = 0; i < guilds.length; i++) {
-    if (guilds[i].name === name) return guilds[i];
-  }
-  return null;
-}
+// function getGuild(name) {
+//   const guilds = bot.guilds.cache.array();
+//   for (let i = 0; i < guilds.length; i++) {
+//     if (guilds[i].name === name) return guilds[i];
+//   }
+//   return null;
+// }
 
-function getChannel(guild) {
-  const channels = guild.channels.cache.array();
-  for (let i = 0; i < channels.length; i++) {
-    if (channels[i].name === 'manga-discussion') return channels[i];
-  }
-  return null;
-}
+// function getChannel(guild) {
+//   const channels = guild.channels.cache.array();
+//   for (let i = 0; i < channels.length; i++) {
+//     if (channels[i].name === 'manga-discussion') return channels[i];
+//   }
+//   return null;
+// }
 
-setTimeout(() => {
-  cronJob = new CronJob('*/15 * * * *', () => {
-    parseRssFeed();
-  }, console.log('job done'), true, null, null, true);
-}, 5000);
+// setTimeout(() => {
+//   cronJob = new CronJob('*/15 * * * *', () => {
+//     parseRssFeed();
+//   }, console.log('job done'), true, null, null, true);
+// }, 5000);
 
-function addManga(message, link) {
-  console.log('in addManga');
-  db.getManga((results) => {
-    if (results.rows === null) {
-      message.channel.send('Something went wrong, please try again');
-    } else {
-      console.log(results.rows);
-      const links = results.rows.map((item) => item.link);
-      console.log(links);
-      if (links.includes(link)) {
-        message.channel.send('Manga already in database');
-      } else {
-        https.get(link, (res) => {
-          let data = '';
-          res.on('data', (d) => {
-            data += d;
-          });
-          res.on('end', () => {
-            // console.log(data);
-            const parsedHTML = htmlParser.parse(data);
-            // for (let i = 0; i < parsedHTML.childNodes.length; i++) {
-            //   console.log(parsedHTML.childNodes[i]);
-            // }
-            const title = decode(parsedHTML.childNodes[1].childNodes[1].childNodes[1].childNodes[0].rawText.split('Baka-Updates Manga - ')[1].replace('&#0', '&#'));
-            db.addManga(link, decode(title), (boo) => {
-              console.log(boo);
-              if (boo) {
-                message.channel.send(decode('Successfully added manga ' + title));
-              } else {
-                message.channel.send('Something went wrong, please try again');
-              }
-            });
-          });
+// function addManga(message, link) {
+//   console.log('in addManga');
+//   db.getManga((results) => {
+//     if (results.rows === null) {
+//       message.channel.send('Something went wrong, please try again');
+//     } else {
+//       console.log(results.rows);
+//       const links = results.rows.map((item) => item.link);
+//       console.log(links);
+//       if (links.includes(link)) {
+//         message.channel.send('Manga already in database');
+//       } else {
+//         https.get(link, (res) => {
+//           let data = '';
+//           res.on('data', (d) => {
+//             data += d;
+//           });
+//           res.on('end', () => {
+//             const parsedHTML = htmlParser.parse(data);
+//             const title = decode(parsedHTML.childNodes[1].childNodes[1].childNodes[1].childNodes[0].rawText.split('Baka-Updates Manga - ')[1].replace('&#0', '&#'));
+//             db.addManga(link, decode(title), (boo) => {
+//               console.log(boo);
+//               if (boo) {
+//                 message.channel.send(decode('Successfully added manga ' + title));
+//               } else {
+//                 message.channel.send('Something went wrong, please try again');
+//               }
+//             });
+//           });
   
-          res.on('error', (err) => {
-            console.log(err);
-          });
-        });
-      }
-    }
-  });
-}
+//           res.on('error', (err) => {
+//             console.log(err);
+//           });
+//         });
+//       }
+//     }
+//   });
+// }
 
-function updateMangaTitles() {
-  db.getMangaWithNullTitles((results) => {
-    if (results === null) return;
-    console.log(results.rows);
-    for (let i = 0; i < results.rows.length && i < 5; i++) {
-      https.get(results.rows[i].link, (res) => {
-        let data = '';
-        res.on('data', (d) => {
-          data += d;
-        });
-        res.on('end', () => {
-          // console.log(data);
-          const parsedHTML = htmlParser.parse(data);
-          // for (let i = 0; i < parsedHTML.childNodes.length; i++) {
-          //   console.log(parsedHTML.childNodes[i]);
-          // }
-          const id = results.rows[i].id;
-          const link = results.rows[i].link;
-          const title = decode(parsedHTML.childNodes[1].childNodes[1].childNodes[1].childNodes[0].rawText.split('Baka-Updates Manga - ')[1].replace('&#0', '&#'));
-          console.log(id + '. ' + title + ': ' + link);
-          db.updateMangaTitle(id, title, (boo) => {
-            if (boo) {
-              console.log('Title for ' + title + ' successfully updated');
-            } else {
-              console.log('Title for ' + title + ' failed to update');
-            }
-          });
-        });
+// function updateMangaTitles() {
+//   db.getMangaWithNullTitles((results) => {
+//     if (results === null) return;
+//     console.log(results.rows);
+//     for (let i = 0; i < results.rows.length && i < 5; i++) {
+//       https.get(results.rows[i].link, (res) => {
+//         let data = '';
+//         res.on('data', (d) => {
+//           data += d;
+//         });
+//         res.on('end', () => {
+//           const parsedHTML = htmlParser.parse(data);
+//           const id = results.rows[i].id;
+//           const link = results.rows[i].link;
+//           const title = decode(parsedHTML.childNodes[1].childNodes[1].childNodes[1].childNodes[0].rawText.split('Baka-Updates Manga - ')[1].replace('&#0', '&#'));
+//           console.log(id + '. ' + title + ': ' + link);
+//           db.updateMangaTitle(id, title, (boo) => {
+//             if (boo) {
+//               console.log('Title for ' + title + ' successfully updated');
+//             } else {
+//               console.log('Title for ' + title + ' failed to update');
+//             }
+//           });
+//         });
 
-        res.on('error', (err) => {
-          console.log(err);
-        });
-      });
-    }
-  });
-}
+//         res.on('error', (err) => {
+//           console.log(err);
+//         });
+//       });
+//     }
+//   });
+// }
 
-function displayMangaList(passedInArgs, mes) {
-  db.getManga((results) => {
-    const titles = results.rows.map((item) => item.title);
-    const formattedTitles = [];
-    for (let i = 0; i < titles.length; i++) {
-      formattedTitles.push((i + 1) + '. ' + titles[i]);
-    }
-    let startingPageManga = 0;
-    if (passedInArgs.length > 0 && isFinite(passedInArgs[0])) {
-      if (passedInArgs[0] > 0 && passedInArgs[0] <= Math.ceil(titles.length / 10)) startingPageManga = passedInArgs[0] - 1;
-    }
-    sendEmbedMessage(startingPageManga, formattedTitles, 10, mes);
-  });
-}
+// function displayMangaList(passedInArgs, mes) {
+//   db.getManga((results) => {
+//     const titles = results.rows.map((item) => item.title);
+//     const formattedTitles = [];
+//     for (let i = 0; i < titles.length; i++) {
+//       formattedTitles.push((i + 1) + '. ' + titles[i]);
+//     }
+//     let startingPageManga = 0;
+//     if (passedInArgs.length > 0 && isFinite(passedInArgs[0])) {
+//       if (passedInArgs[0] > 0 && passedInArgs[0] <= Math.ceil(titles.length / 10)) startingPageManga = passedInArgs[0] - 1;
+//     }
+//     sendEmbedMessage(startingPageManga, formattedTitles, 10, mes);
+//   });
+// }
 
-function getMangaReadersRole(guild) {
-  const roles = guild.roles.cache.array();
-  let readerRole = null;
-  for (let i = 0; i < roles.length; i++) {
-    if (roles[i].name === 'readers') readerRole = roles[i];
-  }
-  return readerRole;
-}
+// function getMangaReadersRole(guild) {
+//   const roles = guild.roles.cache.array();
+//   let readerRole = null;
+//   for (let i = 0; i < roles.length; i++) {
+//     if (roles[i].name === 'readers') readerRole = roles[i];
+//   }
+//   return readerRole;
+// }
 
 module.exports = {
   bot: bot,
