@@ -21,7 +21,7 @@
     "express-session": "^1.17.0",
     "ffmpeg-static": "^3.0.0",
     "libsodium-wrappers": "^0.7.6",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "node-html-parser": "^2.0.2",
     "pg": "^7.12.1",
     "rss-parser": "^3.10.0",
